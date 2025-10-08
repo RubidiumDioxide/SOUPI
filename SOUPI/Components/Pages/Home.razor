@@ -1,0 +1,85 @@
+﻿@page "/"
+@inject IHttpContextAccessor HttpContextAccessor 
+
+
+<PageTitle>Home</PageTitle>
+
+<MudContainer>
+    @if (!isAuthenticated)
+    {
+        <MudLink Href="Auth/Login" Typo="Typo.button">Log In with GitHub</MudLink>
+    }
+    else if (user != null)
+    {
+        <MudText>Welcome, @user.Name</MudText>
+    }
+    else {
+        <MudText>Loading...</MudText>
+    }
+</MudContainer>
+
+
+@code {
+    private bool isAuthenticated { get; set; }
+    private User user { get; set; } = default!; 
+    private IReadOnlyList<Repository> repositories { get; set; } = new List<Repository>();
+    private IReadOnlyList<Repository> starredRepos { get; set; } = new List<Repository>();
+    private IReadOnlyList<User> followers { get; set; } = new List<User>();
+    private IReadOnlyList<User> following { get; set; } = new List<User>();
+    private AuthenticationState? authenticationState { get; set; }
+    private System.Timers.Timer? authCheckTimer { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuthenticationState();
+        await LoadGitHubData();
+    }
+
+    private async Task CheckAuthenticationState()
+    {
+        var httpContext = HttpContextAccessor.HttpContext;
+        if (httpContext != null)
+        {
+            var newAuthState = httpContext.User.Identity?.IsAuthenticated ?? false;
+            if (newAuthState != isAuthenticated)
+            {
+                isAuthenticated = newAuthState;
+
+                if (isAuthenticated)
+                {
+                    await LoadGitHubData();
+                }
+            }
+        }
+    }
+
+    private async Task LoadGitHubData()
+    {
+        if (!isAuthenticated) return;
+
+        var httpContext = HttpContextAccessor.HttpContext;
+        if (httpContext == null) return;
+
+        try
+        {
+            var accessToken = await httpContext.GetTokenAsync("access_token");
+            if (string.IsNullOrEmpty(accessToken)) return;
+
+            var github = new GitHubClient(
+                new ProductHeaderValue("AspNetCoreGitHubAuth"),
+                new InMemoryCredentialStore(new Credentials(accessToken))
+            );
+
+            // Load data
+            user = await github.User.Current(); 
+            repositories = await github.Repository.GetAllForCurrent();
+            starredRepos = await github.Activity.Starring.GetAllForCurrent();
+            followers = await github.User.Followers.GetAllForCurrent();
+            following = await github.User.Followers.GetAllFollowingForCurrent();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading GitHub data: {ex.Message}");
+        }
+    }
+}
