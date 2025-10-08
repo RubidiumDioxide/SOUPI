@@ -1,0 +1,128 @@
+﻿@page "/account"
+@inject NavigationManager NavigationManager 
+@inject IHttpContextAccessor HttpContextAccessor 
+@attribute [Authorize]
+
+<PageTitle>Account</PageTitle>
+
+<MudContainer Class="pt-14">  
+    @if (user == null)
+    {
+        <MudText Align="Align.Center">Loading... </MudText>
+    }
+    else
+    {
+        <MudPaper Class="pa-4" Elevation="0">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="2">
+            <!-- Profile Picture -->
+                <MudAvatar Style="height:150px; width:150px; font-size:2rem" Class="mb-2">
+                    <MudImage Src="@user.AvatarUrl" Alt="Profile picture" />
+                </MudAvatar>
+            
+                <!-- User Name -->
+                <MudText Typo="Typo.h6" Class="text-center">
+                    @user.Name
+                    <MudIcon Color="Color.Primary" Icon=@Icons.Custom.Brands.GitHub Size="Size.Small" @onclick="GoToGitHubUserProfile"/>
+                </MudText> 
+                <MudText Typo="Typo.body2" Class="text-center">@user.Login</MudText>
+
+                <MudDivider/>
+
+                <!-- User Bio/Description -->
+                @if (!string.IsNullOrEmpty(user.Bio))
+                {
+                    <MudText Typo="Typo.body2" Class="text-center mt-2" Color="Color.Secondary">
+                        @user.Bio
+                    </MudText>
+                }
+                        
+            </MudStack>
+        </MudPaper>
+ 
+        @*<MudDivider/>
+
+        <MudExpansionPanels MultiExpansion="false" Elevation="0">
+            <MudExpansionPanel Text="Repos">
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2">
+                    @repositories.Count repositories
+                </MudText>
+                <MudList T="Repository">
+                    @foreach (var repo in repositories)
+                        {
+                            <MudListItem Href="@repo.HtmlUrl" Target="_blank" Text="@repo.FullName" />
+                        }
+                </MudList>
+            </MudExpansionPanel>
+        </MudExpansionPanels>*@
+    }
+</MudContainer>
+
+
+@code {
+    private bool isAuthenticated { get; set; }
+    private User user { get; set; } = default!; 
+    private IReadOnlyList<Repository> repositories { get; set; } = new List<Repository>();
+    private IReadOnlyList<Repository> starredRepos { get; set; } = new List<Repository>();
+    private IReadOnlyList<User> followers { get; set; } = new List<User>();
+    private IReadOnlyList<User> following { get; set; } = new List<User>();
+    private AuthenticationState? authenticationState { get; set; }
+    private System.Timers.Timer? authCheckTimer { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuthenticationState();
+        await LoadGitHubData();
+    }
+
+    private async Task CheckAuthenticationState()
+    {
+        var httpContext = HttpContextAccessor.HttpContext;
+        if (httpContext != null)
+        {
+            var newAuthState = httpContext.User.Identity?.IsAuthenticated ?? false;
+            if (newAuthState != isAuthenticated)
+            {
+                isAuthenticated = newAuthState;
+
+                if (isAuthenticated)
+                {
+                    await LoadGitHubData();
+                }
+            }
+        }
+    }
+
+    private async Task LoadGitHubData()
+    {
+        if (!isAuthenticated) return;
+
+        var httpContext = HttpContextAccessor.HttpContext;
+        if (httpContext == null) return;
+
+        try
+        {
+            var accessToken = await httpContext.GetTokenAsync("access_token");
+            if (string.IsNullOrEmpty(accessToken)) return;
+
+            var github = new GitHubClient(
+                new ProductHeaderValue("AspNetCoreGitHubAuth"),
+                new InMemoryCredentialStore(new Credentials(accessToken))
+            );
+
+            // Load data
+            user = await github.User.Current(); 
+            repositories = await github.Repository.GetAllForCurrent();
+            starredRepos = await github.Activity.Starring.GetAllForCurrent();
+            followers = await github.User.Followers.GetAllForCurrent();
+            following = await github.User.Followers.GetAllFollowingForCurrent();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading GitHub data: {ex.Message}");
+        }
+    }
+     
+    private void GoToGitHubUserProfile(){
+        NavigationManager.NavigateTo(user.HtmlUrl); 
+    }
+}

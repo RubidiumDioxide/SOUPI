@@ -52,6 +52,7 @@ builder.Services.AddAuthentication(options =>
             }
         };
     });
+builder.Services.AddAuthorization();
 
 builder.Services.AddMudServices(); 
 
@@ -69,9 +70,11 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseAuthentication(); 
-app.UseAuthorization();
 
 app.UseRouting();
+
+app.UseAuthorization();
+
 app.UseAntiforgery();
 
 app.MapControllers(); 
