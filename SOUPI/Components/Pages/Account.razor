@@ -8,7 +8,7 @@
 @attribute [Authorize]
 
 
-<PageTitle>Account</PageTitle>
+<PageTitle>Мой аккаунт</PageTitle>
 
 <MudContainer Class="pt-14">  
     @if (githubUser == null || user == null)
@@ -51,9 +51,8 @@
     [CascadingParameter]
     private Task<AuthenticationState>? authenticationState { get; set; }
 
-    private bool isAuthenticated { get; set; }
-    private GithubUser githubUser { get; set; } = default!;     
-    private UserDto user { get; set; } = default!;  
+    private GithubUser? githubUser { get; set; } 
+    private UserDto? user { get; set; }   
 
     protected override async Task OnInitializedAsync()
     {
@@ -98,7 +97,7 @@
     private async Task LoadUser()
     {
         try {
-            var user = await UserService.GetUserByLogin(githubUser.Login);
+            user = await UserService.GetUserByLogin(githubUser!.Login);
 
             if(user == null){
                 user = await UserService.SaveNewUser(new UserDto()

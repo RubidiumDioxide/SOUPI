@@ -24,8 +24,7 @@ namespace SOUPIAPI.Controllers
 
             if(existingUser == null)
             {
-                return NotFound($"User with such login was not found: {login}");
-                Console.WriteLine("ok"); 
+                return NotFound();
             }
             else
             {
@@ -47,12 +46,12 @@ namespace SOUPIAPI.Controllers
                 _context.Users.Add(user);  
                 _context.SaveChanges();
 
-                return BadRequest($"There already is a user with such login: {userDto.Login}"); 
+                return Ok(new UserDto(user));
             }
             else
             {
-                return Ok(new UserDto(existingUser)); 
+                return BadRequest(); 
             }
         }
     }
-}
+} 

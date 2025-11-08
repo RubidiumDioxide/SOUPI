@@ -43,7 +43,7 @@ namespace SOUPI.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/api/user/getuserbylogin/{login}");
+                var response = await _httpClient.GetAsync($"/api/User/GetUserByLogin?login={login}");
 
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {

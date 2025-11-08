@@ -1,0 +1,101 @@
+﻿@page "/myprojects"
+@inject NavigationManager NavigationManager
+@inject IGithubService GithubService
+@inject IUserService UserService 
+@inject ISnackbar Snackbar
+@using GithubUser = Octokit.User
+@using SOUPI.Exceptions;
+@attribute [Authorize]
+
+
+<PageTitle>Мои проекты</PageTitle>
+
+<MudButton>Новый проект</MudButton>
+
+
+<MudContainer Class="pt-14">
+    @if (githubUser == null || user == null)
+    {
+        <MudText Align="Align.Center">Loading... </MudText>
+    }
+    else
+    {
+        <MudPaper Class="pa-4" Elevation="0">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="2">
+                <MudButton>Новый проект</MudButton>
+            </MudStack>
+        </MudPaper>
+    }
+</MudContainer>
+
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
+    private GithubUser githubUser { get; set; } = default!;
+    private UserDto user { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (authenticationState != null)
+        {
+            var authState = await authenticationState;
+
+            if (authState.User.Identity?.IsAuthenticated == true)
+            {
+                await LoadGitHubUser();
+                await LoadUser();
+                StateHasChanged();
+            }
+            else
+            {
+                Snackbar.Add("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ", Severity.Error);
+            }
+        }
+        else
+        {
+            Snackbar.Add("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+
+    private async Task LoadGitHubUser()
+    {
+        try
+        {
+            githubUser = await GithubService.GetUser();
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+
+    private async Task LoadUser()
+    {
+        try
+        {
+            var user = await UserService.GetUserByLogin(githubUser.Login);
+
+            if (user == null)
+            {
+                user = await UserService.SaveNewUser(new UserDto()
+                {
+                    Login = githubUser.Login
+                });
+            }
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+}
