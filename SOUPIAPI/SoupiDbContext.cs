@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using SOUPIShared.Models;
+using SOUPIShared.Models; 
+using Task = SOUPIShared.Models.Task; 
+
 
 namespace SOUPIAPI;
 
@@ -177,11 +179,9 @@ public partial class SoupiDbContext : DbContext
 
             entity.HasIndex(e => e.Id, "UQ__USER__3214EC065F3239DF").IsUnique();
 
-            entity.HasIndex(e => e.Name, "UQ__USER__737584F663513405").IsUnique();
+            entity.HasIndex(e => e.Login, "UQ__USER__737584F663513405").IsUnique();
 
-            entity.Property(e => e.GithubUser).HasMaxLength(255);
-            entity.Property(e => e.Image).HasMaxLength(255);
-            entity.Property(e => e.Name).HasMaxLength(255);
+            entity.Property(e => e.Login).HasMaxLength(255);
         });
 
         OnModelCreatingPartial(modelBuilder);

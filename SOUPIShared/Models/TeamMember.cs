@@ -1,4 +1,7 @@
-﻿namespace SOUPIShared.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace SOUPIShared.Models;
 
 public partial class TeamMember
 {

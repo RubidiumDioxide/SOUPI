@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims; 
 using System.Net.Http.Headers;
 using System.Text.Json;
-using MudBlazor.Services; 
+using MudBlazor.Services;
+using SOUPI.Services;
+using MudBlazor;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -54,7 +56,27 @@ builder.Services.AddAuthentication(options =>
     });
 builder.Services.AddAuthorization();
 
-builder.Services.AddMudServices(); 
+
+builder.Logging.AddConsole();
+builder.Services.AddScoped<IGithubService, GithubService>(); 
+builder.Services.AddHttpClient<IUserService, UserService>(client => 
+{
+    client.BaseAddress = new Uri("https://localhost:2100"); 
+});   
+
+
+
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
+    config.SnackbarConfiguration.PreventDuplicates = false;
+    config.SnackbarConfiguration.NewestOnTop = false;
+    config.SnackbarConfiguration.ShowCloseIcon = true;
+    config.SnackbarConfiguration.VisibleStateDuration = 10000;
+    config.SnackbarConfiguration.HideTransitionDuration = 500;
+    config.SnackbarConfiguration.ShowTransitionDuration = 500;
+    config.SnackbarConfiguration.SnackbarVariant = Variant.Filled; 
+}); 
 
 var app = builder.Build();
 

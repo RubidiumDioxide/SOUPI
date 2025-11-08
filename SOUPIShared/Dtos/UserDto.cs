@@ -7,18 +7,12 @@ namespace SOUPIShared.Dtos
     {
         public int Id { get; set; }
 
-        public string Name { get; set; } = null!;
-
-        public string? GithubUser { get; set; }
-
-        public string? Image { get; set; }
+        public string Login { get; set; } = null!;
 
         public UserDto(User user)
         {
             Id = user.Id;
-            Name = user.Name;
-            GithubUser = user.GithubUser;
-            Image = user.Image; 
+            Login = user.Login; 
         }
 
         public UserDto() { }

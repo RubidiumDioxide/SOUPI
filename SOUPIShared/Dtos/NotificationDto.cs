@@ -1,7 +1,6 @@
-﻿using SOUPIShared.Models; 
+﻿using SOUPIShared.Models;
 
-
-namespace SOUPIShared.Dtos; 
+namespace SOUPIShared.Dtos;
 
 public class NotificationDto
 {

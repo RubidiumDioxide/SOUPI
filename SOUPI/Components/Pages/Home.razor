@@ -1,6 +1,8 @@
 ﻿@page "/"
 @inject NavigationManager NavigationManager 
 @inject IHttpContextAccessor HttpContextAccessor 
+@inject ISnackbar SnackBar 
+
 
 <PageTitle>Home</PageTitle>
 
@@ -18,15 +20,10 @@
 
 @code {
     private bool isAuthenticated { get; set; }
-
+    private User user { get; set; } = default!;
     private AuthenticationState? authenticationState { get; set; }
 
     protected override void OnInitialized()
-    {
-        CheckAuthenticationState();
-    }
-
-    private void CheckAuthenticationState()
     {
         var httpContext = HttpContextAccessor.HttpContext;
         if (httpContext != null)
@@ -35,12 +32,11 @@
             if (newAuthState != isAuthenticated)
             {
                 isAuthenticated = newAuthState;
-
-                if(isAuthenticated)
-                {
-                    NavigationManager.NavigateTo("/account"); 
-                }
             }
+        }
+
+        if(isAuthenticated){
+            NavigationManager.NavigateTo("account"); 
         }
     }
 }

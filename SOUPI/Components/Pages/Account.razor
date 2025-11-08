@@ -1,12 +1,17 @@
 ﻿@page "/account"
 @inject NavigationManager NavigationManager 
-@inject IHttpContextAccessor HttpContextAccessor 
+@inject IGithubService GithubService 
+@inject IUserService UserService
+@inject ISnackbar Snackbar 
+@using GithubUser = Octokit.User 
+@using SOUPI.Exceptions;
 @attribute [Authorize]
+
 
 <PageTitle>Account</PageTitle>
 
 <MudContainer Class="pt-14">  
-    @if (user == null)
+    @if (githubUser == null || user == null)
     {
         <MudText Align="Align.Center">Loading... </MudText>
     }
@@ -14,115 +19,105 @@
     {
         <MudPaper Class="pa-4" Elevation="0">
             <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="2">
-            <!-- Profile Picture -->
+                <!-- Profile Picture -->
                 <MudAvatar Style="height:150px; width:150px; font-size:2rem" Class="mb-2">
-                    <MudImage Src="@user.AvatarUrl" Alt="Profile picture" />
+                    <MudImage Src="@githubUser.AvatarUrl" Alt="Profile picture" />
                 </MudAvatar>
-            
+
                 <!-- User Name -->
                 <MudText Typo="Typo.h6" Class="text-center">
-                    @user.Name
+                    @githubUser.Name
                     <MudIcon Color="Color.Primary" Icon=@Icons.Custom.Brands.GitHub Size="Size.Small" @onclick="GoToGitHubUserProfile"/>
                 </MudText> 
-                <MudText Typo="Typo.body2" Class="text-center">@user.Login</MudText>
+                <MudText Typo="Typo.body2" Class="text-center">@githubUser.Login</MudText>
 
                 <MudDivider/>
 
                 <!-- User Bio/Description -->
-                @if (!string.IsNullOrEmpty(user.Bio))
+                @if (!string.IsNullOrEmpty(githubUser.Bio))
                 {
                     <MudText Typo="Typo.body2" Class="text-center mt-2" Color="Color.Secondary">
-                        @user.Bio
+                        @githubUser.Bio
                     </MudText>
                 }
-                        
+
             </MudStack>
         </MudPaper>
- 
-        @*<MudDivider/>
-
-        <MudExpansionPanels MultiExpansion="false" Elevation="0">
-            <MudExpansionPanel Text="Repos">
-                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2">
-                    @repositories.Count repositories
-                </MudText>
-                <MudList T="Repository">
-                    @foreach (var repo in repositories)
-                        {
-                            <MudListItem Href="@repo.HtmlUrl" Target="_blank" Text="@repo.FullName" />
-                        }
-                </MudList>
-            </MudExpansionPanel>
-        </MudExpansionPanels>*@
     }
 </MudContainer>
 
 
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
     private bool isAuthenticated { get; set; }
-    private User user { get; set; } = default!; 
-    private IReadOnlyList<Repository> repositories { get; set; } = new List<Repository>();
-    private IReadOnlyList<Repository> starredRepos { get; set; } = new List<Repository>();
-    private IReadOnlyList<User> followers { get; set; } = new List<User>();
-    private IReadOnlyList<User> following { get; set; } = new List<User>();
-    private AuthenticationState? authenticationState { get; set; }
-    private System.Timers.Timer? authCheckTimer { get; set; }
+    private GithubUser githubUser { get; set; } = default!;     
+    private UserDto user { get; set; } = default!;  
 
     protected override async Task OnInitializedAsync()
     {
-        await CheckAuthenticationState();
-        await LoadGitHubData();
-    }
-
-    private async Task CheckAuthenticationState()
-    {
-        var httpContext = HttpContextAccessor.HttpContext;
-        if (httpContext != null)
+        if(authenticationState != null)
         {
-            var newAuthState = httpContext.User.Identity?.IsAuthenticated ?? false;
-            if (newAuthState != isAuthenticated)
-            {
-                isAuthenticated = newAuthState;
+            var authState = await authenticationState; 
 
-                if (isAuthenticated)
-                {
-                    await LoadGitHubData();
-                }
+            if (authState.User.Identity?.IsAuthenticated == true)
+            {
+                await LoadGitHubUser();
+                await LoadUser();
+                StateHasChanged(); 
             }
+            else
+            {
+                Snackbar.Add("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ", Severity.Error);
+            }
+        }
+        else
+        {
+            Snackbar.Add("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ", Severity.Error);
         }
     }
 
-    private async Task LoadGitHubData()
+
+    private async Task LoadGitHubUser()
     {
-        if (!isAuthenticated) return;
-
-        var httpContext = HttpContextAccessor.HttpContext;
-        if (httpContext == null) return;
-
         try
         {
-            var accessToken = await httpContext.GetTokenAsync("access_token");
-            if (string.IsNullOrEmpty(accessToken)) return;
-
-            var github = new GitHubClient(
-                new ProductHeaderValue("AspNetCoreGitHubAuth"),
-                new InMemoryCredentialStore(new Credentials(accessToken))
-            );
-
-            // Load data
-            user = await github.User.Current(); 
-            repositories = await github.Repository.GetAllForCurrent();
-            starredRepos = await github.Activity.Starring.GetAllForCurrent();
-            followers = await github.User.Followers.GetAllForCurrent();
-            following = await github.User.Followers.GetAllFollowingForCurrent();
+            githubUser = await GithubService.GetUser(); 
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error); 
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading GitHub data: {ex.Message}");
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error); 
         }
     }
-     
+
+    private async Task LoadUser()
+    {
+        try {
+            var user = await UserService.GetUserByLogin(githubUser.Login);
+
+            if(user == null){
+                user = await UserService.SaveNewUser(new UserDto()
+                {
+                    Login = githubUser.Login 
+                }); 
+            } 
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error); 
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+
     private void GoToGitHubUserProfile(){
-        NavigationManager.NavigateTo(user.HtmlUrl); 
+        NavigationManager.NavigateTo(githubUser.HtmlUrl); 
     }
 }

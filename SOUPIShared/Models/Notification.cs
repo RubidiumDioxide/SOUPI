@@ -1,4 +1,7 @@
-﻿namespace SOUPIShared.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace SOUPIShared.Models;
 
 public partial class Notification
 {
@@ -8,9 +11,9 @@ public partial class Notification
 
     public int SenderId { get; set; }
 
-    public string Text { get; set; } = null!; 
+    public string Text { get; set; } = null!;
 
-    public string Link { get; set; } = null!; 
+    public string Link { get; set; } = null!;
 
     public virtual User Reciever { get; set; } = null!;
 
