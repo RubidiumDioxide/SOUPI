@@ -1,0 +1,194 @@
+﻿@page "/newproject"
+@inject NavigationManager NavigationManager
+@inject IGithubService GithubService
+@inject IUserService UserService
+@inject IProjectService ProjectService
+@inject IImageUploadService ImageUploadService 
+@inject ISnackbar Snackbar
+@using GithubUser = Octokit.User
+@using Octokit 
+@using Project = SOUPIShared.Models.Project 
+@using SOUPIShared.Exceptions;
+@using System.ComponentModel.DataAnnotations 
+@attribute [Authorize] 
+
+
+<PageTitle>Мои проекты</PageTitle>
+
+<MudContainer Class="pt-14">
+    @if (githubUser == null || user == null || newProject == null)
+    {
+        <MudText Align="Align.Center">Loading... </MudText>
+    }
+    else
+    {
+        <EditForm Model=@newProject OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudCard Style="max-width: 700px" Class="ma-auto">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h5" Class="mb-1 ma-auto">Создание нового проекта</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudTextField @bind-Value=@newProject.Name For="@(() => newProject.Name)" Label="Название проекта" Variant=Variant.Outlined />
+                    <MudTextField @bind-Value=@newProject.Description For="@(() => newProject.Description)" Label="Описание проекта" Variant=Variant.Outlined Lines="5" />
+                    <MudTextField @bind-Value=@newProject.GithubRepository For="@(() => newProject.GithubRepository)" Label="Название репозитория на Github" Variant=Variant.Outlined />
+
+                    <MudFileUpload T="IBrowserFile" Accept=".jpg, .png, .jpeg" OnFilesChanged=@(async (e) => await OnImageChanged(e))>
+                        <ActivatorContent>
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.Image">
+                                Обложка (.jpg, .png, .jpeg)
+                            </MudButton>
+                        </ActivatorContent>
+                    </MudFileUpload>
+
+                    @if (imagePreviewUrl != null)
+                    {
+                        <MudPaper Style="max-width:200px;" Class="ma-4">
+                            <img src="@imagePreviewUrl" alt="Project Image Preview" style="width:100%; border-radius:4px;" />
+                        </MudPaper>
+                    }
+                </MudCardContent>
+                <MudCardActions Class="mt-1 ma-auto">
+                    <MudButton ButtonType=ButtonType.Submit Color="Color.Primary" Variant="Variant.Filled" Disabled=@isValid>Создать</MudButton>
+                    <MudButton onclick="ResetForm" Color="Color.Secondary" Variant="Variant.Filled" Disabled=@isValid>Сбросить</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </EditForm>
+    }
+</MudContainer>
+
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
+    private GithubUser? githubUser { get; set; }
+    private UserDto? user { get; set; } 
+
+    private ProjectDto newProject = new ProjectDto(); 
+    private bool isValid = false; 
+    private IBrowserFile? imageFile { get; set; }
+    private string? imagePreviewUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (authenticationState != null)
+        {
+            var authState = await authenticationState;
+
+            if (authState.User.Identity?.IsAuthenticated == true)
+            {
+                await LoadGitHubUser();
+                await LoadUser(); 
+
+                StateHasChanged();
+            }
+            else
+            {
+                Snackbar.Add("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ", Severity.Error);
+            }
+        }
+        else
+        {
+            Snackbar.Add("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+
+    private async Task LoadGitHubUser()
+    {
+        try
+        {
+            githubUser = await GithubService.GetUser();
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+
+    private async Task LoadUser()
+    {
+        try
+        {
+            user = await UserService.GetUserByLogin(githubUser.Login);
+
+            if (user == null)
+            {
+                user = await UserService.SaveNewUser(new UserDto()
+                {
+                    Login = githubUser.Login
+                });
+            }
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+
+    private void ResetForm()
+    {
+        imageFile = null;
+        imagePreviewUrl = null; 
+        newProject = new ProjectDto();
+        StateHasChanged();
+    }
+
+    private async Task OnImageChanged(InputFileChangeEventArgs e)
+    {
+        imageFile = await e.File.RequestImageFileAsync(e.File.ContentType, 200, 200);
+
+        var buffer = new byte[imageFile.Size];
+        await imageFile.OpenReadStream().ReadAsync(buffer);
+        imagePreviewUrl = $"data:{imageFile.ContentType};base64,{Convert.ToBase64String(buffer)}";
+
+        StateHasChanged();
+    }
+
+    private async Task OnValidSubmit()
+    {
+        newProject.CreatorId = user!.Id; 
+
+        try
+        {
+            if (!string.IsNullOrEmpty(newProject.GithubRepository))
+            {
+                var repositories = await GithubService.GetRepositories(githubUser!.Login);
+                if (!repositories.Select(r => r.Name).Contains(newProject.GithubRepository))
+                {
+                    throw new SoupiException("Похоже, у вас нет доступа к этому репозиторию. Проверьте название репозитория. ");
+                }
+            }
+
+            // try uploading an image
+            if (imageFile != null)
+            {        
+                newProject.Image = await ImageUploadService.UploadImage(imageFile); 
+            } 
+
+            newProject = await ProjectService.CreateProject(newProject);  
+
+            Snackbar.Add("Проект успешно создан", Severity.Success); 
+
+            ResetForm(); 
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+}

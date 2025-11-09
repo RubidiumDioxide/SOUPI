@@ -4,7 +4,7 @@
 @inject IUserService UserService
 @inject ISnackbar Snackbar 
 @using GithubUser = Octokit.User 
-@using SOUPI.Exceptions;
+@using SOUPIShared.Exceptions;
 @attribute [Authorize]
 
 
@@ -117,6 +117,6 @@
     }
 
     private void GoToGitHubUserProfile(){
-        NavigationManager.NavigateTo(githubUser.HtmlUrl); 
+        NavigationManager.NavigateTo(githubUser!.HtmlUrl); 
     }
 }

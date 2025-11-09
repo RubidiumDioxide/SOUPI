@@ -19,7 +19,7 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddAuthentication(options =>
+builder.Services.AddAuthentication(options => 
 {
     options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -59,11 +59,15 @@ builder.Services.AddAuthorization();
 
 builder.Logging.AddConsole();
 builder.Services.AddScoped<IGithubService, GithubService>(); 
+builder.Services.AddScoped<IImageUploadService, ImageUploadService>(); 
 builder.Services.AddHttpClient<IUserService, UserService>(client => 
 {
     client.BaseAddress = new Uri("https://localhost:2100"); 
-});   
-
+});
+builder.Services.AddHttpClient<IProjectService, ProjectService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:2100"); 
+}); 
 
 
 builder.Services.AddMudServices(config =>

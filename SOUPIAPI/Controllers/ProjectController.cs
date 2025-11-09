@@ -33,5 +33,23 @@ namespace SOUPIAPI.Controllers
 
             return Ok(projects.Select(p => new ProjectDto(p)));           
         }
+
+        [HttpPost]
+        public async Task<ActionResult<ProjectDto>> CreateProject([FromBody] ProjectDto projectDto)
+        {
+            var newProject = new Project() 
+            {
+                Name = projectDto.Name, 
+                Description = projectDto.Description, 
+                GithubRepository = projectDto.GithubRepository, 
+                CreatorId = projectDto.CreatorId, 
+                Image = projectDto.Image,  
+            };
+
+            _context.Projects.Add(newProject);
+            await _context.SaveChangesAsync();
+
+            return Ok(new ProjectDto(newProject)); 
+        }
     }
 } 

@@ -1,6 +1,6 @@
 ﻿using Octokit;
 using GithubUser = Octokit.User;
-using SOUPI.Exceptions;
+using SOUPIShared.Exceptions;
 using Microsoft.AspNetCore.Authentication;
 using Octokit.Internal;
 
@@ -35,8 +35,30 @@ namespace SOUPI.Services
             }
             catch(Exception ex)
             {
-                _logger.LogError($"{ex.Message}");
+                _logger.LogError($"Не удалось получить информацию о текущем пользовтеле. {ex.Message}");
                 throw new SoupiException("Не удалось получить информацию о текущем пользовтеле. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
+        }
+
+        public async Task<IEnumerable<Repository>> GetRepositories(string login)
+        {
+            try
+            {
+                var httpContext = _httpContextAccessor.HttpContext;
+
+                var accessToken = await httpContext!.GetTokenAsync("access_token");
+
+                var github = new GitHubClient(
+                    new ProductHeaderValue("AspNetCoreGitBubAuth"),
+                    new InMemoryCredentialStore(new Credentials(accessToken))
+                );
+
+                return await github.Repository.GetAllForUser(login); 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Не удалось получить информацию о репозиториях текущего пользователя. {ex.Message}");
+                throw new SoupiException("Не удалось получить информацию о репозиториях текущего пользователя. Попробуйте позже или сообщите об ошибке в техподдержку ");
             }
         }
     }

@@ -44,7 +44,7 @@ namespace SOUPIAPI.Controllers
                 };
 
                 _context.Users.Add(user);  
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
                 return Ok(new UserDto(user));
             }
