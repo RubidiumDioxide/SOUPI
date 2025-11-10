@@ -1,8 +1,9 @@
 ﻿@page "/myprojects"
 @inject NavigationManager NavigationManager 
-@inject IGithubService GithubService
 @inject IUserService UserService 
+@inject IProjectService ProjectService  
 @inject ISnackbar Snackbar
+@inject IHttpContextAccessor HttpContextAccessor 
 @using GithubUser = Octokit.User
 @using SOUPIShared.Exceptions;
 @attribute [Authorize]
@@ -10,18 +11,31 @@
 
 <PageTitle>Мои проекты</PageTitle>
 
-<MudContainer Class="pt-14">
-    @if (githubUser == null || user == null)
+<MudContainer Class="pt-14" >
+    @if (user == null || projects == null)
     {
         <MudText Align="Align.Center">Loading... </MudText>
     }
     else
     {
-        <MudPaper Class="pa-4" Elevation="0">
-            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="2">
-                <MudButton OnClick="NavigateToNewProject">Новый проект</MudButton>
-            </MudStack>
-        </MudPaper>
+        <MudStack AlignItems="AlignItems.Center">
+            <MudButton OnClick="NavigateToNewProject">Новый проект</MudButton>
+
+            @if (error == null)
+            {
+                <MudGrid Class="mt-8">
+                    @foreach (ProjectDto project in projects)
+                    {
+                        <ProjectCard Project=@project
+                                     NavigationManager="NavigationManager" />
+                    }
+                </MudGrid>
+            }
+            else
+            {
+                <MudAlert Severity=severity>@error</MudAlert>
+            }
+        </MudStack>
     }
 </MudContainer>
 
@@ -30,8 +44,12 @@
     [CascadingParameter]
     private Task<AuthenticationState>? authenticationState { get; set; }
 
-    private GithubUser? githubUser { get; set; } 
+    private string? error { get; set; } = null;
+    private Severity severity { get; set; } = Severity.Warning;
+
+    private string? githubUserLogin { get; set; } 
     private UserDto? user { get; set; } 
+    private IEnumerable<ProjectDto>? projects { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -41,8 +59,8 @@
 
             if (authState.User.Identity?.IsAuthenticated == true)
             {
-                await LoadGitHubUser();
                 await LoadUser();
+                await LoadProjects(); 
                 StateHasChanged();
             }
             else
@@ -56,34 +74,23 @@
         }
     }
 
-    private async Task LoadGitHubUser()
-    {
-        try
-        {
-            githubUser = await GithubService.GetUser();
-        }
-        catch (SoupiException ex)
-        {
-            Snackbar.Add(ex.Message, Severity.Error);
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
-        }
-    }
-
     private async Task LoadUser()
     {
         try
         {
-            user = await UserService.GetUserByLogin(githubUser!.Login);
+            var httpContext = HttpContextAccessor.HttpContext;
+            var githubUserLogin = httpContext.User.FindFirst("urn:github:login").Value;
+
+            if (string.IsNullOrEmpty(githubUserLogin))
+            {
+                throw new SoupiException("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
+
+            user = await UserService.GetUserByLogin(githubUserLogin);
 
             if (user == null)
             {
-                user = await UserService.SaveNewUser(new UserDto()
-                {
-                    Login = githubUser.Login
-                });
+                throw new SoupiException("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ");
             }
         }
         catch (SoupiException ex)
@@ -95,6 +102,34 @@
             Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
         }
     } 
+
+    private async Task LoadProjects()
+    {
+        try
+        {
+            projects = await ProjectService.GetProjectsByLogin(user!.Login);
+
+            if (projects.Count() == 0)
+            {
+                error = "Здесь пока ничего нет :( ";
+                severity = Severity.Warning; 
+            }
+            else
+            {
+                error = null; 
+            }
+
+            StateHasChanged(); 
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
 
     private void NavigateToNewProject()
     {

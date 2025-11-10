@@ -26,10 +26,6 @@ namespace SOUPIAPI.Controllers
             }
 
             var projects = await _context.Projects.Where(p => p.CreatorId == existingUser.Id).ToListAsync();
-            if (projects == null)
-            {
-                return BadRequest(); 
-            }
 
             return Ok(projects.Select(p => new ProjectDto(p)));           
         }

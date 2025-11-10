@@ -5,6 +5,6 @@ namespace SOUPI.Services
 {
     public interface IImageUploadService
     {
-        public Task<string> UploadImage(IBrowserFile imageFile); 
+        public Task<string> UploadImage(IBrowserFile imageFile, string fileName); 
     }
 }

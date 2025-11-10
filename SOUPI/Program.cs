@@ -30,6 +30,7 @@ builder.Services.AddAuthentication(options =>
     {
         options.ClientId = builder.Configuration["Github:ClientId"];
         options.ClientSecret = builder.Configuration["Github:ClientSecret"];
+        options.Scope.Add("repo");
         options.CallbackPath = new PathString("/signin-github");
         options.AuthorizationEndpoint = "https://github.com/login/oauth/authorize";
         options.TokenEndpoint = "https://github.com/login/oauth/access_token";

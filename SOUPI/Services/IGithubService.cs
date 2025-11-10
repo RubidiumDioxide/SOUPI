@@ -7,6 +7,6 @@ namespace SOUPI.Services
     {
         public Task<GithubUser> GetUser();
 
-        public Task<IEnumerable<Repository>> GetRepositories(string login); 
+        public Task<IEnumerable<Repository>> GetRepositories(); 
     }
 }

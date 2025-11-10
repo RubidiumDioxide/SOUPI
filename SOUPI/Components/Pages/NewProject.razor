@@ -5,6 +5,7 @@
 @inject IProjectService ProjectService
 @inject IImageUploadService ImageUploadService 
 @inject ISnackbar Snackbar
+@inject IHttpContextAccessor HttpContextAccessor
 @using GithubUser = Octokit.User
 @using Octokit 
 @using Project = SOUPIShared.Models.Project 
@@ -16,7 +17,7 @@
 <PageTitle>Мои проекты</PageTitle>
 
 <MudContainer Class="pt-14">
-    @if (githubUser == null || user == null || newProject == null)
+    @if (user == null || newProject == null)
     {
         <MudText Align="Align.Center">Loading... </MudText>
     }
@@ -51,8 +52,8 @@
                     }
                 </MudCardContent>
                 <MudCardActions Class="mt-1 ma-auto">
-                    <MudButton ButtonType=ButtonType.Submit Color="Color.Primary" Variant="Variant.Filled" Disabled=@isValid>Создать</MudButton>
-                    <MudButton onclick="ResetForm" Color="Color.Secondary" Variant="Variant.Filled" Disabled=@isValid>Сбросить</MudButton>
+                    <MudButton @ref=submitButton ButtonType=ButtonType.Submit Color="Color.Primary" Variant="Variant.Filled">Создать</MudButton>
+                    <MudButton onclick="ResetForm" Color="Color.Secondary" Variant="Variant.Filled">Сбросить</MudButton>
                 </MudCardActions>
             </MudCard>
         </EditForm>
@@ -64,13 +65,13 @@
     [CascadingParameter]
     private Task<AuthenticationState>? authenticationState { get; set; }
 
-    private GithubUser? githubUser { get; set; }
     private UserDto? user { get; set; } 
 
     private ProjectDto newProject = new ProjectDto(); 
-    private bool isValid = false; 
     private IBrowserFile? imageFile { get; set; }
     private string? imagePreviewUrl { get; set; }
+
+    private MudButton submitButton { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -80,7 +81,6 @@
 
             if (authState.User.Identity?.IsAuthenticated == true)
             {
-                await LoadGitHubUser();
                 await LoadUser(); 
 
                 StateHasChanged();
@@ -96,34 +96,23 @@
         }
     }
 
-    private async Task LoadGitHubUser()
-    {
-        try
-        {
-            githubUser = await GithubService.GetUser();
-        }
-        catch (SoupiException ex)
-        {
-            Snackbar.Add(ex.Message, Severity.Error);
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
-        }
-    }
-
     private async Task LoadUser()
     {
         try
-        {
-            user = await UserService.GetUserByLogin(githubUser.Login);
+        {   
+            var httpContext = HttpContextAccessor.HttpContext;
+            var githubUserLogin = httpContext.User.FindFirst("urn:github:login").Value;
+
+            if (string.IsNullOrEmpty(githubUserLogin))
+            {
+                throw new SoupiException("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
+
+            user = await UserService.GetUserByLogin(githubUserLogin);
 
             if (user == null)
             {
-                user = await UserService.SaveNewUser(new UserDto()
-                {
-                    Login = githubUser.Login
-                });
+                throw new SoupiException("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ");
             }
         }
         catch (SoupiException ex)
@@ -146,24 +135,33 @@
 
     private async Task OnImageChanged(InputFileChangeEventArgs e)
     {
-        imageFile = await e.File.RequestImageFileAsync(e.File.ContentType, 200, 200);
+        if (e.File.Size >= 512000)
+        {
+            Snackbar.Add("Размер изображения превышает допустимый (512000). Изображение не будет сохранено", Severity.Error);
+            return; 
+        }
 
-        var buffer = new byte[imageFile.Size];
-        await imageFile.OpenReadStream().ReadAsync(buffer);
-        imagePreviewUrl = $"data:{imageFile.ContentType};base64,{Convert.ToBase64String(buffer)}";
+        imageFile = e.File; 
+        var compressedImageFile = await e.File.RequestImageFileAsync(e.File.ContentType, 200, 200);
+
+        var buffer = new byte[compressedImageFile.Size];
+        await compressedImageFile.OpenReadStream().ReadAsync(buffer);
+        imagePreviewUrl = $"data:{compressedImageFile.ContentType};base64,{Convert.ToBase64String(buffer)}";
 
         StateHasChanged();
     }
 
     private async Task OnValidSubmit()
     {
+        submitButton.Disabled = true; 
+
         newProject.CreatorId = user!.Id; 
 
         try
         {
             if (!string.IsNullOrEmpty(newProject.GithubRepository))
             {
-                var repositories = await GithubService.GetRepositories(githubUser!.Login);
+                var repositories = await GithubService.GetRepositories();
                 if (!repositories.Select(r => r.Name).Contains(newProject.GithubRepository))
                 {
                     throw new SoupiException("Похоже, у вас нет доступа к этому репозиторию. Проверьте название репозитория. ");
@@ -173,7 +171,7 @@
             // try uploading an image
             if (imageFile != null)
             {        
-                newProject.Image = await ImageUploadService.UploadImage(imageFile); 
+                newProject.Image = await ImageUploadService.UploadImage(imageFile, imageFile.Name);  
             } 
 
             newProject = await ProjectService.CreateProject(newProject);  
@@ -190,5 +188,7 @@
         {
             Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
         }
+
+        submitButton.Disabled = false;
     }
 }

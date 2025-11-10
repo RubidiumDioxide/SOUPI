@@ -15,11 +15,11 @@ namespace SOUPI.Services
             _environment = environment; 
         } 
         
-        public async Task<string> UploadImage(IBrowserFile imageFile)
+        public async Task<string> UploadImage(IBrowserFile imageFile, string fileName)
         {
             try
             {
-                var trustedFileName = Path.GetRandomFileName(); 
+                string trustedFileName = Guid.NewGuid() + Path.GetExtension(fileName); 
 
                 var uploadsPath = Path.Combine(_environment.WebRootPath, "uploads");
 

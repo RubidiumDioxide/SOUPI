@@ -16,7 +16,6 @@ namespace SOUPIShared.Models
         public string Name { get; set; } = null!;
 
         [MaxLength(255, ErrorMessage = "Описание слишком длинное (максимум 100 символов)")]
-        [MinLength(1, ErrorMessage = "Описание слишком короткое (минимум 1 символ)")]
         public string? Description { get; set; }
 
         public string? GithubRepository { get; set; }

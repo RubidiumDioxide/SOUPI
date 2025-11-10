@@ -40,7 +40,7 @@ namespace SOUPI.Services
             }
         }
 
-        public async Task<IEnumerable<Repository>> GetRepositories(string login)
+        public async Task<IEnumerable<Repository>> GetRepositories()
         {
             try
             {
@@ -51,9 +51,9 @@ namespace SOUPI.Services
                 var github = new GitHubClient(
                     new ProductHeaderValue("AspNetCoreGitBubAuth"),
                     new InMemoryCredentialStore(new Credentials(accessToken))
-                );
+                ); 
 
-                return await github.Repository.GetAllForUser(login); 
+                return await github.Repository.GetAllForCurrent();
             }
             catch (Exception ex)
             {
