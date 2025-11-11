@@ -64,14 +64,25 @@ builder.Services.AddDbContext<SoupiDbContext>(options =>
 
 builder.Logging.AddConsole();
 builder.Services.AddScoped<IGithubService, GithubService>(); 
-builder.Services.AddScoped<IImageUploadService, ImageUploadService>(); 
-builder.Services.AddHttpClient<IUserService, UserService>(client => 
+builder.Services.AddScoped<IImageUploadService, ImageUploadService>();
+builder.Services.AddSingleton<AuthHttpClientFactory>(); 
+builder.Services.AddScoped<IUserService>(sp =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["Urls"]);  
+    var factory = sp.GetRequiredService<AuthHttpClientFactory>();
+    var logger = sp.GetRequiredService<ILogger<UserService>>();
+    var baseAddress = new Uri(builder.Configuration["Urls"]);
+    var client = factory.CreateClient(baseAddress);
+
+    return new UserService(logger, client);
 });
-builder.Services.AddHttpClient<IProjectService, ProjectService>(client =>
+builder.Services.AddScoped<IProjectService>(sp =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["Urls"]);
+    var factory = sp.GetRequiredService<AuthHttpClientFactory>(); 
+    var logger = sp.GetRequiredService<ILogger<ProjectService>>();
+    var baseAddress = new Uri(builder.Configuration["Urls"]);
+    var client = factory.CreateClient(baseAddress);
+
+    return new ProjectService(logger, client);
 }); 
 
 builder.Services.AddMudServices(config =>

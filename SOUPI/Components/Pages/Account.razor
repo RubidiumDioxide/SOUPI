@@ -96,10 +96,10 @@
     private async Task LoadUser()
     {
         try {
-            user = await UserService.GetUserByLogin(githubUser!.Login);
+            user = await UserService.GetByLogin(githubUser!.Login);
 
             if(user == null){
-                user = await UserService.SaveNewUser(new UserDto()
+                user = await UserService.Create(new UserDto()
                 {
                     Login = githubUser.Login 
                 }); 

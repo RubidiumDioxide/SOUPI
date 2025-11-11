@@ -1,6 +1,7 @@
 ﻿using SOUPIShared.Exceptions;
 using SOUPIShared.Dtos;
 using System.Text.Json;
+using Microsoft.AspNetCore.WebUtilities; 
 
 
 namespace SOUPI.Services
@@ -10,17 +11,20 @@ namespace SOUPI.Services
         private readonly ILogger<UserService> _logger;
         private readonly HttpClient _httpClient;
 
+        private const string createUrl = "/api/user/create"; 
+        private const string getUrl = "/api/user/getbylogin/";
+
         public UserService(ILogger<UserService> logger, HttpClient httpClient)
         {
             _logger = logger;
             _httpClient = httpClient; 
         }
 
-        public async Task<UserDto> SaveNewUser(UserDto userDto)
+        public async Task<UserDto> Create(UserDto userDto)
         {
             try
             {
-                var response = await _httpClient.PostAsync("/api/user/savenewuser", JsonContent.Create(userDto));
+                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(userDto));
 
                 response.EnsureSuccessStatusCode();
 
@@ -40,11 +44,17 @@ namespace SOUPI.Services
             }
         } 
 
-        public async Task<UserDto?> GetUserByLogin(string login)
+        public async Task<UserDto?> GetByLogin(string login)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/api/User/GetUserByLogin?login={login}");
+                var queryParams = new Dictionary<string, string>
+                {
+                    ["login"] = login
+                };
+                var requestUrl = QueryHelpers.AddQueryString(getUrl, queryParams);
+                
+                var response = await _httpClient.GetAsync(requestUrl); 
 
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {

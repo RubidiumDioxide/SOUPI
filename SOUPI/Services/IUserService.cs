@@ -5,8 +5,8 @@ namespace SOUPI.Services
 {
     public interface IUserService
     {
-        public Task<UserDto> SaveNewUser(UserDto userDto); 
+        public Task<UserDto> Create(UserDto userDto); 
 
-        public Task<UserDto?> GetUserByLogin(string login); 
+        public Task<UserDto?> GetByLogin(string login); 
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace SOUPI.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]/[action]")]
     public class UserController : ControllerBase
     {
@@ -21,7 +22,7 @@ namespace SOUPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<UserDto>> GetUserByLogin([FromQuery] string login)
+        public async Task<ActionResult<UserDto>> GetByLogin([FromQuery] string login)
         {
             try
             {
@@ -44,7 +45,7 @@ namespace SOUPI.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<UserDto>> SaveNewUser([FromBody] UserDto userDto)
+        public async Task<ActionResult<UserDto>> Create([FromBody] UserDto userDto)
         {
             try
             {

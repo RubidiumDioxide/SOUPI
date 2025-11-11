@@ -108,7 +108,7 @@
                 throw new SoupiException("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ");
             }
 
-            user = await UserService.GetUserByLogin(githubUserLogin);
+            user = await UserService.GetByLogin(githubUserLogin);
 
             if (user == null)
             {
@@ -174,7 +174,7 @@
                 newProject.Image = await ImageUploadService.UploadImage(imageFile, imageFile.Name);  
             } 
 
-            newProject = await ProjectService.CreateProject(newProject);  
+            newProject = await ProjectService.Create(newProject);  
 
             Snackbar.Add("Проект успешно создан", Severity.Success); 
 

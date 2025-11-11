@@ -20,7 +20,7 @@ namespace SOUPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjectsByLogin([FromQuery] string login)
+        public async Task<ActionResult<IEnumerable<ProjectDto>>> GetByLogin([FromQuery] string login)
         {
             try
             {
@@ -42,7 +42,7 @@ namespace SOUPI.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ProjectDto>> CreateProject([FromBody] ProjectDto projectDto)
+        public async Task<ActionResult<ProjectDto>> Create([FromBody] ProjectDto projectDto)
         {
             try
             {

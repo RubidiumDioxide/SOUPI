@@ -1,5 +1,6 @@
-﻿using SOUPIShared.Exceptions;
+﻿using Microsoft.AspNetCore.WebUtilities;
 using SOUPIShared.Dtos;
+using SOUPIShared.Exceptions;
 using System.Text.Json;
 
 
@@ -10,17 +11,26 @@ namespace SOUPI.Services
         private readonly ILogger<ProjectService> _logger;
         private readonly HttpClient _httpClient;
 
+        private const string createUrl = "/api/project/create";
+        private const string getUrl = "/api/project/getbylogin/";
+
         public ProjectService(ILogger<ProjectService> logger, HttpClient httpClient)
         {
             _logger = logger;
             _httpClient = httpClient;
         }
 
-        public async Task<IEnumerable<ProjectDto>> GetProjectsByLogin(string login)
+        public async Task<IEnumerable<ProjectDto>> GetByLogin(string login)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/api/Project/GetProjectsByLogin?login={login}");
+                var queryParams = new Dictionary<string, string>
+                {
+                    ["login"] = login
+                };
+                var requestUrl = QueryHelpers.AddQueryString(getUrl, queryParams);
+
+                var response = await _httpClient.GetAsync(requestUrl);
 
                 var newContent = await response.Content.ReadAsStringAsync();
 
@@ -43,11 +53,11 @@ namespace SOUPI.Services
             }
         }
 
-        public async Task<ProjectDto> CreateProject(ProjectDto projectDto)
+        public async Task<ProjectDto> Create(ProjectDto projectDto)
         {
             try
             {
-                var response = await _httpClient.PostAsync("/api/project/createproject", JsonContent.Create(projectDto));
+                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(projectDto));
 
                 response.EnsureSuccessStatusCode();
 

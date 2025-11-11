@@ -86,7 +86,7 @@
                 throw new SoupiException("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ");
             }
 
-            user = await UserService.GetUserByLogin(githubUserLogin);
+            user = await UserService.GetByLogin(githubUserLogin);
 
             if (user == null)
             {
@@ -107,7 +107,7 @@
     {
         try
         {
-            projects = await ProjectService.GetProjectsByLogin(user!.Login);
+            projects = await ProjectService.GetByLogin(user!.Login);
 
             if (projects.Count() == 0)
             {
