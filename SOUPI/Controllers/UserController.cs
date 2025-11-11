@@ -2,6 +2,7 @@
 using SOUPIShared.Models;
 using SOUPIShared.Dtos;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace SOUPI.Controllers
@@ -10,47 +11,66 @@ namespace SOUPI.Controllers
     [Route("api/[controller]/[action]")]
     public class UserController : ControllerBase
     {
+        private readonly ILogger<UserController> _logger; 
         private readonly SoupiDbContext _context;
 
-        public UserController(SoupiDbContext context)
+        public UserController(ILogger<UserController> logger, SoupiDbContext context)
         {
+            _logger = logger; 
             _context = context;
         }
 
         [HttpGet]
         public async Task<ActionResult<UserDto>> GetUserByLogin([FromQuery] string login)
         {
-            var existingUser = await _context.Users.Where(u => u.Login == login).FirstOrDefaultAsync();
+            try
+            {
+                var existingUser = await _context.Users.Where(u => u.Login == login).FirstOrDefaultAsync();
 
-            if(existingUser == null)
-            {
-                return NotFound();
+                if (existingUser == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    return Ok(new UserDto(existingUser));
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return Ok(new UserDto(existingUser)); 
+                _logger.LogError(ex.Message);
+                return StatusCode(500); 
             }
         }
 
         [HttpPost]
         public async Task<ActionResult<UserDto>> SaveNewUser([FromBody] UserDto userDto)
         {
-            var existingUser = await _context.Users.Where(u => u.Login == userDto.Login).FirstOrDefaultAsync(); 
-
-            if (existingUser == null)
+            try
             {
-                var user = new User() { 
-                    Login = userDto.Login
-                };
+                var existingUser = await _context.Users.Where(u => u.Login == userDto.Login).FirstOrDefaultAsync();
 
-                _context.Users.Add(user);  
-                await _context.SaveChangesAsync();
+                if (existingUser == null)
+                {
+                    var user = new User()
+                    {
+                        Login = userDto.Login
+                    };
 
-                return Ok(new UserDto(user));
+                    _context.Users.Add(user);
+                    await _context.SaveChangesAsync();
+
+                    return Ok(new UserDto(user));
+                }
+                else
+                {
+                    return BadRequest();
+                }
             }
-            else
+            catch (Exception ex) 
             {
-                return BadRequest(); 
+                _logger.LogError(ex.Message);
+                return StatusCode(500); 
             }
         }
     }
