@@ -2,6 +2,7 @@
 @inject NavigationManager NavigationManager 
 @inject IUserService UserService 
 @inject IProjectService ProjectService  
+@inject IImageService ImageService 
 @inject ISnackbar Snackbar
 @inject IHttpContextAccessor HttpContextAccessor 
 @using GithubUser = Octokit.User
@@ -27,7 +28,8 @@
                     @foreach (ProjectDto project in projects)
                     {
                         <ProjectCard Project=@project
-                                     NavigationManager="NavigationManager" />
+                            OnDeleteButtonClick="DeleteProject"
+                            NavigationManager="NavigationManager" />
                     }
                 </MudGrid>
             }
@@ -124,6 +126,26 @@
         catch (SoupiException ex)
         {
             Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+
+    private async Task DeleteProject(ProjectDto projectDto)
+    {
+        try
+        {
+            await ProjectService.Delete(projectDto.Id); 
+            if (projectDto.Image != null) ImageService.Delete(projectDto.Image);
+            await LoadProjects(); 
+            StateHasChanged(); 
+            Snackbar.Add("Проект успешно удален ", Severity.Success);
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error); 
         }
         catch (Exception ex)
         {

@@ -1,7 +1,6 @@
 ﻿using SOUPIShared.Exceptions;
 using SOUPIShared.Dtos;
 using System.Text.Json;
-using Microsoft.AspNetCore.WebUtilities; 
 
 
 namespace SOUPI.Services
@@ -12,7 +11,7 @@ namespace SOUPI.Services
         private readonly HttpClient _httpClient;
 
         private const string createUrl = "/api/user/create"; 
-        private const string getUrl = "/api/user/getbylogin/";
+        private const string getByLoginUrl = "/api/user/getbylogin/";
 
         public UserService(ILogger<UserService> logger, HttpClient httpClient)
         {
@@ -48,18 +47,9 @@ namespace SOUPI.Services
         {
             try
             {
-                var queryParams = new Dictionary<string, string>
-                {
-                    ["login"] = login
-                };
-                var requestUrl = QueryHelpers.AddQueryString(getUrl, queryParams);
-                
-                var response = await _httpClient.GetAsync(requestUrl); 
+                var response = await _httpClient.GetAsync($"{getByLoginUrl}{login}");
 
-                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
+                response.EnsureSuccessStatusCode(); 
 
                 var newContent = await response.Content.ReadAsStringAsync();
 

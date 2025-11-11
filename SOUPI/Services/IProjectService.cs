@@ -7,6 +7,10 @@ namespace SOUPI.Services
     {
         public Task<IEnumerable<ProjectDto>> GetByLogin(string login);
 
-        public Task<ProjectDto> Create(ProjectDto projectDto); 
+        public Task<ProjectDto> Create(ProjectDto projectDto);
+
+        public Task<ProjectDto> Update(ProjectDto changedProjectDto);
+
+        public Task Delete(Guid Id); 
     }
 }

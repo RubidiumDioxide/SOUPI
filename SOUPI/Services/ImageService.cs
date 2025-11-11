@@ -4,18 +4,18 @@ using SOUPIShared.Exceptions;
 
 namespace SOUPI.Services
 {
-    public class ImageUploadService : IImageUploadService
+    public class ImageService : IImageService
     {
-        private readonly ILogger<ImageUploadService> _logger;
+        private readonly ILogger<ImageService> _logger;
         private readonly IWebHostEnvironment _environment; 
 
-        public ImageUploadService(ILogger<ImageUploadService> logger, IWebHostEnvironment environment) 
+        public ImageService(ILogger<ImageService> logger, IWebHostEnvironment environment) 
         {
             _logger = logger;
             _environment = environment; 
         } 
         
-        public async Task<string> UploadImage(IBrowserFile imageFile, string fileName)
+        public async Task<string> Upload(IBrowserFile imageFile, string fileName)
         {
             try
             {
@@ -41,5 +41,24 @@ namespace SOUPI.Services
                 throw new SoupiException("Произошла ошибка при загрузке изображения. Проект не будет создан. Попробуйте позже или сообщите об ошибке в техподдержку "); 
             }
         } 
+
+        public void Delete(string fileName)
+        {
+            try
+            {
+                var filePath = Path.Combine(_environment.WebRootPath, "uploads", fileName);
+
+                if (!File.Exists(filePath))
+                {
+                    throw new SoupiException("Изображение не было найдено в директории "); 
+                }
+
+                File.Delete(filePath); 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Произошла ошибка при удалении изображения. {ex}");
+            }
+        }
     }
 }

@@ -3,10 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SOUPIShared.Dtos;
 using SOUPIShared.Models;
+using Microsoft.AspNetCore.JsonPatch;
+
 
 namespace SOUPI.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]/[action]")]
     public class ProjectController : ControllerBase 
     {
@@ -19,8 +22,8 @@ namespace SOUPI.Controllers
             _context = context; 
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProjectDto>>> GetByLogin([FromQuery] string login)
+        [HttpGet("{login}")]
+        public async Task<ActionResult<IEnumerable<ProjectDto>>> GetByLogin([FromRoute] string login)
         {
             try
             {
@@ -64,6 +67,53 @@ namespace SOUPI.Controllers
             {
                 _logger.LogError(ex.Message); 
                 return StatusCode(500); 
+            }
+        }
+
+        [HttpPatch("{id}")]
+        public async Task<ActionResult<ProjectDto>> Update([FromRoute] Guid id, [FromBody] JsonPatchDocument<Project> patchDoc)
+        {
+            try
+            {
+                var project = await _context.Projects.FindAsync(id);
+
+                if (project == null)
+                {
+                    return BadRequest();
+                }
+
+                patchDoc.ApplyTo(project);
+
+                _context.SaveChanges();
+                return Ok(new ProjectDto(project));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> Delete([FromRoute] Guid id)
+        {
+            try
+            {
+                var project = await _context.Projects.FindAsync(id);
+
+                if (project == null)
+                {
+                    return BadRequest();
+                }
+
+                _context.Projects.Remove(project);
+                _context.SaveChanges();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
             }
         }
     }

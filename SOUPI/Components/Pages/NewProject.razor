@@ -3,7 +3,7 @@
 @inject IGithubService GithubService
 @inject IUserService UserService
 @inject IProjectService ProjectService
-@inject IImageUploadService ImageUploadService 
+@inject IImageService ImageUploadService 
 @inject ISnackbar Snackbar
 @inject IHttpContextAccessor HttpContextAccessor
 @using GithubUser = Octokit.User
@@ -171,7 +171,7 @@
             // try uploading an image
             if (imageFile != null)
             {        
-                newProject.Image = await ImageUploadService.UploadImage(imageFile, imageFile.Name);  
+                newProject.Image = await ImageUploadService.Upload(imageFile, imageFile.Name);  
             } 
 
             newProject = await ProjectService.Create(newProject);  

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SOUPIShared.Dtos;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
@@ -27,8 +28,19 @@ namespace SOUPIShared.Models
 
         public string? Image { get; set; }
 
-
         public virtual User Creator { get; set; } = null!;
-    }
 
+        public Project(ProjectDto projectDto)
+        {
+            Id = projectDto.Id;
+            Name = projectDto.Name;
+            Description = projectDto.Description;
+            GithubRepository = projectDto.GithubRepository;
+            CreatorId = projectDto.CreatorId;
+            CreationDateTime = projectDto.CreationDateTime;
+            Image = projectDto.Image;
+        }
+
+        public Project() { }
+    }
 }

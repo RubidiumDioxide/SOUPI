@@ -64,7 +64,7 @@ builder.Services.AddDbContext<SoupiDbContext>(options =>
 
 builder.Logging.AddConsole();
 builder.Services.AddScoped<IGithubService, GithubService>(); 
-builder.Services.AddScoped<IImageUploadService, ImageUploadService>();
+builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddSingleton<AuthHttpClientFactory>(); 
 builder.Services.AddScoped<IUserService>(sp =>
 {

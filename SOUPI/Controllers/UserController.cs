@@ -21,8 +21,8 @@ namespace SOUPI.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<UserDto>> GetByLogin([FromQuery] string login)
+        [HttpGet("{login}")]
+        public async Task<ActionResult<UserDto?>> GetByLogin([FromRoute] string login)
         {
             try
             {
@@ -30,7 +30,7 @@ namespace SOUPI.Controllers
 
                 if (existingUser == null)
                 {
-                    return NotFound();
+                    return Ok(null); 
                 }
                 else
                 {

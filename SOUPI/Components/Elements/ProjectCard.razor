@@ -33,8 +33,8 @@
     [Parameter, EditorRequired]
     public ProjectDto Project { get; set; } = default!;
 
-    //[Parameter, EditorRequired]
-    //public EventCallback<Guid> OnDeleteButtonClick { get; set; }
+    [Parameter, EditorRequired]
+    public EventCallback<ProjectDto> OnDeleteButtonClick { get; set; }
 
     [Parameter, EditorRequired]
     public NavigationManager NavigationManager { get; set; } = default!;
@@ -47,6 +47,6 @@
 
     public async void DeleteButtonClick()
     {
-        //await OnDeleteButtonClick.InvokeAsync(Survey.Id);
+        await OnDeleteButtonClick.InvokeAsync(Project);
     }
 }
