@@ -4,7 +4,7 @@ using SOUPIShared.Dtos;
 using Microsoft.EntityFrameworkCore;
 
 
-namespace SOUPIAPI.Controllers
+namespace SOUPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]/[action]")]

@@ -1,13 +1,15 @@
-using SOUPI.Components;
-using Microsoft.AspNetCore.Authentication.OAuth; 
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
-using System.Security.Claims; 
-using System.Net.Http.Headers;
-using System.Text.Json;
-using MudBlazor.Services;
-using SOUPI.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OAuth; 
 using MudBlazor;
+using MudBlazor.Services;
+using SOUPI.Components;
+using SOUPI.Services;
+using SOUPI;
+using System.Net.Http.Headers;
+using System.Security.Claims; 
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore; 
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -57,19 +59,20 @@ builder.Services.AddAuthentication(options =>
     });
 builder.Services.AddAuthorization();
 
+builder.Services.AddDbContext<SoupiDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Logging.AddConsole();
 builder.Services.AddScoped<IGithubService, GithubService>(); 
 builder.Services.AddScoped<IImageUploadService, ImageUploadService>(); 
 builder.Services.AddHttpClient<IUserService, UserService>(client => 
 {
-    client.BaseAddress = new Uri("https://localhost:2100"); 
+    client.BaseAddress = new Uri(builder.Configuration["Urls"]);  
 });
 builder.Services.AddHttpClient<IProjectService, ProjectService>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:2100"); 
+    client.BaseAddress = new Uri(builder.Configuration["Urls"]);
 }); 
-
 
 builder.Services.AddMudServices(config =>
 {

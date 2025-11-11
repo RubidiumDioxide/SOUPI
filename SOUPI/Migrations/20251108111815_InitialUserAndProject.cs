@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace SOUPIAPI.Migrations
+namespace SOUPI.Migrations
 {
     /// <inheritdoc />
     public partial class InitialUserAndProject : Migration

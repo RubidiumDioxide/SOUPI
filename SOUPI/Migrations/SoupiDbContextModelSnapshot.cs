@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using SOUPIAPI;
+using SOUPI;
 
 #nullable disable
 
-namespace SOUPIAPI.Migrations
+namespace SOUPI.Migrations
 {
     [DbContext(typeof(SoupiDbContext))]
     partial class SoupiDbContextModelSnapshot : ModelSnapshot

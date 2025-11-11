@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SOUPIShared.Dtos;
 using SOUPIShared.Models;
 
-namespace SOUPIAPI.Controllers
+namespace SOUPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]/[action]")]

@@ -5,7 +5,7 @@ using SOUPIShared;
 using SOUPIShared.Models; 
 
 
-namespace SOUPIAPI;
+namespace SOUPI;
 
 public partial class SoupiDbContext : DbContext
 {

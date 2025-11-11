@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using SOUPIAPI;
+using SOUPI;
 
 #nullable disable
 
-namespace SOUPIAPI.Migrations
+namespace SOUPI.Migrations
 {
     [DbContext(typeof(SoupiDbContext))]
     [Migration("20251108111815_InitialUserAndProject")]

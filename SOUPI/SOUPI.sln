@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOUPI", "SOUPI.csproj", "{5
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOUPIShared", "..\SOUPIShared\SOUPIShared.csproj", "{432F5A10-7F93-4D4C-8667-D516715171B7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOUPIAPI", "..\SOUPIAPI\SOUPIAPI.csproj", "{8354569C-BDA6-48BF-A211-E2FC217B93A5}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{432F5A10-7F93-4D4C-8667-D516715171B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{432F5A10-7F93-4D4C-8667-D516715171B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{432F5A10-7F93-4D4C-8667-D516715171B7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8354569C-BDA6-48BF-A211-E2FC217B93A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8354569C-BDA6-48BF-A211-E2FC217B93A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8354569C-BDA6-48BF-A211-E2FC217B93A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8354569C-BDA6-48BF-A211-E2FC217B93A5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
