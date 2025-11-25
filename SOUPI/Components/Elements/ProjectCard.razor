@@ -20,11 +20,6 @@
             <MudText Typo=Typo.body2>Создано @Project.CreationDateTime </MudText>
         </MudCardContent>
         <MudDivider />
-        <MudCardActions Class="d-flex">
-            <MudButton Variant="Variant.Text" Color="Color.Primary" Class="flex-none">
-                Результаты
-            </MudButton>
-        </MudCardActions>
     </MudCard>
 </MudItem>
 
@@ -40,10 +35,11 @@
     public NavigationManager NavigationManager { get; set; } = default!;
 
     
-    public void EditButtonClick()
+    private void EditButtonClick()
     {
-        //NavigationManager.NavigateTo($"/projects/edit/{Project.Id}");
+        NavigationManager.NavigateTo($"/editproject/{Project.Id}");
     }
+
 
     public async void DeleteButtonClick()
     {

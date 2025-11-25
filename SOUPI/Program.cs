@@ -4,8 +4,9 @@ using Microsoft.AspNetCore.Authentication.OAuth;
 using MudBlazor;
 using MudBlazor.Services;
 using SOUPI.Components;
-using SOUPI.Services;
+using SOUPICore.Services;
 using SOUPI;
+using SOUPICore;
 using System.Net.Http.Headers;
 using System.Security.Claims; 
 using System.Text.Json;
@@ -62,28 +63,30 @@ builder.Services.AddAuthorization();
 builder.Services.AddDbContext<SoupiDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddDbContext<SoupiDbContext>(
+    options => options
+        .UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => { b.MigrationsAssembly("SOUPI"); })
+        .UseLazyLoadingProxies()
+    );
+
 builder.Logging.AddConsole();
-builder.Services.AddScoped<IGithubService, GithubService>(); 
-builder.Services.AddScoped<IImageService, ImageService>();
-builder.Services.AddSingleton<AuthHttpClientFactory>(); 
-builder.Services.AddScoped<IUserService>(sp =>
+builder.Services.AddSingleton<AuthHttpClientFactory>();
+builder.Services.AddScoped<HttpClient>(sp =>
 {
     var factory = sp.GetRequiredService<AuthHttpClientFactory>();
-    var logger = sp.GetRequiredService<ILogger<UserService>>();
     var baseAddress = new Uri(builder.Configuration["Urls"]);
     var client = factory.CreateClient(baseAddress);
 
-    return new UserService(logger, client);
+    return client;
 });
-builder.Services.AddScoped<IProjectService>(sp =>
-{
-    var factory = sp.GetRequiredService<AuthHttpClientFactory>(); 
-    var logger = sp.GetRequiredService<ILogger<ProjectService>>();
-    var baseAddress = new Uri(builder.Configuration["Urls"]);
-    var client = factory.CreateClient(baseAddress);
 
-    return new ProjectService(logger, client);
-}); 
+builder.Services.AddScoped<GithubRequestHandler>();
+builder.Services.AddScoped<ImageRequestHandler>();
+builder.Services.AddScoped<UserRequestHandler>();
+builder.Services.AddScoped<ProjectRequestHandler>();
+
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
 
 builder.Services.AddMudServices(config =>
 {

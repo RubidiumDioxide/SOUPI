@@ -1,8 +1,8 @@
 ﻿@page "/myprojects"
 @inject NavigationManager NavigationManager 
-@inject IUserService UserService 
-@inject IProjectService ProjectService  
-@inject IImageService ImageService 
+@inject UserRequestHandler userRequestHandler 
+@inject ProjectRequestHandler projectRequestHandler
+@inject ImageRequestHandler imageRequestHandler 
 @inject ISnackbar Snackbar
 @inject IHttpContextAccessor HttpContextAccessor 
 @using GithubUser = Octokit.User
@@ -88,7 +88,7 @@
                 throw new SoupiException("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ");
             }
 
-            user = await UserService.GetByLogin(githubUserLogin);
+            user = await userRequestHandler.GetByLogin(githubUserLogin);
 
             if (user == null)
             {
@@ -109,7 +109,7 @@
     {
         try
         {
-            projects = await ProjectService.GetByLogin(user!.Login);
+            projects = await projectRequestHandler.GetByUserId(user.Id);
 
             if (projects.Count() == 0)
             {
@@ -137,8 +137,13 @@
     {
         try
         {
-            await ProjectService.Delete(projectDto.Id); 
-            if (projectDto.Image != null) ImageService.Delete(projectDto.Image);
+            await projectRequestHandler.Delete(projectDto.Id); 
+            
+            if (projectDto.Image != null)
+            {
+                imageRequestHandler.Delete(projectDto.Image);
+            }
+
             await LoadProjects(); 
             StateHasChanged(); 
             Snackbar.Add("Проект успешно удален ", Severity.Success);
