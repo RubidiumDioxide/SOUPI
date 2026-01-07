@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SOUPIShared.Models; 
+using SOUPIShared.Models;
 
 
 namespace SOUPICore;
@@ -19,6 +19,7 @@ public partial class SoupiDbContext : DbContext
     public virtual DbSet<User> Users { get; set; } 
     public virtual DbSet<Notification> Notifications { get; set; } 
     public virtual DbSet<TeamMember> TeamMembers { get; set; } 
+    public virtual DbSet<Job> Jobs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,11 +31,6 @@ public partial class SoupiDbContext : DbContext
 
             entity.HasIndex(p => p.Id).IsUnique();
             entity.HasIndex(p => new { p.CreatorId, p.Name }).IsUnique();
-
-            entity.Property(p => p.GithubRepository).HasMaxLength(255);
-            entity.Property(p => p.Image).HasMaxLength(255);
-            entity.Property(p => p.Name).HasMaxLength(100);
-            entity.Property(p => p.Description).HasMaxLength(255);
 
             entity.HasOne(p => p.Creator).WithMany(u => u.Projects)
                 .HasForeignKey(p => p.CreatorId)
@@ -49,8 +45,6 @@ public partial class SoupiDbContext : DbContext
 
             entity.HasIndex(u => u.Id).IsUnique();
             entity.HasIndex(u => u.Login).IsUnique();
-
-            entity.Property(e => e.Login).HasMaxLength(255);
         });
 
         modelBuilder.Entity<Notification>(entity =>
@@ -61,8 +55,6 @@ public partial class SoupiDbContext : DbContext
 
             entity.HasIndex(n => n.Id).IsUnique();
             
-            entity.Property(n => n.Message).HasMaxLength(255);
-
             entity.HasOne(n => n.Sender).WithMany(u => u.SentNotifications)
                 .HasForeignKey(n => n.SenderId)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -82,8 +74,6 @@ public partial class SoupiDbContext : DbContext
 
             entity.HasIndex(tm => new { tm.UserId, tm.ProjectId }).IsUnique();
 
-            entity.Property(tm => tm.Role).HasMaxLength(255);
-
             entity.HasOne(tm => tm.User).WithMany(u => u.TeamMembers)
                 .HasForeignKey(tm => tm.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -93,10 +83,25 @@ public partial class SoupiDbContext : DbContext
             entity.HasOne(tm => tm.Supervisor).WithMany(tm => tm.Subservient)
                 .HasForeignKey(tm => new { tm.SupervisorUserId, tm.SupervisorProjectId})
                 .OnDelete(DeleteBehavior.Restrict);
-        }); 
+        });
 
-        OnModelCreatingPartial(modelBuilder);
+        modelBuilder.Entity<Job>(entity =>
+        {
+            entity.HasKey(j => j.Id);
+
+            entity.ToTable("JOB");
+
+            entity.HasIndex(j => j.Id).IsUnique(); 
+            
+            entity.HasOne(j => j.Project).WithMany(p => p.Jobs)
+                .HasForeignKey(j => j.ProjectId)
+                .OnDelete(DeleteBehavior.Restrict); 
+            entity.HasOne(j => j.Creator).WithMany(u => u.CreatedJobs)
+                .HasForeignKey(j => j.CreatorId) 
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(j => j.ParentJob).WithMany(t => t.ChildJobs)
+                .HasForeignKey(j => j.ParentJobId)
+                .OnDelete(DeleteBehavior.Restrict); 
+        });
     }
-
-    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

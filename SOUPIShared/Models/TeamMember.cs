@@ -7,6 +7,8 @@ namespace SOUPIShared.Models
         public Guid UserId { get; set; } 
         public Guid ProjectId { get; set; }
 
+        [MaxLength(255, ErrorMessage = "Роль слишком длинная (максимум 255 символов)")]
+        [MinLength(1, ErrorMessage = "Роль слишком короткая (минимум 1 символ)")]
         public string? Role { get; set; } = null;
 
         public Guid? SupervisorUserId { get; set; } = null;
