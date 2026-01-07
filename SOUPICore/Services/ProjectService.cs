@@ -2,7 +2,8 @@
 using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions;
 using SOUPIShared.Models; 
-using Microsoft.EntityFrameworkCore; 
+using Microsoft.EntityFrameworkCore;
+using SOUPICore.Services.Interfaces;
 
 
 namespace SOUPICore.Services
@@ -18,27 +19,22 @@ namespace SOUPICore.Services
             _context = context;  
         }
 
-        public async Task<IEnumerable<ProjectDto>> GetByUserId(Guid userId)
+        public async Task<IEnumerable<ProjectDto>> GetByCreatorId(Guid creatorId)
         {
             try
             {
-                var projects = await _context.Projects.Where(p => p.CreatorId == userId).ToListAsync(); 
+                var projects = await _context.Projects.Where(p => p.CreatorId == creatorId).ToListAsync(); 
 
                 return projects.Select(p => new ProjectDto(p)); 
             }
-            catch (SoupiException ex)
-            {
-                _logger.LogError($"Не удалось загрузить проекты {ex.Message}");
-                throw; 
-            }
             catch (Exception ex)
             {
-                _logger.LogError($"Не удалось загрузить проекты {ex.Message}");
-                throw new SoupiException("Не удалось загрузить проекты. Попробуйте позже или сообщите об ошибке в техподдержку ");
+                _logger.LogError(ex.Message);
+                throw; 
             }
         }
 
-        public async Task<ProjectDto?> GetById(Guid id)
+        public async Task<ProjectDto> GetById(Guid id)
         {
             try
             {
@@ -46,7 +42,7 @@ namespace SOUPICore.Services
 
                 if (project == null)
                 {
-                    return null;
+                    throw new NotFoundException(); 
                 }
                 else
                 {
@@ -55,8 +51,8 @@ namespace SOUPICore.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Не удалось загрузить редактируемый проект {ex.Message}");
-                throw new SoupiException("Не удалось загрузить редактируемый проект. Попробуйте позже или сообщите об ошибке в техподдержку ");
+                _logger.LogError(ex.Message);
+                throw; 
             }
         }
 
@@ -80,8 +76,8 @@ namespace SOUPICore.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Не удалось создать новый проект. {ex.Message}");
-                throw new SoupiException("Не удалось создать новый проект. Попробуйте позже или сообщите об ошибке в техподдержку ");
+                _logger.LogError(ex.Message); 
+                throw; 
             }
         }
 
@@ -93,7 +89,7 @@ namespace SOUPICore.Services
 
                 if (project == null)
                 {
-                    throw new SoupiException("Проект не найден ");
+                    throw new NotFoundException(); 
                 }
 
                 project.Name = updatedProjectDto.Name;
@@ -106,8 +102,8 @@ namespace SOUPICore.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Не удалось сохранить изменения: {ex.Message}");
-                throw new SoupiException("Не удалось сохранить изменения ");
+                _logger.LogError(ex.Message); 
+                throw;    
             }
         }
 
@@ -119,7 +115,7 @@ namespace SOUPICore.Services
 
                 if (project == null)
                 {
-                    throw new SoupiException("Проект не найден ");
+                    throw new NotFoundException(); 
                 }
 
                 _context.Projects.Remove(project);
@@ -127,8 +123,8 @@ namespace SOUPICore.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Не удалось удалить проект: {ex.Message}");
-                throw new SoupiException("Не удалось удалить проект ");
+                _logger.LogError(ex.Message); 
+                throw;
             }
         }
     }

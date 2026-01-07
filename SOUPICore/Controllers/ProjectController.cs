@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using SOUPIShared.Dtos;
 using Microsoft.Extensions.Logging;
-using SOUPICore.Services;
-using SOUPIShared.Exceptions; 
+using SOUPIShared.Exceptions;
+using SOUPICore.Services.Interfaces;
 
 
 namespace SOUPICore.Controllers
@@ -27,7 +27,7 @@ namespace SOUPICore.Controllers
         {
             try
             {
-                var projects = await _projectService.GetByUserId(userId); 
+                var projects = await _projectService.GetByCreatorId(userId); 
 
                 return Ok(projects);
             }

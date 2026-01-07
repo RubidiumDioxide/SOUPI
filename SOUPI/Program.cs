@@ -12,7 +12,8 @@ using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using SOUPI.Handlers.Interfaces; 
-using SOUPI.Handlers; 
+using SOUPI.Handlers;
+using SOUPICore.Services.Interfaces;
 
 
 var builder = WebApplication.CreateBuilder(args);

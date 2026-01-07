@@ -1,13 +1,13 @@
-﻿using SOUPIShared.Dtos; 
+﻿using SOUPIShared.Dtos;
 
 
-namespace SOUPICore.Services
+namespace SOUPICore.Services.Interfaces
 {
     public interface IProjectService
     {
-        public Task<IEnumerable<ProjectDto>> GetByUserId(Guid id);
+        public Task<IEnumerable<ProjectDto>> GetByCreatorId(Guid creatorId);
  
-        public Task<ProjectDto?> GetById(Guid id);
+        public Task<ProjectDto> GetById(Guid id);
 
         public Task<ProjectDto> Create(ProjectDto projectDto);
 

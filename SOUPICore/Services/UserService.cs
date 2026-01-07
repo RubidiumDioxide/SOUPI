@@ -1,8 +1,9 @@
-﻿using SOUPIShared.Exceptions;
-using SOUPIShared.Dtos;
+﻿using SOUPIShared.Dtos;
 using Microsoft.Extensions.Logging; 
 using Microsoft.EntityFrameworkCore;
-using SOUPIShared.Models; 
+using SOUPIShared.Models;
+using SOUPICore.Services.Interfaces;
+using SOUPIShared.Exceptions; 
 
 
 namespace SOUPICore.Services
@@ -34,12 +35,12 @@ namespace SOUPICore.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Не удалось зарегистрировать нового польхователя. {ex.Message}");
-                throw new SoupiException("Не удалось зарегистрировать нового польхователя. Попробуйте позже или сообщите об ошибке в техподдержку ");
+                _logger.LogError(ex.Message); 
+                throw; 
             }
         } 
 
-        public async Task<UserDto?> GetByLogin(string login)
+        public async Task<UserDto> GetByLogin(string login)
         {
             try
             {
@@ -47,7 +48,7 @@ namespace SOUPICore.Services
 
                 if (user == null)
                 {
-                    return null; 
+                    throw new NotFoundException(); 
                 }
                 else
                 {
@@ -56,8 +57,8 @@ namespace SOUPICore.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Не удалось получить информацию о текущем пользовтеле. {ex.Message}");
-                throw new SoupiException("Не удалось получить информацию о текущем пользовтеле. Попробуйте позже или сообщите об ошибке в техподдержку ");
+                _logger.LogError(ex.Message); 
+                throw; 
             } 
         }
     }
