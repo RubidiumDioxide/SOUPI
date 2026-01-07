@@ -20,6 +20,7 @@ public partial class SoupiDbContext : DbContext
     public virtual DbSet<Notification> Notifications { get; set; } 
     public virtual DbSet<TeamMember> TeamMembers { get; set; } 
     public virtual DbSet<Job> Jobs { get; set; }
+    public virtual DbSet<JobSequence> JobSequences { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -103,5 +104,21 @@ public partial class SoupiDbContext : DbContext
                 .HasForeignKey(j => j.ParentJobId)
                 .OnDelete(DeleteBehavior.Restrict); 
         });
+
+        modelBuilder.Entity<JobSequence>(entity =>
+        {
+            entity.HasKey(js => new { js.FirstJobId, js.SecondJobId });
+
+            entity.ToTable("JOBSEQUENCE");
+
+            entity.HasIndex(js => new { js.FirstJobId, js.SecondJobId }).IsUnique();
+
+            entity.HasOne(js => js.FirstJob).WithMany(j => j.JobSequencesToSubsequent)
+                .HasForeignKey(js => js.FirstJobId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(js => js.SecondJob).WithMany(j => j.JobSequencesToPreceding)
+                .HasForeignKey(js => js.SecondJobId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }); 
     }
 }

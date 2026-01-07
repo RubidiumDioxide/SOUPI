@@ -34,6 +34,8 @@ namespace SOUPIShared.Models
         public virtual Project Project { get; set; } = default!; 
         public virtual User Creator { get; set; } = default!; 
         public virtual Job? ParentJob { get; set; }
-        public virtual List<Job> ChildJobs { get; set; } = default!;  
+        public virtual List<Job> ChildJobs { get; set; } = default!;
+        public virtual List<JobSequence> JobSequencesToPreceding { get; set; } = default!; 
+        public virtual List<JobSequence> JobSequencesToSubsequent { get; set; } = default!; 
     }
 }
