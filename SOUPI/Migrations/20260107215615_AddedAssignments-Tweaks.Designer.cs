@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SOUPICore;
 
@@ -11,9 +12,11 @@ using SOUPICore;
 namespace SOUPI.Migrations
 {
     [DbContext(typeof(SoupiDbContext))]
-    partial class SoupiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260107215615_AddedAssignments-Tweaks")]
+    partial class AddedAssignmentsTweaks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

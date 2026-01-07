@@ -16,7 +16,6 @@ namespace SOUPIShared.Models
         public string? Description { get; set; }
 
         [MaxLength(255, ErrorMessage = "Название репозитория слишком длинное (максимум 255 символов)")]
-        [MinLength(1, ErrorMessage = "Название репозитория слишком короткое (минимум 1 символ)")]
         public string? GithubRepository { get; set; }
 
         [Required]

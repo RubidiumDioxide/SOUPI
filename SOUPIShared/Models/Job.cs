@@ -19,7 +19,6 @@ namespace SOUPIShared.Models
         public string Title { get; set; } = default!;
 
         [MaxLength(255, ErrorMessage = "Содержание задачи слишком длинное (максимум 255 символов)")]
-        [MinLength(1, ErrorMessage = "Название слишком короткое (минимум 1 символ)")]
         public string? Body { get; set; } 
 
         public DateTime? Deadline { get; set; }
@@ -37,5 +36,6 @@ namespace SOUPIShared.Models
         public virtual List<Job> ChildJobs { get; set; } = default!;
         public virtual List<JobSequence> JobSequencesToPreceding { get; set; } = default!; 
         public virtual List<JobSequence> JobSequencesToSubsequent { get; set; } = default!; 
+        public virtual List<Assignment> Assignments { get; set; } = default!; 
     }
 }

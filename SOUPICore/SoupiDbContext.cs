@@ -19,12 +19,13 @@ public partial class SoupiDbContext : DbContext
     public virtual DbSet<User> Users { get; set; } 
     public virtual DbSet<Notification> Notifications { get; set; } 
     public virtual DbSet<TeamMember> TeamMembers { get; set; } 
-    public virtual DbSet<Job> Jobs { get; set; }
-    public virtual DbSet<JobSequence> JobSequences { get; set; }
+    public virtual DbSet<Job> Jobs { get; set; } 
+    public virtual DbSet<JobSequence> JobSequences { get; set; } 
+    public virtual DbSet<Assignment> Assignments { get; set; } 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Project>(entity =>
+        modelBuilder.Entity<Project>(entity => 
         {
             entity.HasKey(p => p.Id); 
 
@@ -69,7 +70,7 @@ public partial class SoupiDbContext : DbContext
 
         modelBuilder.Entity<TeamMember>(entity =>
         {
-            entity.HasKey(tm => new { tm.UserId, tm.ProjectId });
+            entity.HasKey(tm => tm.Id); 
 
             entity.ToTable("TEAMMEMBER");
 
@@ -82,7 +83,7 @@ public partial class SoupiDbContext : DbContext
                 .HasForeignKey(tm => tm.ProjectId)
                 .OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(tm => tm.Supervisor).WithMany(tm => tm.Subservient)
-                .HasForeignKey(tm => new { tm.SupervisorUserId, tm.SupervisorProjectId})
+                .HasForeignKey(tm => tm.SupervisorId) 
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -119,6 +120,22 @@ public partial class SoupiDbContext : DbContext
             entity.HasOne(js => js.SecondJob).WithMany(j => j.JobSequencesToPreceding)
                 .HasForeignKey(js => js.SecondJobId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Assignment>(entity =>
+        {
+            entity.HasKey(a => a.Id);
+
+            entity.ToTable("ASSIGNMENT");
+
+            entity.HasIndex(a => new { a.TeamMemberId, a.JobId }); 
+
+            entity.HasOne(a => a.TeamMember).WithMany(tm => tm.Assignments)
+                .HasForeignKey(a => a.TeamMemberId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(a => a.Job).WithMany(tm => tm.Assignments)
+                .HasForeignKey(a => a.JobId) 
+                .OnDelete(DeleteBehavior.Restrict); 
         }); 
     }
 }
