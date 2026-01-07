@@ -1,12 +1,10 @@
 ﻿@page "/myprojects"
 @inject NavigationManager NavigationManager 
-@inject UserRequestHandler userRequestHandler 
-@inject ProjectRequestHandler projectRequestHandler
-@inject ImageRequestHandler imageRequestHandler 
+@inject IUserRequestHandler userRequestHandler 
+@inject IProjectRequestHandler projectRequestHandler
+@inject IImageRequestHandler imageRequestHandler 
 @inject ISnackbar Snackbar
 @inject IHttpContextAccessor HttpContextAccessor 
-@using GithubUser = Octokit.User
-@using SOUPIShared.Exceptions;
 @attribute [Authorize]
 
 

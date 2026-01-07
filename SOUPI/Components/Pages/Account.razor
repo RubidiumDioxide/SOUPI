@@ -1,10 +1,8 @@
 ﻿@page "/account"
 @inject NavigationManager NavigationManager 
-@inject GithubRequestHandler githubRequestHandler 
-@inject UserRequestHandler userRequestHandler 
+@inject IGithubRequestHandler githubRequestHandler 
+@inject IUserRequestHandler userRequestHandler 
 @inject ISnackbar Snackbar 
-@using GithubUser = Octokit.User 
-@using SOUPIShared.Exceptions;
 @attribute [Authorize]
 
 

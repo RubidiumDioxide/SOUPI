@@ -1,12 +1,13 @@
 ﻿using SOUPIShared.Exceptions;
 using SOUPIShared.Dtos;
 using System.Text.Json;
-using System.Net; 
+using System.Net;
+using SOUPI.Handlers.Interfaces; 
 
 
-namespace SOUPICore.Services
+namespace SOUPI.Handlers
 {
-    public class UserRequestHandler 
+    public class UserRequestHandler : IUserRequestHandler
     {
         private readonly ILogger<UserRequestHandler> _logger;
         private readonly HttpClient _httpClient;

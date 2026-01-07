@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
 using SOUPIShared.Exceptions;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Hosting; 
+using SOUPI.Handlers.Interfaces; 
 
 
-namespace SOUPICore.Services
+namespace SOUPI.Handlers
 {
-    public class ImageRequestHandler 
+    public class ImageRequestHandler : IImageRequestHandler 
     {
         private readonly ILogger<ImageRequestHandler> _logger;
         private readonly IWebHostEnvironment _environment; 

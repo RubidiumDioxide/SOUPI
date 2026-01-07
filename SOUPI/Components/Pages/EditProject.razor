@@ -1,16 +1,11 @@
 ﻿@page "/editproject/{projectId:guid}"
 @inject NavigationManager NavigationManager
-@inject GithubRequestHandler githubRequestHandler 
-@inject UserRequestHandler userRequestHandler
-@inject ProjectRequestHandler projectRequestHandler 
-@inject ImageRequestHandler imageRequestHandler 
+@inject IGithubRequestHandler githubRequestHandler 
+@inject IUserRequestHandler userRequestHandler
+@inject IProjectRequestHandler projectRequestHandler 
+@inject IImageRequestHandler imageRequestHandler 
 @inject ISnackbar Snackbar
-@inject IHttpContextAccessor HttpContextAccessor
-@using GithubUser = Octokit.User
-@using Octokit
-@using Project = SOUPIShared.Models.Project
-@using SOUPIShared.Exceptions;
-@using System.ComponentModel.DataAnnotations
+@inject IHttpContextAccessor HttpContextAccessor 
 @attribute [Authorize]
 
 
@@ -184,7 +179,7 @@
         {
             if (!string.IsNullOrEmpty(project.GithubRepository))
             {
-                var repositories = await githubRequestHandler.GetRepositoriesForCurrent();
+                var repositories = await githubRequestHandler.GetRepositoriesForCurrentUser();
                 if (!repositories.Select(r => r.Name).Contains(project.GithubRepository))
                 {
                     throw new SoupiException("Похоже, у вас нет доступа к этому репозиторию. Проверьте название репозитория ");

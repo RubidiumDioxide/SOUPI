@@ -10,7 +10,9 @@ using SOUPICore;
 using System.Net.Http.Headers;
 using System.Security.Claims; 
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore; 
+using Microsoft.EntityFrameworkCore;
+using SOUPI.Handlers.Interfaces; 
+using SOUPI.Handlers; 
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -80,10 +82,10 @@ builder.Services.AddScoped<HttpClient>(sp =>
     return client;
 });
 
-builder.Services.AddScoped<GithubRequestHandler>();
-builder.Services.AddScoped<ImageRequestHandler>();
-builder.Services.AddScoped<UserRequestHandler>();
-builder.Services.AddScoped<ProjectRequestHandler>();
+builder.Services.AddScoped<IGithubRequestHandler, GithubRequestHandler>();
+builder.Services.AddScoped<IImageRequestHandler, ImageRequestHandler>();
+builder.Services.AddScoped<IUserRequestHandler, UserRequestHandler>();
+builder.Services.AddScoped<IProjectRequestHandler, ProjectRequestHandler>();
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();

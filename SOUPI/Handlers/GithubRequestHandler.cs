@@ -3,11 +3,12 @@ using GithubUser = Octokit.User;
 using SOUPIShared.Exceptions;
 using Microsoft.AspNetCore.Authentication;
 using Octokit.Internal;
+using SOUPI.Handlers.Interfaces; 
 
 
-namespace SOUPICore.Services
+namespace SOUPI.Handlers 
 {
-    public class GithubRequestHandler 
+    public class GithubRequestHandler : IGithubRequestHandler 
     {
         private readonly ILogger<GithubRequestHandler> _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -40,7 +41,7 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<IEnumerable<Repository>> GetRepositoriesForCurrent()
+        public async Task<IEnumerable<Repository>> GetRepositoriesForCurrentUser()
         {
             try
             {

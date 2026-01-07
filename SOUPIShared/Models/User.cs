@@ -1,14 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations; 
+
 
 namespace SOUPIShared.Models;
 
-public partial class User
+public class User
 {
-    public Guid Id { get; set; } 
+    public Guid Id { get; set; }
 
-    public string Login { get; set; } = null!; 
+    [Required]
+    public string Login { get; set; } = null!;
 
 
-    public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
+    public virtual List<Project> Projects { get; set; } = default!;
+    public virtual List<TeamMember> TeamMembers { get; set; } = default!; 
+    public virtual List<Notification> ReceivedNotifications { get; set; } = default!;
+    public virtual List<Notification> SentNotifications { get; set; } = default!;      
 }
