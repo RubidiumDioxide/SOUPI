@@ -13,11 +13,12 @@ namespace SOUPIShared.Models
         [Required] 
         public Guid JobId { get; set; } = default!;
 
-        [MaxLength(100, ErrorMessage = "Комментарий слишком длинный (максимум 100 символов)")]
+        [MaxLength(255, ErrorMessage = "Комментарий слишком длинный (максимум 255 символов)")]
         public string? Comment { get; set; }
 
 
         public virtual TeamMember TeamMember { get; set; } = default!; 
-        public virtual Job Job { get; set; } = default!;    
+        public virtual Job Job { get; set; } = default!;
+        public virtual List<Activity> Activities { get; set; } = default!; 
     }
 }

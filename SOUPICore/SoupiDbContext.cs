@@ -22,6 +22,7 @@ public partial class SoupiDbContext : DbContext
     public virtual DbSet<Job> Jobs { get; set; } 
     public virtual DbSet<JobSequence> JobSequences { get; set; } 
     public virtual DbSet<Assignment> Assignments { get; set; } 
+    public virtual DbSet<Activity> Activities { get; set; } 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -74,6 +75,7 @@ public partial class SoupiDbContext : DbContext
 
             entity.ToTable("TEAMMEMBER");
 
+            entity.HasIndex(tm => tm.Id).IsUnique(); 
             entity.HasIndex(tm => new { tm.UserId, tm.ProjectId }).IsUnique();
 
             entity.HasOne(tm => tm.User).WithMany(u => u.TeamMembers)
@@ -128,13 +130,27 @@ public partial class SoupiDbContext : DbContext
 
             entity.ToTable("ASSIGNMENT");
 
-            entity.HasIndex(a => new { a.TeamMemberId, a.JobId }); 
+            entity.HasIndex(a => a.Id).IsUnique(); 
+            entity.HasIndex(a => new { a.TeamMemberId, a.JobId }).IsUnique(); 
 
             entity.HasOne(a => a.TeamMember).WithMany(tm => tm.Assignments)
                 .HasForeignKey(a => a.TeamMemberId)
                 .OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(a => a.Job).WithMany(tm => tm.Assignments)
                 .HasForeignKey(a => a.JobId) 
+                .OnDelete(DeleteBehavior.Restrict); 
+        });
+
+        modelBuilder.Entity<Activity>(entity =>
+        {
+            entity.HasKey(a => a.Id);
+
+            entity.ToTable("ACTIVITY");
+
+            entity.HasIndex(a => a.Id).IsUnique();
+
+            entity.HasOne(a => a.Assignment).WithMany(a => a.Activities) 
+                .HasForeignKey(a => a.AssignmentId) 
                 .OnDelete(DeleteBehavior.Restrict); 
         }); 
     }

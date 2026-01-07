@@ -14,7 +14,7 @@ namespace SOUPIShared.Models
         public Guid CreatorId { get; set; }
 
         [Required(ErrorMessage = "Поле названия обязательное")]
-        [MaxLength(100, ErrorMessage = "Название слишком длинное (максимум 100 символов)")]
+        [MaxLength(255, ErrorMessage = "Название слишком длинное (максимум 255 символов)")]
         [MinLength(1, ErrorMessage = "Название слишком короткое (минимум 1 символ)")]
         public string Title { get; set; } = default!;
 
