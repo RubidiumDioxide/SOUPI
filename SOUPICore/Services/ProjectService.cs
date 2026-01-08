@@ -17,14 +17,17 @@ namespace SOUPICore.Services
         {
             _logger = logger;
             _context = context;  
-        }
+        } 
 
-        public async Task<IEnumerable<ProjectDto>> GetByUserId(Guid creatorId)
+        public async Task<IEnumerable<ProjectDto>> GetByUserId(Guid userId)
         {
             try
             {
-                // TO_DO: change to by prticipation (teammembers)
-                var projects = await _context.Projects.Where(p => p.CreatorId == creatorId).ToListAsync(); 
+                var projects = await _context.Projects
+                    .Where(p => p.TeamMembers
+                    .Select(tm => tm.UserId)
+                    .Contains(userId))
+                    .ToListAsync(); 
 
                 return projects.Select(p => new ProjectDto(p)); 
             }
@@ -70,7 +73,7 @@ namespace SOUPICore.Services
                     Image = newProjectDto.Image,
                 };
 
-                _context.Projects.Add(newProject);
+                await _context.Projects.AddAsync(newProject);
                 await _context.SaveChangesAsync();
 
                 return new ProjectDto(newProject);
@@ -116,7 +119,7 @@ namespace SOUPICore.Services
 
                 if (project == null)
                 {
-                    throw new NotFoundException(); 
+                    throw new BadRequestException("Проект нельзя удалить, т.к. он не найден в системе ");  
                 }
 
                 _context.Projects.Remove(project);
