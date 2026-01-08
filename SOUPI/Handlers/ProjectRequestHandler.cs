@@ -1,7 +1,8 @@
-﻿using SOUPIShared.Dtos;
+﻿using SOUPI.Handlers.Interfaces; 
+using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions;
 using System.Text.Json;
-using SOUPI.Handlers.Interfaces; 
+using System.Net;
 
 
 namespace SOUPI.Handlers
@@ -53,6 +54,14 @@ namespace SOUPI.Handlers
             {
                 var response = await _httpClient.GetAsync($"{getByIdUrl}{id}");
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    if (response.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        return null;
+                    }
+                }
+
                 response.EnsureSuccessStatusCode(); 
 
                 var newContent = await response.Content.ReadAsStringAsync();
@@ -66,8 +75,8 @@ namespace SOUPI.Handlers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Не удалось загрузить редактируемый проект {ex.Message}");
-                throw new SoupiException("Не удалось загрузить редактируемый проект. Попробуйте позже или сообщите об ошибке в техподдержку ");
+                _logger.LogError($"Не удалось загрузить проект {ex.Message}");
+                throw new SoupiException("Не удалось загрузить проект. Попробуйте позже или сообщите об ошибке в техподдержку ");
             }
         }
 

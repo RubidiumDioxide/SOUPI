@@ -84,8 +84,7 @@ builder.Services.AddScoped<HttpClient>(sp =>
     return client;
 });
 
-builder.Services.AddScoped<IGithubRequestHandler, GithubRequestHandler>();
-builder.Services.AddScoped<IImageRequestHandler, ImageRequestHandler>();
+builder.Services.AddScoped<IGithubRequestHandler, GithubRequestHandler>(); 
 builder.Services.AddScoped<IUserRequestHandler, UserRequestHandler>();
 builder.Services.AddScoped<IProjectRequestHandler, ProjectRequestHandler>();
 

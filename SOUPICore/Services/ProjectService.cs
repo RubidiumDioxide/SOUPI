@@ -19,10 +19,11 @@ namespace SOUPICore.Services
             _context = context;  
         }
 
-        public async Task<IEnumerable<ProjectDto>> GetByCreatorId(Guid creatorId)
+        public async Task<IEnumerable<ProjectDto>> GetByUserId(Guid creatorId)
         {
             try
             {
+                // TO_DO: change to by prticipation (teammembers)
                 var projects = await _context.Projects.Where(p => p.CreatorId == creatorId).ToListAsync(); 
 
                 return projects.Select(p => new ProjectDto(p)); 

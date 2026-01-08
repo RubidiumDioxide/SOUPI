@@ -22,9 +22,9 @@
     </MudDrawer>
 
     <MudMainContent>
-        @if(user == null)
+        @if (!_isAuthenticated)
         {
-            <MudContainer Class="pt-20">
+            <MudContainer Class="pt-14">
                 <MudStack AlignItems="AlignItems.Center">
                     <MudText Typo="Typo.h5" Align="Align.Center">Hey there! To use this app, you must first log in using your GitHub account.</MudText>
                     <MudText Typo="Typo.body2">All of your projects and progress will be saved under this GitHub account.</MudText>
@@ -33,6 +33,12 @@
                         Log In with GitHub
                     </MudButton>
                 </MudStack>
+            </MudContainer>
+        }
+        else if(user == null || githubUser == null)
+        {
+            <MudContainer Class="pt-14">
+                <MudText Align="Align.Center">Loading... </MudText>
             </MudContainer>
         }
         else
@@ -63,7 +69,7 @@
     private UserDto? user { get; set; } 
     private bool _isDarkMode; 
     private bool _drawerOpen = false; 
-
+    private bool _isAuthenticated = false; 
 
     protected override async Task OnInitializedAsync()
     {
@@ -75,6 +81,8 @@
 
                 if(authState.User.Identity?.IsAuthenticated == true)
                 {
+                    _isAuthenticated = true; 
+
                     await LoadGithubUser(); 
                     await LoadUser();
 

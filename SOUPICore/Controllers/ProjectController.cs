@@ -27,13 +27,9 @@ namespace SOUPICore.Controllers
         {
             try
             {
-                var projects = await _projectService.GetByCreatorId(userId); 
+                var projects = await _projectService.GetByUserId(userId); 
 
                 return Ok(projects);
-            }
-            catch (SoupiException ex)
-            {
-                return BadRequest(); 
             }
             catch (Exception ex)
             {
@@ -49,18 +45,11 @@ namespace SOUPICore.Controllers
             {
                 var project = await _projectService.GetById(id); 
 
-                if (project == null)
-                {
-                    return NotFound();   
-                }
-                else
-                {
-                    return Ok(project);
-                }
+                return Ok(project);               
             }
-            catch (SoupiException ex)
+            catch (NotFoundException)
             {
-                return BadRequest(); 
+                return NotFound(); 
             }
             catch (Exception ex)
             {
@@ -78,10 +67,6 @@ namespace SOUPICore.Controllers
 
                 return Ok(project);
             }
-            catch (SoupiException ex)
-            {
-                return BadRequest(); 
-            }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message); 
@@ -98,9 +83,9 @@ namespace SOUPICore.Controllers
 
                 return Ok(project);
             }
-            catch (SoupiException ex)
+            catch (NotFoundException)
             {
-                return BadRequest();
+                return NotFound(); 
             }
             catch (Exception ex)
             {
@@ -118,9 +103,9 @@ namespace SOUPICore.Controllers
 
                 return Ok();
             }
-            catch (SoupiException ex)
+            catch (NotFoundException)
             {
-                return BadRequest();
+                return NotFound(); 
             }
             catch (Exception ex)
             {
