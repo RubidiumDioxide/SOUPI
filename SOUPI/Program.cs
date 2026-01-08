@@ -24,6 +24,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddCascadingAuthenticationState(); 
 
 builder.Services.AddAuthentication(options => 
 {

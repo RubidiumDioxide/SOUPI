@@ -1,10 +1,14 @@
 ﻿@inherits LayoutComponentBase
+@inject IUserRequestHandler userRequestHandler 
+@inject IGithubRequestHandler githubRequestHandler
+@inject ISnackbar Snackbar 
+@inject ProtectedSessionStorage SessionStorage
 
 
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider /> 
-<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" />
+<MudThemeProvider @ref="_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" />
 
 <MudLayout>
     <MudAppBar Elevation="1">
@@ -16,8 +20,29 @@
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu/>
     </MudDrawer>
+
     <MudMainContent>
-        @Body 
+        @if(user == null)
+        {
+            <MudContainer Class="pt-20">
+                <MudStack AlignItems="AlignItems.Center">
+                    <MudText Typo="Typo.h5" Align="Align.Center">Hey there! To use this app, you must first log in using your GitHub account.</MudText>
+                    <MudText Typo="Typo.body2">All of your projects and progress will be saved under this GitHub account.</MudText>
+
+                    <MudButton Href="api/Auth/Login" Variant="Variant.Filled" Color="Color.Primary">
+                        Log In with GitHub
+                    </MudButton>
+                </MudStack>
+            </MudContainer>
+        }
+        else
+        {
+            <CascadingValue Value=@user IsFixed=true>
+                <CascadingValue Value=@githubUser IsFixed=true>
+                    @Body 
+                </CascadingValue>
+            </CascadingValue>
+        }
     </MudMainContent>
 </MudLayout> 
 
@@ -28,9 +53,109 @@
 </div>
 
 
-@code { 
-    private bool _isDarkMode;
-    bool _drawerOpen = true;
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; } 
+
+    private MudThemeProvider _mudThemeProvider;
+
+    private GithubUser? githubUser { get; set; }
+    private UserDto? user { get; set; } 
+    private bool _isDarkMode; 
+    private bool _drawerOpen = false; 
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        if(authenticationState != null)
+        {
+            try
+            {
+                var authState = await authenticationState; 
+
+                if(authState.User.Identity?.IsAuthenticated == true)
+                {
+                    await LoadGithubUser(); 
+                    await LoadUser();
+
+                    StateHasChanged(); 
+                }
+                else
+                {
+                    Snackbar.Add("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ", Severity.Error);
+                }
+            }
+            catch (SoupiException ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error); 
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+            }
+        }
+        else
+        {
+            Snackbar.Add("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender = true)
+    {
+        var response = await SessionStorage.GetAsync<bool>("isDarkMode");
+        if (response.Success)
+        {
+            _isDarkMode = response.Value;
+            return;
+        }
+
+        _isDarkMode = await _mudThemeProvider.GetSystemDarkModeAsync();
+    }
+
+    private async Task LoadGithubUser()
+    {
+        try
+        {
+            githubUser = await githubRequestHandler.GetUser(); 
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+
+    private async Task LoadUser()
+    {
+        try 
+        {
+            user = await userRequestHandler.GetByLogin(githubUser.Login); 
+
+            if(user == null)
+            {
+                user = await userRequestHandler.Create(new UserDto()
+                    {
+                        Login = githubUser.Login 
+                    });   
+            } 
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error); 
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+
+    private async Task SaveSelectedTheme()
+    {
+        await SessionStorage.SetAsync("isDarkMode", _isDarkMode);
+    }
 
     void DrawerToggle()
     {

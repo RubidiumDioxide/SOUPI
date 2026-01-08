@@ -1,173 +1,98 @@
 ﻿@page "/editproject/{projectId:guid}"
 @inject NavigationManager NavigationManager
 @inject IGithubRequestHandler githubRequestHandler 
-@inject IUserRequestHandler userRequestHandler
 @inject IProjectRequestHandler projectRequestHandler 
-@inject IImageRequestHandler imageRequestHandler 
 @inject ISnackbar Snackbar
-@inject IHttpContextAccessor HttpContextAccessor 
 @attribute [Authorize]
 
 
 <PageTitle>Редактировать проект</PageTitle>
 
 <MudContainer Class="pt-14">
-    @if (user == null || project == null)
+    @if(error != null)
     {
-        <MudText Align="Align.Center">Loading... </MudText>
+        <MudAlert Severity=severity>@error</MudAlert>
     }
     else
     {
-        <EditForm Model=@project OnValidSubmit="OnValidSubmit">
-            <DataAnnotationsValidator />
-            <MudCard Style="max-width: 700px" Class="ma-auto">
-                <MudCardHeader>
-                    <MudText Typo="Typo.h5" Class="mb-1 ma-auto">Редактирование проекта @project.Name</MudText>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudTextField @bind-Value=@project.Name For="@(() => project.Name)" Label="Название проекта" Variant=Variant.Outlined />
-                    <MudTextField @bind-Value=@project.Description For="@(() => project.Description)" Label="Описание проекта" Variant=Variant.Outlined Lines="5" />
-                    @if (project.GithubRepository == null)
-                    {
-                        <MudTextField @bind-Value=@project.GithubRepository For="@(() => project.GithubRepository)" Label="Название репозитория на Github" Variant=Variant.Outlined />
-                    }
-
-                    <MudFileUpload T="IBrowserFile" Accept=".jpg, .png, .jpeg" OnFilesChanged=@(async (e) => await OnImageChanged(e))>
-                        <ActivatorContent>
-                            <MudButton Variant="Variant.Filled"
-                                       Color="Color.Primary"
-                                       StartIcon="@Icons.Material.Filled.Image">
-                                Обложка (.jpg, .png, .jpeg)
-                            </MudButton>
-                        </ActivatorContent>
-                    </MudFileUpload>
-
-                    @if (imagePreviewUrl != null)
-                    {
-                        <MudImage Src="@imagePreviewUrl" Width="200" Alt="Project Image Preview" Elevation="25" Class="rounded-lg ma-4" />
-                    }
-                    else if(project.Image != null)
-                    {
-                        <MudImage Src=@($"uploads/{project.Image}") Width="200" Alt="Project Image Preview" Elevation="25" Class="rounded-lg ma-4" />
-                    }
-                </MudCardContent>
-                <MudCardActions Class="mt-1 ma-auto">
-                    <MudButton @ref=submitButton ButtonType=ButtonType.Submit Color="Color.Primary" Variant="Variant.Filled">Сохранить изменения</MudButton>
-                    <MudButton onclick="ResetForm" Color="Color.Secondary" Variant="Variant.Filled">Сбросить</MudButton>
-                </MudCardActions>
-            </MudCard>
-        </EditForm>
+        @if (User == null || GithubUser == null || project == null)
+        {
+            <MudText Align="Align.Center">Loading... </MudText>
+        }
+        else
+        {
+            <EditForm Model=@project OnValidSubmit="OnValidSubmit">
+                <DataAnnotationsValidator />
+                <MudCard Style="max-width: 700px" Class="ma-auto">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h5" Class="mb-1 ma-auto">Редактирование проекта @project.Name</MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudTextField @bind-Value=@project.Name For="@(() => project.Name)" Label="Название проекта" Variant=Variant.Outlined />
+                        <MudTextField @bind-Value=@project.Description For="@(() => project.Description)" Label="Описание проекта" Variant=Variant.Outlined Lines="5" />
+                        @if (project.GithubRepository == null)
+                        {
+                            <MudTextField @bind-Value=@project.GithubRepository For="@(() => project.GithubRepository)" Label="Название репозитория на Github" Variant=Variant.Outlined />
+                        }
+                    </MudCardContent>
+                    <MudCardActions Class="mt-1 ma-auto">
+                        <MudButton @ref=submitButton ButtonType=ButtonType.Submit Color="Color.Primary" Variant="Variant.Filled">Сохранить изменения</MudButton>
+                        <MudButton onclick="ResetForm" Color="Color.Secondary" Variant="Variant.Filled">Сбросить</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </EditForm>
+        }
     }
 </MudContainer>
 
 
 @code {
     [CascadingParameter]
-    private Task<AuthenticationState>? authenticationState { get; set; }
+    private UserDto? User { get; set; }
+    [CascadingParameter]
+    private GithubUser? GithubUser { get; set; }
 
     [Parameter]
     public Guid projectId { get; set; }
-    private UserDto? user { get; set; }
-    private ProjectDto project = new ProjectDto();
-    private IBrowserFile? imageFile { get; set; }
-    private string? imagePreviewUrl { get; set; }
 
+    private string? error { get; set; } = null;
+    private Severity severity { get; set; } = Severity.Warning;
+
+    private ProjectDto? project { get; set; } 
+    
     private MudButton submitButton;  
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        if (authenticationState != null)
+        if (User != null && GithubUser != null)
         {
-            var authState = await authenticationState;
-
-            if (authState.User.Identity?.IsAuthenticated == true)
+            try
             {
-                await LoadUser();
                 await LoadProject(); 
-
-                StateHasChanged();
             }
-            else
+            catch (SoupiException ex)
             {
-                Snackbar.Add("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ", Severity.Error);
+                error = ex.Message;
+                severity = Severity.Error;
             }
-        }
-        else
-        {
-            Snackbar.Add("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ", Severity.Error);
-        }
-    }
-
-    private async Task LoadUser()
-    {
-        try
-        {
-            var httpContext = HttpContextAccessor.HttpContext;
-            var githubUserLogin = httpContext.User.FindFirst("urn:github:login").Value;
-
-            if (string.IsNullOrEmpty(githubUserLogin))
+            catch (Exception ex)
             {
-                throw new SoupiException("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ");
+                error = "Произошла непредвиденная ошибка ";
+                severity = Severity.Error;
             }
-
-            user = await userRequestHandler.GetByLogin(githubUserLogin);
-
-            if (user == null)
-            {
-                throw new SoupiException("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ");
-            }
-        }
-        catch (SoupiException ex)
-        {
-            Snackbar.Add(ex.Message, Severity.Error);
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
         }
     }
 
     private async Task LoadProject()
     {
-        try
-        {
-            project = await projectRequestHandler.GetById(projectId);
+        project = await projectRequestHandler.GetById(projectId);
 
-            StateHasChanged();
-        }
-        catch (SoupiException ex)
-        {
-            Snackbar.Add(ex.Message, Severity.Error);
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
-        }
+        StateHasChanged();
     }
 
     private void ResetForm()
     {
-        imageFile = null;
-        imagePreviewUrl = null;
-        project = new ProjectDto();
-        StateHasChanged();
-    }
-
-    private async Task OnImageChanged(InputFileChangeEventArgs e)
-    {
-        if (e.File.Size >= 512000)
-        {
-            Snackbar.Add("Размер изображения превышает допустимый (512000 байт). Изображение не будет сохранено", Severity.Error);
-            return;
-        }
-
-        imageFile = e.File;
-        var compressedImageFile = await e.File.RequestImageFileAsync(e.File.ContentType, 200, 200);
-
-        var buffer = new byte[compressedImageFile.Size];
-        await compressedImageFile.OpenReadStream().ReadAsync(buffer);
-        imagePreviewUrl = $"data:{compressedImageFile.ContentType};base64,{Convert.ToBase64String(buffer)}";
-
+        LoadProject(); 
         StateHasChanged();
     }
 
@@ -186,22 +111,10 @@
                 }
             }
 
-            var projects = await projectRequestHandler.GetByUserId(user.Id);
+            var projects = await projectRequestHandler.GetByUserId(User.Id);
             if (projects.Where(p => p.Id != project.Id).Select(p => p.Name).Contains(project.Name))
             {
                 throw new SoupiException("Вы уже создавали проект с таким названием. Названия проектов должны быть уникальными ");
-            }
-
-            // try uploading an image & deleting older one 
-            if (imageFile != null)
-            {
-                var oldProjectImage = project.Image; 
-                project.Image = await imageRequestHandler.Upload(imageFile, imageFile.Name);
-                
-                if (oldProjectImage != null)
-                {
-                    imageRequestHandler.Delete(oldProjectImage);
-                }
             }
 
             project = await projectRequestHandler.Update(project);

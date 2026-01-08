@@ -29,16 +29,13 @@ namespace SOUPICore.Controllers
             {
                 var user = await _userService.GetByLogin(login);
 
-                if (user == null)
-                {
-                    return NotFound(); 
-                }
-                else
-                {
-                    return Ok(user);
-                }
+                return Ok(user);
             }
-            catch (SoupiException ex)
+            catch (NotFoundException)
+            {
+                return NotFound(); 
+            }
+            catch (SoupiException)
             {
                 return BadRequest(); 
             }

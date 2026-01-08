@@ -1,134 +1,90 @@
 ﻿@page "/myprojects"
 @inject NavigationManager NavigationManager 
-@inject IUserRequestHandler userRequestHandler 
-@inject IProjectRequestHandler projectRequestHandler
-@inject IImageRequestHandler imageRequestHandler 
+@inject IProjectRequestHandler projectRequestHandler 
 @inject ISnackbar Snackbar
-@inject IHttpContextAccessor HttpContextAccessor 
 @attribute [Authorize]
 
 
 <PageTitle>Мои проекты</PageTitle>
 
 <MudContainer Class="pt-14" >
-    @if (user == null || projects == null)
-    {
-        <MudText Align="Align.Center">Loading... </MudText>
-    }
-    else
-    {
-        <MudStack AlignItems="AlignItems.Center">
-            <MudButton OnClick="NavigateToNewProject">Новый проект</MudButton>
+    <MudStack AlignItems="AlignItems.Center">
+        <MudButton Variant="Variant.Filled" OnClick="NavigateToNewProject">Новый проект</MudButton>
 
-            @if (error == null)
+        @if(error != null)
+        {
+            <MudAlert Severity=severity>@error</MudAlert>
+        }
+        else
+        {
+            @if (User == null || GithubUser == null || projects == null)
             {
-                <MudGrid Class="mt-8">
-                    @foreach (ProjectDto project in projects)
-                    {
-                        <ProjectCard Project=@project
-                            OnDeleteButtonClick="DeleteProject"
-                            NavigationManager="NavigationManager" />
-                    }
-                </MudGrid>
+                <MudText Align="Align.Center">Loading... </MudText>
             }
             else
             {
-                <MudAlert Severity=severity>@error</MudAlert>
+
+                    <MudGrid Class="mt-8">
+                        @foreach (ProjectDto project in projects)
+                        {
+                            <ProjectCard Project=@project
+                                         OnDeleteButtonClick="DeleteProject"
+                                         NavigationManager="NavigationManager" />
+                        }
+                    </MudGrid>
             }
-        </MudStack>
-    }
+        }
+    </MudStack>
 </MudContainer>
 
 
 @code {
     [CascadingParameter]
-    private Task<AuthenticationState>? authenticationState { get; set; }
+    private UserDto? User { get; set; } 
+    [CascadingParameter] 
+    private GithubUser? GithubUser { get; set; } 
 
     private string? error { get; set; } = null;
     private Severity severity { get; set; } = Severity.Warning;
 
-    private string? githubUserLogin { get; set; } 
-    private UserDto? user { get; set; } 
     private IEnumerable<ProjectDto>? projects { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        if (authenticationState != null)
+        if(User != null && GithubUser != null)
         {
-            var authState = await authenticationState;
-
-            if (authState.User.Identity?.IsAuthenticated == true)
+            try
             {
-                await LoadUser();
                 await LoadProjects(); 
-                StateHasChanged();
             }
-            else
+            catch (SoupiException ex)
             {
-                Snackbar.Add("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ", Severity.Error);
+                error = ex.Message;
+                severity = Severity.Error;
             }
-        }
-        else
-        {
-            Snackbar.Add("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ", Severity.Error);
+            catch (Exception ex)
+            {
+                error = "Произошла непредвиденная ошибка ";
+                severity = Severity.Error;
+            }
         }
     }
 
-    private async Task LoadUser()
-    {
-        try
-        {
-            var httpContext = HttpContextAccessor.HttpContext;
-            var githubUserLogin = httpContext.User.FindFirst("urn:github:login").Value;
-
-            if (string.IsNullOrEmpty(githubUserLogin))
-            {
-                throw new SoupiException("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ");
-            }
-
-            user = await userRequestHandler.GetByLogin(githubUserLogin);
-
-            if (user == null)
-            {
-                throw new SoupiException("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ");
-            }
-        }
-        catch (SoupiException ex)
-        {
-            Snackbar.Add(ex.Message, Severity.Error);
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
-        }
-    } 
-
     private async Task LoadProjects()
     {
-        try
-        {
-            projects = await projectRequestHandler.GetByUserId(user.Id);
+        projects = await projectRequestHandler.GetByUserId(User.Id);
 
-            if (projects.Count() == 0)
-            {
-                error = "Здесь пока ничего нет :( ";
-                severity = Severity.Warning; 
-            }
-            else
-            {
-                error = null; 
-            }
+        if (projects.Count() == 0)
+        {
+            error = "Здесь пока ничего нет :( ";
+            severity = Severity.Warning;
+        }
+        else
+        {
+            error = null;
+        }
 
-            StateHasChanged(); 
-        }
-        catch (SoupiException ex)
-        {
-            Snackbar.Add(ex.Message, Severity.Error);
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
-        }
+        StateHasChanged();
     }
 
     private async Task DeleteProject(ProjectDto projectDto)
@@ -136,14 +92,8 @@
         try
         {
             await projectRequestHandler.Delete(projectDto.Id); 
-            
-            if (projectDto.Image != null)
-            {
-                imageRequestHandler.Delete(projectDto.Image);
-            }
 
             await LoadProjects(); 
-            StateHasChanged(); 
             Snackbar.Add("Проект успешно удален ", Severity.Success);
         }
         catch (SoupiException ex)

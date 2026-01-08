@@ -15,7 +15,7 @@ namespace SOUPI.Handlers
             _logger = logger;
             _environment = environment; 
         } 
-        
+
         public async Task<string> Upload(IBrowserFile imageFile, string fileName)
         {
             try

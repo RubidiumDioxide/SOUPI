@@ -28,7 +28,7 @@ namespace SOUPI.Handlers
                 var accessToken = await httpContext!.GetTokenAsync("access_token");
 
                 var github = new GitHubClient(
-                    new ProductHeaderValue("AspNetCoreGitBubAuth"),
+                    new ProductHeaderValue("AspNetCoreGitHubAuth"),
                     new InMemoryCredentialStore(new Credentials(accessToken))
                 );
 
@@ -50,7 +50,7 @@ namespace SOUPI.Handlers
                 var accessToken = await httpContext!.GetTokenAsync("access_token");
 
                 var github = new GitHubClient(
-                    new ProductHeaderValue("AspNetCoreGitBubAuth"),
+                    new ProductHeaderValue("AspNetCoreGitHubAuth"),
                     new InMemoryCredentialStore(new Credentials(accessToken))
                 ); 
 
