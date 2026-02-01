@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations; 
+﻿using SOUPIShared.Misc;
+using System.ComponentModel.DataAnnotations; 
 
 
 namespace SOUPIShared.Models

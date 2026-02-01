@@ -1,0 +1,100 @@
+﻿@inject INotificationRequestHandler requestHandler
+@inject ISnackbar Snackbar
+@using SOUPIShared.Misc; 
+
+
+@if (User == null || GithubUser == null || notifications == null)
+{
+    <MudText Align="Align.Center">Loading... </MudText>
+}
+else
+{
+    <MudList T="NotificationDisplayDto">
+        @foreach (var notification in notifications)
+        {
+            // option #1 
+            <MudListItem 
+                Text="@(notification.NotificationType switch
+                {
+                    NotificationType.Info => $"Сообщение от {notification.SenderLogin} ",
+                    NotificationType.Invitation => $"{notification.SenderLogin} приглашает вас принять участие в проекте {notification.ProjectName} "
+                })"
+                SecondaryText=@notification.Message
+                Disabled=@notification.HasBeenViewed
+                IconColor="@(notification.NotificationType switch
+                {
+                    NotificationType.Info => Color.Info,
+                    NotificationType.Invitation => Color.Success
+                })"
+                Icon="@(notification.NotificationType switch
+                {
+                    NotificationType.Info => Icons.Material.Filled.Message,
+                    NotificationType.Invitation => Icons.Material.Filled.WavingHand
+                })" /> 
+
+
+            // option #2
+            <MudListItem>
+                <AvatarContent>
+                    <MudIcon 
+                        Icon="@(notification.NotificationType switch
+                        {
+                            NotificationType.Info => Icons.Material.Filled.Message,
+                            NotificationType.Invitation => Icons.Material.Filled.WavingHand
+                        })" 
+                        Color="@(notification.NotificationType switch
+                        {
+                            NotificationType.Info => Color.Info,
+                            NotificationType.Invitation => Color.Success
+                        })" />
+                </AvatarContent>
+                <ChildContent>
+                    <MudText>
+                        "@(notification.NotificationType switch
+                        {
+                            NotificationType.Info => $"Сообщение от {notification.SenderLogin} ",
+                            NotificationType.Invitation => $"{notification.SenderLogin} приглашает вас принять участие в проекте {notification.ProjectName} "
+                        })"
+                    </MudText>
+                    <MudText> @notification.Message </MudText>
+                </ChildContent>
+            </MudListItem>
+        }
+    </MudList> 
+}
+
+
+@code {
+    [CascadingParameter]
+    private UserDto? User { get; set; }
+    [CascadingParameter]
+    private GithubUser? GithubUser { get; set; }
+
+    private IEnumerable<NotificationDisplayDto>? notifications { get; set; } 
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (User != null && GithubUser != null)
+        {
+            try
+            {
+                await LoadNotifications(); 
+            }
+            catch (SoupiException ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error); 
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add("Произошла непредвиденная ошибка ", Severity.Error);
+            }
+        }
+    }
+
+    private async Task LoadNotifications()
+    {
+        notifications = await requestHandler.GetByReceiverId(User.Id);
+
+        StateHasChanged();
+    }
+}

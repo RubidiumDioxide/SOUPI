@@ -1,4 +1,5 @@
-﻿using SOUPIShared.Models;
+﻿using SOUPIShared.Misc;
+using SOUPIShared.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace SOUPIShared.Dtos

@@ -1,4 +1,4 @@
-﻿namespace SOUPIShared.Models
+﻿namespace SOUPIShared.Misc
 {
     public enum NotificationType
     {
