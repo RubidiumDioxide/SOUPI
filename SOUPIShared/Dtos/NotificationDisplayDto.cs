@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SOUPIShared.Dtos
 {
-    public class NotificationDto
+    public class NotificationDisplayDto
     {
         public Guid Id { get; set; }
 
@@ -16,10 +16,19 @@ namespace SOUPIShared.Dtos
         public Guid SenderId { get; set; } = default!;
 
         [Required]
+        public string SenderLogin { get; set; } = default!; 
+
+        [Required]
         public Guid ReceiverId { get; set; } = default!;
+        
+        [Required]
+        public string ReceiverLogin { get; set; } = default!;
 
         [Required]
         public Guid ProjectId { get; set; } = default!;
+
+        [Required]
+        public string ProjectName { get; set; } = default!;
 
         [Required]
         public NotificationType NotificationType { get; set; } = NotificationType.Info;
@@ -27,17 +36,20 @@ namespace SOUPIShared.Dtos
         [Required]
         public bool HasBeenViewed { get; set; } = false;
 
-        public NotificationDto(Notification notification)
+        public NotificationDisplayDto(Notification notification)
         {
             Id = notification.Id; 
             Message = notification.Message; 
-            SenderId = notification.SenderId; 
+            SenderId = notification.SenderId;
+            SenderLogin = notification.Sender.Login; 
             ReceiverId = notification.ReceiverId; 
+            ReceiverLogin = notification.Receiver.Login; 
             ProjectId = notification.ProjectId;
+            ProjectName = notification.Project.Name; 
             NotificationType = notification.NotificationType; 
             HasBeenViewed = notification.HasBeenViewed; 
         }
 
-        public NotificationDto() { }
+        public NotificationDisplayDto() { }
     }
 }

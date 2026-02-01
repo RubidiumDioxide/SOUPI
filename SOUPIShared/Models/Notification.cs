@@ -24,6 +24,9 @@ namespace SOUPIShared.Models
         [Required]
         public NotificationType NotificationType { get; set; } = NotificationType.Info;
 
+        [Required]
+        public bool HasBeenViewed { get; set; } = false; 
+
 
         public virtual Project Project { get; set; } = default!;
         public virtual User Sender { get; set; } = default!;
