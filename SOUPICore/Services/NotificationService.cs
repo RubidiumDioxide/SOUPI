@@ -61,26 +61,5 @@ namespace SOUPICore.Services
                 throw;
             }
         }
-
-        public async Task DeleteById(Guid id)
-        {
-            try
-            {
-                var Notification = await _context.Notifications.FindAsync(id);
-
-                if (Notification == null)
-                {
-                    throw new BadRequestException("Уведомление нельзя удалить, т.к. он не найден в системе ");
-                }
-
-                _context.Notifications.Remove(Notification);
-                _context.SaveChanges();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
-        }
     }
 }

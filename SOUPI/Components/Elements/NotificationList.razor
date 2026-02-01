@@ -1,6 +1,7 @@
 ﻿@inject INotificationRequestHandler requestHandler
 @inject ISnackbar Snackbar
 @using SOUPIShared.Misc; 
+@using static SOUPIShared.TestData.Notifications; 
 
 
 @if (User == null || GithubUser == null || notifications == null)
@@ -9,58 +10,45 @@
 }
 else
 {
-    <MudList T="NotificationDisplayDto">
-        @foreach (var notification in notifications)
-        {
-            // option #1 
-            <MudListItem 
-                Text="@(notification.NotificationType switch
-                {
-                    NotificationType.Info => $"Сообщение от {notification.SenderLogin} ",
-                    NotificationType.Invitation => $"{notification.SenderLogin} приглашает вас принять участие в проекте {notification.ProjectName} "
-                })"
-                SecondaryText=@notification.Message
-                Disabled=@notification.HasBeenViewed
-                IconColor="@(notification.NotificationType switch
-                {
-                    NotificationType.Info => Color.Info,
-                    NotificationType.Invitation => Color.Success
-                })"
-                Icon="@(notification.NotificationType switch
-                {
-                    NotificationType.Info => Icons.Material.Filled.Message,
-                    NotificationType.Invitation => Icons.Material.Filled.WavingHand
-                })" /> 
+    <MudMenu Icon=@Icons.Material.Filled.Notifications 
+        MaxHeight="300" 
+        AnchorOrigin="Origin.BottomCenter" 
+        TransformOrigin="Origin.TopCenter" 
+        FullWidth="false"
+        RelativeWidth="DropdownWidth.Adaptive">
+        <MudList T="NotificationDisplayDto">
+            @foreach (var notification in notifications)
+            {
+                <MudListItem Class="pt-0 pb-0 mt-0 mb-0"
+                    Text="@(notification.NotificationType switch
+                    {
+                        NotificationType.Info => $"Сообщение от {notification.SenderLogin} ",
+                        NotificationType.Invitation => $"{notification.SenderLogin} приглашает вас принять участие в проекте {notification.ProjectName} "
+                    })"
+                    SecondaryText=@notification.Message
+                    Disabled=@notification.HasBeenViewed
+                    IconColor="@(notification.NotificationType switch
+                    {
+                        NotificationType.Info => Color.Info,
+                        NotificationType.Invitation => Color.Success
+                    })"
+                    Icon="@(notification.NotificationType switch
+                    {
+                        NotificationType.Info => Icons.Material.Filled.Message,
+                        NotificationType.Invitation => Icons.Material.Filled.WavingHand
+                    })" /> 
 
-
-            // option #2
-            <MudListItem>
-                <AvatarContent>
-                    <MudIcon 
-                        Icon="@(notification.NotificationType switch
-                        {
-                            NotificationType.Info => Icons.Material.Filled.Message,
-                            NotificationType.Invitation => Icons.Material.Filled.WavingHand
-                        })" 
-                        Color="@(notification.NotificationType switch
-                        {
-                            NotificationType.Info => Color.Info,
-                            NotificationType.Invitation => Color.Success
-                        })" />
-                </AvatarContent>
-                <ChildContent>
-                    <MudText>
-                        "@(notification.NotificationType switch
-                        {
-                            NotificationType.Info => $"Сообщение от {notification.SenderLogin} ",
-                            NotificationType.Invitation => $"{notification.SenderLogin} приглашает вас принять участие в проекте {notification.ProjectName} "
-                        })"
-                    </MudText>
-                    <MudText> @notification.Message </MudText>
-                </ChildContent>
-            </MudListItem>
-        }
-    </MudList> 
+                <MudContainer Class="d-flex justify-end gap-2">
+                    @if (notification.NotificationType == NotificationType.Invitation)
+                    {
+                        <MudIconButton Icon=@Icons.Material.Filled.Check Color="Color.Success">Принять</MudIconButton>
+                        <MudIconButton Icon=@Icons.Material.Filled.Close Color="Color.Error">Отклонить</MudIconButton>
+                    }
+                    <MudButton>Прочитано</MudButton>
+                </MudContainer>
+            }
+        </MudList>
+    </MudMenu>
 }
 
 
@@ -78,7 +66,8 @@ else
         {
             try
             {
-                await LoadNotifications(); 
+                //await LoadNotifications(); 
+                notifications = testNotifications; 
             }
             catch (SoupiException ex)
             {

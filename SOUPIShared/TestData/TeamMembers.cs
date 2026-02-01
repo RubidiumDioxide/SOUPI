@@ -1,5 +1,4 @@
-﻿using SOUPIShared.Models;
-using SOUPIShared.Dtos; 
+﻿using SOUPIShared.Dtos; 
 
 
 namespace SOUPIShared.TestData
