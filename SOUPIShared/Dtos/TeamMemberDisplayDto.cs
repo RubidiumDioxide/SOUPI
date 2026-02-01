@@ -25,9 +25,9 @@ namespace SOUPIShared.Dtos
 
         public Guid? SupervisorId { get; set; } = null;
 
-        public string? SupervisorName { get; set; } 
-        
-    
+        public string? SupervisorName { get; set; }
+
+
         public TeamMemberDisplayDto(TeamMember teamMember)
         {
             Id = teamMember.Id; 
@@ -37,7 +37,7 @@ namespace SOUPIShared.Dtos
             ProjectName = teamMember.Project.Name; 
             Role = teamMember.Role; 
             SupervisorId = teamMember.SupervisorId;
-            SupervisorName = teamMember.Supervisor?.User.Login;  
+            SupervisorName = teamMember.Supervisor?.User.Login; 
         }
 
         public TeamMemberDisplayDto() { } 

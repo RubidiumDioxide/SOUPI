@@ -23,15 +23,14 @@
             }
             else
             {
-
-                    <MudGrid Class="mt-8">
-                        @foreach (ProjectDto project in projects)
-                        {
-                            <ProjectCard Project=@project
-                                         OnDeleteButtonClick="DeleteProject"
-                                         NavigationManager="NavigationManager" />
-                        }
-                    </MudGrid>
+                <MudGrid Class="mt-8">
+                    @foreach (ProjectDto project in projects)
+                    {
+                        <ProjectCard Project=@project
+                                     OnDeleteButtonClick="DeleteProject"
+                                     NavigationManager="NavigationManager" />
+                    }
+                </MudGrid>
             }
         }
     </MudStack>

@@ -1,0 +1,90 @@
+﻿@page "/users/{userId:guid}"
+@inject NavigationManager NavigationManager 
+@inject IGithubRequestHandler githubRequestHandler 
+@inject IUserRequestHandler userRequestHandler 
+@inject ISnackbar Snackbar 
+@attribute [Authorize]
+
+
+<PageTitle>@((user != null && githubUser != null)? user.Login : string.Empty)</PageTitle>
+
+<MudContainer Class="pt-14">  
+    @if (githubUser == null || user == null)
+    {
+        <MudText Align="Align.Center">Loading... </MudText>
+    }
+    else
+    {
+        <MudPaper Class="pa-4" Elevation="0">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="2">
+                <!-- Profile Picture -->
+                <MudAvatar Style="height:150px; width:150px; font-size:2rem" Class="mb-2">
+                    <MudImage Src="@githubUser.AvatarUrl" Alt="Profile picture" />
+                </MudAvatar>
+
+                <!-- User Name -->
+                <MudText Typo="Typo.h6" Class="text-center">
+                    @githubUser.Name
+                    <MudIcon Color="Color.Primary" Icon=@Icons.Custom.Brands.GitHub Size="Size.Small" @onclick="GoToGitHubUserProfile"/>
+                </MudText> 
+                <MudText Typo="Typo.body2" Class="text-center">@githubUser.Login</MudText>
+
+                <MudDivider/>
+
+                <!-- User Bio/Description -->
+                @if (!string.IsNullOrEmpty(githubUser.Bio))
+                {
+                    <MudText Typo="Typo.body2" Class="text-center mt-2" Color="Color.Secondary">
+                        @githubUser.Bio
+                    </MudText>
+                }
+            </MudStack>
+        </MudPaper>
+    }
+</MudContainer>
+
+
+@code {
+    [Parameter]
+    public Guid userId { get; set; } = default!;
+
+    private GithubUser? githubUser { get; set; } 
+    private UserDto? user { get; set; }   
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadUser();
+            await LoadGitHubUser();
+            StateHasChanged();
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }           
+    }
+
+    private async Task LoadGitHubUser()
+    {
+        githubUser = await githubRequestHandler.GetUserByLogin(user.Login); 
+    }
+
+    private async Task LoadUser()
+    {
+        user = await userRequestHandler.GetById(userId);
+
+        if (user == null)
+        {
+            throw new SoupiException("Пользователь не найден :( ");
+        }
+    }
+
+    private void GoToGitHubUserProfile(){
+        NavigationManager.NavigateTo(githubUser!.HtmlUrl); 
+    }
+}

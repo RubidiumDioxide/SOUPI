@@ -74,6 +74,16 @@ namespace SOUPICore.Services
                 };
 
                 await _context.Projects.AddAsync(newProject);
+
+                var newTeamMember = new TeamMember()
+                {
+                    UserId = newProject.CreatorId,
+                    ProjectId = newProject.Id,
+                    Role = "Основатель проекта", 
+                    SupervisorId = null
+                };
+
+                await _context.AddAsync(newTeamMember); 
                 await _context.SaveChangesAsync();
 
                 return new ProjectDto(newProject);

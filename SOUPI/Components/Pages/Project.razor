@@ -1,0 +1,72 @@
+﻿@page "/projects/{projectId:guid}"
+@inject NavigationManager NavigationManager
+@inject IGithubRequestHandler githubRequestHandler
+@inject IProjectRequestHandler projectRequestHandler
+@inject ISnackbar Snackbar
+@attribute [Authorize]
+
+
+<PageTitle>Проект @((project != null)? project.Name : string.Empty)</PageTitle>
+
+<MudContainer Class="pt-14">
+    @if (error != null)
+    {
+        <MudAlert Severity=severity>@error</MudAlert>
+    }
+    else
+    {
+        @if (User == null || GithubUser == null || project == null)
+        {
+            <MudText Align="Align.Center">Loading... </MudText>
+        }
+        else
+        {
+            <TeamTree Project="project"/>
+        }
+    }
+</MudContainer>
+
+
+@code {
+    [CascadingParameter]
+    private UserDto? User { get; set; }
+    [CascadingParameter]
+    private GithubUser? GithubUser { get; set; }
+
+    [Parameter]
+    public Guid projectId { get; set; }
+    private ProjectDto? project { get; set; }
+
+    private string? error { get; set; } = null;
+    private Severity severity { get; set; } = Severity.Warning;
+
+    private MudButton submitButton;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (User != null && GithubUser != null)
+        {
+            try
+            {
+                await LoadProject();
+            }
+            catch (SoupiException ex)
+            {
+                error = ex.Message;
+                severity = Severity.Error;
+            }
+            catch (Exception ex)
+            {
+                error = "Произошла непредвиденная ошибка ";
+                severity = Severity.Error;
+            }
+        }
+    }
+
+    private async Task LoadProject()
+    {
+        project = await projectRequestHandler.GetById(projectId);
+
+        StateHasChanged();
+    } 
+}

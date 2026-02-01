@@ -19,7 +19,7 @@ namespace SOUPI.Handlers
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<GithubUser> GetUser()
+        public async Task<GithubUser> GetCurrentUser()
         {
             try
             {
@@ -35,6 +35,28 @@ namespace SOUPI.Handlers
                 return await github.User.Current();
             }
             catch(Exception ex)
+            {
+                _logger.LogError($"Не удалось получить информацию о текущем пользовтеле. {ex.Message}");
+                throw new SoupiException("Не удалось получить информацию о текущем пользовтеле. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
+        }
+
+        public async Task<GithubUser> GetUserByLogin(string login)
+        {
+            try
+            {
+                var httpContext = _httpContextAccessor.HttpContext;
+
+                var accessToken = await httpContext!.GetTokenAsync("access_token");
+
+                var github = new GitHubClient(
+                    new ProductHeaderValue("AspNetCoreGitHubAuth"),
+                    new InMemoryCredentialStore(new Credentials(accessToken))
+                );
+
+                return await github.User.Get(login); 
+            }
+            catch (Exception ex)
             {
                 _logger.LogError($"Не удалось получить информацию о текущем пользовтеле. {ex.Message}");
                 throw new SoupiException("Не удалось получить информацию о текущем пользовтеле. Попробуйте позже или сообщите об ошибке в техподдержку ");

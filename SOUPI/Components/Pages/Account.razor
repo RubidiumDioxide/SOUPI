@@ -9,7 +9,7 @@
 <PageTitle>Мой аккаунт</PageTitle>
 
 <MudContainer Class="pt-14">  
-    @if (githubUser == null || user == null)
+    @if (GithubUser == null || User == null)
     {
         <MudText Align="Align.Center">Loading... </MudText>
     }
@@ -19,23 +19,23 @@
             <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="2">
                 <!-- Profile Picture -->
                 <MudAvatar Style="height:150px; width:150px; font-size:2rem" Class="mb-2">
-                    <MudImage Src="@githubUser.AvatarUrl" Alt="Profile picture" />
+                    <MudImage Src="@GithubUser.AvatarUrl" Alt="Profile picture" />
                 </MudAvatar>
 
                 <!-- User Name -->
                 <MudText Typo="Typo.h6" Class="text-center">
-                    @githubUser.Name
+                    @GithubUser.Name
                     <MudIcon Color="Color.Primary" Icon=@Icons.Custom.Brands.GitHub Size="Size.Small" @onclick="GoToGitHubUserProfile"/>
                 </MudText> 
-                <MudText Typo="Typo.body2" Class="text-center">@githubUser.Login</MudText>
+                <MudText Typo="Typo.body2" Class="text-center">@GithubUser.Login</MudText>
 
                 <MudDivider/>
 
                 <!-- User Bio/Description -->
-                @if (!string.IsNullOrEmpty(githubUser.Bio))
+                @if (!string.IsNullOrEmpty(GithubUser.Bio))
                 {
                     <MudText Typo="Typo.body2" Class="text-center mt-2" Color="Color.Secondary">
-                        @githubUser.Bio
+                        @GithubUser.Bio
                     </MudText>
                 }
             </MudStack>
@@ -46,76 +46,11 @@
 
 @code {
     [CascadingParameter]
-    private Task<AuthenticationState>? authenticationState { get; set; }
-
-    private GithubUser? githubUser { get; set; } 
-    private UserDto? user { get; set; }   
-
-    protected override async Task OnInitializedAsync()
-    {
-        if(authenticationState != null)
-        {
-            var authState = await authenticationState; 
-
-            if (authState.User.Identity?.IsAuthenticated == true)
-            {
-                await LoadGitHubUser();
-                await LoadUser();
-                StateHasChanged(); 
-            }
-            else
-            {
-                Snackbar.Add("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ", Severity.Error);
-            }
-        }
-        else
-        {
-            Snackbar.Add("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ", Severity.Error);
-        }
-    }
-
-
-    private async Task LoadGitHubUser()
-    {
-        try
-        {
-            githubUser = await githubRequestHandler.GetUser();  
-        }
-        catch (SoupiException ex)
-        {
-            Snackbar.Add(ex.Message, Severity.Error); 
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error); 
-        }
-    }
-
-    private async Task LoadUser()
-    {
-        try 
-        {
-            user = await userRequestHandler.GetByLogin(githubUser.Login); 
-
-            if(user == null)
-            {
-                user = await userRequestHandler.Create(new UserDto()
-                    {
-                        Login = githubUser.Login 
-                    }); 
-            } 
-        }
-        catch (SoupiException ex)
-        {
-            Snackbar.Add(ex.Message, Severity.Error); 
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
-        }
-    }
+    private UserDto? User { get; set; }
+    [CascadingParameter]
+    private GithubUser? GithubUser { get; set; }
 
     private void GoToGitHubUserProfile(){
-        NavigationManager.NavigateTo(githubUser!.HtmlUrl); 
+        NavigationManager.NavigateTo(GithubUser!.HtmlUrl); 
     }
 }

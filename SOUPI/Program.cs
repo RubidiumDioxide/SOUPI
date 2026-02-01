@@ -87,9 +87,11 @@ builder.Services.AddScoped<HttpClient>(sp =>
 builder.Services.AddScoped<IGithubRequestHandler, GithubRequestHandler>(); 
 builder.Services.AddScoped<IUserRequestHandler, UserRequestHandler>();
 builder.Services.AddScoped<IProjectRequestHandler, ProjectRequestHandler>();
+builder.Services.AddScoped<ITeamMemberRequestHandler, TeamMemberRequestHandler>(); 
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<ITeamMemberService, TeamMemberService>(); 
 
 builder.Services.AddMudServices(config =>
 {

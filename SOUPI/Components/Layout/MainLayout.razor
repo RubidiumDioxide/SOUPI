@@ -122,41 +122,19 @@
 
     private async Task LoadGithubUser()
     {
-        try
-        {
-            githubUser = await githubRequestHandler.GetUser(); 
-        }
-        catch (SoupiException ex)
-        {
-            Snackbar.Add(ex.Message, Severity.Error);
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
-        }
+        githubUser = await githubRequestHandler.GetCurrentUser();    
     }
 
     private async Task LoadUser()
     {
-        try 
-        {
-            user = await userRequestHandler.GetByLogin(githubUser.Login); 
+        user = await userRequestHandler.GetByLogin(githubUser.Login);
 
-            if(user == null)
+        if (user == null)
+        {
+            user = await userRequestHandler.Create(new UserDto()
             {
-                user = await userRequestHandler.Create(new UserDto()
-                    {
-                        Login = githubUser.Login 
-                    });   
-            } 
-        }
-        catch (SoupiException ex)
-        {
-            Snackbar.Add(ex.Message, Severity.Error); 
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+                Login = githubUser.Login
+            });
         }
     }
 

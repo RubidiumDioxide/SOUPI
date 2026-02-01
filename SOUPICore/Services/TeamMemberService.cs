@@ -37,7 +37,7 @@ namespace SOUPICore.Services
         }
 
         // create 
-        public async Task<TeamMemberDisplayDto> Create(TeamMemberDto newTeamMemberDto)
+        public async Task<TeamMemberDto> Create(TeamMemberDto newTeamMemberDto)
         {
             try
             {
@@ -77,7 +77,7 @@ namespace SOUPICore.Services
                 await _context.TeamMembers.AddAsync(newTeamMember); 
                 await _context.SaveChangesAsync();
 
-                return new TeamMemberDisplayDto(newTeamMember); 
+                return new TeamMemberDto(newTeamMember); 
             }
             catch(Exception ex)
             {
@@ -87,7 +87,7 @@ namespace SOUPICore.Services
         }
 
         // change role 
-        public async Task<TeamMemberDisplayDto> UpdateRole(TeamMemberDto teamMemberDto)
+        public async Task<TeamMemberDto> Update(TeamMemberDto teamMemberDto)
         {
             try
             {
@@ -98,46 +98,12 @@ namespace SOUPICore.Services
                     throw new BadRequestException($"Невозмжоно изменить роль участника команды, т.к. этого участника команды нет в системе ");
                 }
 
-                existingTeamMember.Role = teamMemberDto.Role; 
-
-                await _context.SaveChangesAsync();
-
-                return new TeamMemberDisplayDto(existingTeamMember); 
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
-        }
-
-        // change supervisor 
-        public async Task<TeamMemberDisplayDto> UpdateSupervisor(TeamMemberDto teamMemberDto)
-        {
-            try
-            {
-                var existingTeamMember = await _context.TeamMembers.FirstOrDefaultAsync(tm => tm.UserId == teamMemberDto.UserId && tm.ProjectId == teamMemberDto.ProjectId); 
-
-                if (existingTeamMember == null)
-                {
-                    throw new BadRequestException($"Невозмжоно изменить руководителя участника команды, т.к. этого участника команды нет в системе ");
-                }
-
-                if (teamMemberDto.SupervisorId != null)
-                {
-                    var supervisor = await _context.TeamMembers.FindAsync(teamMemberDto.SupervisorId);
-
-                    if (supervisor == null)
-                    {
-                        throw new BadRequestException($"Невозмжоно изменить руководителя участника команды, т.к. этого руководителя нет в системе ");
-                    }
-                }
-
+                existingTeamMember.Role = teamMemberDto.Role;
                 existingTeamMember.SupervisorId = teamMemberDto.SupervisorId; 
 
                 await _context.SaveChangesAsync();
 
-                return new TeamMemberDisplayDto(existingTeamMember);
+                return new TeamMemberDto(existingTeamMember); 
             }
             catch (Exception ex)
             {

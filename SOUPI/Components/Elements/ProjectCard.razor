@@ -6,7 +6,7 @@
         }
         <MudCardHeader>
             <CardHeaderContent>
-                <MudText Typo="Typo.h6">@Project.Name</MudText>
+                <MudLink Href="@($"/projects/{Project.Id}")" Typo="Typo.h6">@Project.Name</MudLink>
             </CardHeaderContent>
             <CardHeaderActions>
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert" Dense>

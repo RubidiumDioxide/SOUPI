@@ -18,13 +18,10 @@ namespace SOUPICore.Services.Interfaces
         public Task<IEnumerable<TeamMemberDisplayDto>> GetByProjectId(Guid projectId);
 
         // create 
-        public Task<TeamMemberDisplayDto> Create(TeamMemberDto newTeamMember);
+        public Task<TeamMemberDto> Create(TeamMemberDto newTeamMember);
 
         // change role 
-        public Task<TeamMemberDisplayDto> UpdateRole(TeamMemberDto teamMemberDto);
-
-        // change supervisor 
-        public Task<TeamMemberDisplayDto> UpdateSupervisor(TeamMemberDto teamMemberDto);
+        public Task<TeamMemberDto> Update(TeamMemberDto teamMemberDto);
 
         // delete by self id
         public Task DeleteById(Guid id);

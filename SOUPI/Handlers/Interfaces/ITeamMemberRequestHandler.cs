@@ -7,12 +7,10 @@ namespace SOUPI.Handlers.Interfaces
     {
         public Task<IEnumerable<TeamMemberDisplayDto>> GetByProjectId(Guid projectId);
 
-        public Task<TeamMemberDisplayDto> Create(TeamMemberDto newTeamMember);
+        public Task<TeamMemberDto> Create(TeamMemberDto newTeamMember);
 
-        public Task<TeamMemberDisplayDto> UpdateRole(TeamMemberDto teamMemberDto);
+        public Task<TeamMemberDto> Update(TeamMemberDto teamMemberDto);
 
-        public Task<TeamMemberDisplayDto> UpdateSupervisor(TeamMemberDto teamMemberDto);
-
-        public Task DeleteById(Guid id);
+        public Task DeleteById(Guid id); 
     }
 }

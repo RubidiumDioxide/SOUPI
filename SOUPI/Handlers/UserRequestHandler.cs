@@ -13,6 +13,7 @@ namespace SOUPI.Handlers
         private readonly HttpClient _httpClient;
 
         private const string createUrl = "/api/user/create"; 
+        private const string getByIdUrl = "/api/user/getbyid/";
         private const string getByLoginUrl = "/api/user/getbylogin/";
 
         public UserRequestHandler(ILogger<UserRequestHandler> logger, HttpClient httpClient)
@@ -43,7 +44,39 @@ namespace SOUPI.Handlers
                 _logger.LogError($"Не удалось зарегистрировать нового польхователя. {ex.Message}");
                 throw new SoupiException("Не удалось зарегистрировать нового польхователя. Попробуйте позже или сообщите об ошибке в техподдержку ");
             }
-        } 
+        }
+
+        public async Task<UserDto?> GetById(Guid id)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{getByIdUrl}{id}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    if (response.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        return null;
+                    }
+                }
+
+                response.EnsureSuccessStatusCode();
+
+                var newContent = await response.Content.ReadAsStringAsync();
+
+                var newUserDto = System.Text.Json.JsonSerializer.Deserialize<UserDto>(newContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                return newUserDto;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Не удалось получить информацию о пользовтеле. {ex.Message}");
+                throw new SoupiException("Не удалось получить информацию о пользовтеле. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
+        }
 
         public async Task<UserDto?> GetByLogin(string login)
         {
@@ -72,8 +105,8 @@ namespace SOUPI.Handlers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Не удалось получить информацию о текущем пользовтеле. {ex.Message}");
-                throw new SoupiException("Не удалось получить информацию о текущем пользовтеле. Попробуйте позже или сообщите об ошибке в техподдержку ");
+                _logger.LogError($"Не удалось получить информацию о пользовтеле. {ex.Message}");
+                throw new SoupiException("Не удалось получить информацию о пользовтеле. Попробуйте позже или сообщите об ошибке в техподдержку ");
             } 
         }
     }
