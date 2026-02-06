@@ -44,7 +44,39 @@ namespace SOUPICore.Controllers
             {
                 var notification = await _notificationService.Create(newNotificationDto);
 
-                return Ok(notification); 
+                return Ok(notification);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
+        }
+
+        [HttpGet("{notificationId}")]
+        public async Task<ActionResult<NotificationDto>> AcceptInvite([FromRoute] Guid notificationId)
+        {
+            try
+            {
+                var notification = await _notificationService.AcceptInvite(notificationId);
+
+                return Ok(notification);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
+        }
+
+        [HttpGet("{notificationId}")]
+        public async Task<ActionResult<NotificationDto>> MarkAsViewed([FromRoute] Guid notificationId)
+        {
+            try
+            {
+                var notification = await _notificationService.MarkAsViewed(notificationId);
+
+                return Ok(notification);
             }
             catch (Exception ex)
             {

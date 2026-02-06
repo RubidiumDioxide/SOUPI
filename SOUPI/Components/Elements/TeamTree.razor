@@ -1,39 +1,53 @@
-﻿@inject ITeamMemberRequestHandler requestHandler; 
+﻿@inject ITeamMemberRequestHandler teamMemberRequestHandler; 
+@inject IUserRequestHandler userRequestHandler; 
+@inject ISnackbar Snackbar 
 @using SOUPIShared.Misc; 
 @using static SOUPIShared.Extensions.TeamMemberDtoExtensions; 
 
 
-<MudContainer Style="display:flex; flex-direction:row; flex-wrap: nowrap" Class="ma-0 pa-0" MaxWidth="MaxWidth.False"> 
-    <MudContainer MaxWidth=MaxWidth.False Style="width: 50%">
-        <MudCard Elevation="25">
-            <MudTreeView Items="@treeTeamMembers" @bind-SelectedValue="selectedTeamMember">
-                <ItemTemplate>
-                    @{
-                        var teamMember = context.Value; 
-                    }
-                    <MudTreeViewItem 
-                        @bind-Expanded="@context.Expanded" 
-                        Items="@context.Children" 
-                        Value="@context.Value"
-                        Icon="@context.Icon" 
-                        Text="@context.Value?.UserLogin" >
-                        <Content>
-                            <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded" Visible="@context.HasChildren" />
-                            <MudText>@($"{teamMember?.UserLogin} ({((teamMember?.Role != null)? teamMember.Role : string.Empty)})")</MudText>
-                        </Content>
-                    </MudTreeViewItem>
-                </ItemTemplate>
-            </MudTreeView>
-        </MudCard>
-    </MudContainer>
-    
-    @if(selectedTeamMember != null)
+<MudContainer MaxWidth="MaxWidth.False">
+    @if (Project == null || teamMembers == null || treeTeamMembers == null)
     {
-        <MudContainer MaxWidth=MaxWidth.False Style="width: 50%">
-            <TeamTreeMemberCard TeamMember="selectedTeamMember" />
+        <p>Loading... </p>
+    }
+    else
+    {
+        <NewTeamMemberForm Project=Project
+                           TeamMembers=teamMembers />
+
+        <MudContainer Style="display:flex; flex-direction:row; flex-wrap: nowrap" Class="ma-0 mt-2 pa-0" MaxWidth="MaxWidth.False">
+            <MudContainer MaxWidth=MaxWidth.False Style="width: 50%">
+                <MudCard Elevation="25">
+                    <MudTreeView Items="@treeTeamMembers" @bind-SelectedValue="selectedTeamMember">
+                        <ItemTemplate>
+                            @{
+                                var teamMember = context.Value;
+                            }
+                            <MudTreeViewItem @bind-Expanded="@context.Expanded"
+                                             Items="@context.Children"
+                                             Value="@context.Value"
+                                             Icon="@context.Icon"
+                                             Text="@context.Value?.UserLogin">
+                                <Content>
+                                    <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded" Visible="@context.HasChildren" />
+                                    <MudText>@($"{teamMember?.UserLogin} ({((teamMember?.Role != null) ? teamMember.Role : string.Empty)})")</MudText>
+                                </Content>
+                            </MudTreeViewItem>
+                        </ItemTemplate>
+                    </MudTreeView>
+                </MudCard>
+            </MudContainer>
+
+            <MudContainer MaxWidth=MaxWidth.False Style="width: 50%">
+                @if (selectedTeamMember != null)
+                {
+                    <TeamTreeMemberCard TeamMember="selectedTeamMember" />
+                }
+            </MudContainer>
         </MudContainer>
     }
-</MudContainer> 
+</MudContainer>
+
 
 @code
 {
@@ -42,7 +56,7 @@
 
     private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; }  
     private List<TreeItemData<TeamMemberDisplayDto>>? treeTeamMembers { get; set; } 
-    private TeamMemberDisplayDto? selectedTeamMember { get; set; } 
+    private TeamMemberDisplayDto? selectedTeamMember { get; set; }
 
     private string? error { get; set; } = null; 
     private Severity severity { get; set; } = Severity.Warning; 
@@ -52,11 +66,9 @@
         try
         {
             await LoadTeamMembers(); 
-            
+
             //test
             //teamMembers = SOUPIShared.TestData.TeamMembers.testTeamMembers; 
-            
-            treeTeamMembers = teamMembers!.BuildTreeItemData(); 
         }
         catch (SoupiException ex)
         {
@@ -72,8 +84,9 @@
 
     private async Task LoadTeamMembers()
     {
-        teamMembers = await requestHandler.GetByProjectId(Project.Id);
+        teamMembers = await teamMemberRequestHandler.GetByProjectId(Project.Id);
+        treeTeamMembers = teamMembers!.BuildTreeItemData();
 
         StateHasChanged();
-    }
+    } 
 }

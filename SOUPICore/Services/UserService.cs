@@ -19,24 +19,16 @@ namespace SOUPICore.Services
             _context = context; 
         }
 
-        public async Task<UserDto> Create(UserDto newUserDto)
+        public async Task<IEnumerable<UserDto>> Get()
         {
             try
-            {
-                var user = new User()
-                {
-                    Login = newUserDto.Login
-                };
-
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
-
-                return new UserDto(user);
+            { 
+                return await _context.Users.Select(u => new UserDto(u)).ToListAsync(); 
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message); 
-                throw; 
+                _logger.LogError(ex.Message);
+                throw;
             }
         }
 
@@ -82,6 +74,27 @@ namespace SOUPICore.Services
                 _logger.LogError(ex.Message); 
                 throw; 
             } 
+        }
+
+        public async Task<UserDto> Create(UserDto newUserDto)
+        {
+            try
+            {
+                var user = new User()
+                {
+                    Login = newUserDto.Login
+                };
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                return new UserDto(user);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
     }
 }

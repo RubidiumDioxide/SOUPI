@@ -22,6 +22,31 @@ namespace SOUPICore.Controllers
             _userService = userService;  
         }
 
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<UserDto>>> Get()
+        {
+            try
+            {
+                var user = await _userService.Get(); 
+
+                return Ok(user);
+            }
+            catch (NotFoundException)
+            {
+                return NotFound();
+            }
+            catch (SoupiException)
+            {
+                return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
+        }
+
+
         [HttpGet("{id}")]
         public async Task<ActionResult<UserDto?>> GetById([FromRoute] Guid id)
         {

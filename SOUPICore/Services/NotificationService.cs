@@ -1,9 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions;
+using SOUPIShared.Misc;
 using SOUPIShared.Models;
-using Microsoft.EntityFrameworkCore;
-using SOUPICore.Services.Interfaces;
 
 
 namespace SOUPICore.Services
@@ -46,7 +47,8 @@ namespace SOUPICore.Services
                     SenderId = newNotificationDto.SenderId,
                     ReceiverId = newNotificationDto.ReceiverId,
                     ProjectId = newNotificationDto.ProjectId,
-                    NotificationType = newNotificationDto.NotificationType,
+                    NotificationType = newNotificationDto.NotificationType, 
+                    Role = newNotificationDto.Role, 
                     HasBeenViewed = false
                 }; 
 
@@ -54,6 +56,95 @@ namespace SOUPICore.Services
                 await _context.SaveChangesAsync(); 
 
                 return new NotificationDto(newNotification);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
+        }
+
+        public async Task<NotificationDto> AcceptInvite(Guid notificationId)
+        {
+            try
+            {
+                var notification = await _context.Notifications.FindAsync(notificationId);
+
+                if (notification == null)
+                {
+                    throw new BadRequestException($"Невозмжоно добавить пользователя в команду проекта, т. к. такого приглашения не существует");
+                }
+
+                if (notification.NotificationType != NotificationType.Invitation)
+                {
+                    throw new BadRequestException($"Невозмжоно добавить пользователя в команду проекта, т. к. тип найденного приглашения неверный");
+                }
+
+                var user = await _context.Users.FindAsync(notification.ReceiverId);
+                var project = await _context.Projects.FindAsync(notification.ProjectId);
+
+                if (user == null || project == null)
+                {
+                    throw new BadRequestException($"Невозмжоно добавить пользователя в команду проекта, т. к. такого проекта и/или пользователя не существует");
+                }
+
+                var existingTeamMember = await _context.TeamMembers.FirstOrDefaultAsync(tm => tm.UserId == notification.ReceiverId && tm.ProjectId == notification.ProjectId);
+
+                if (existingTeamMember != null)
+                {
+                    throw new BadRequestException($"Невозмжоно добавить в команду проекта {project.Name} пользователя {user.Login}, т.к. этот пользователь уже есть в команде ");
+                }
+
+                var supervisor = project.TeamMembers.FirstOrDefault(tm => tm.UserId == project.CreatorId);
+                
+                if (supervisor == null)
+                {
+                    throw new BadRequestException($"Ошибка при вычислении руководителя в команде проекта {project.Name} для пользователя {user.Login} ");
+                }
+
+                var newTeamMember = new TeamMember()
+                {
+                    UserId = notification.ReceiverId,
+                    ProjectId = notification.ProjectId,
+                    Role = notification.Role,
+                    SupervisorId = supervisor.Id
+                };
+
+                await _context.TeamMembers.AddAsync(newTeamMember);
+
+                notification.HasBeenViewed = true;
+
+                await _context.SaveChangesAsync();
+
+                return new NotificationDto(notification);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
+        }
+
+        public async Task<NotificationDto> MarkAsViewed(Guid notificationId)
+        {
+            try
+            {
+                var notification = await _context.Notifications.FindAsync(notificationId);
+
+                if (notification == null)
+                {
+                    throw new BadRequestException($"Уведомление не найдено");
+                }
+
+                if (!notification.HasBeenViewed)
+                {
+                    notification.HasBeenViewed = true;
+                    await _context.SaveChangesAsync();
+                }
+
+                await _context.SaveChangesAsync();
+
+                return new NotificationDto(notification);
             }
             catch (Exception ex)
             {

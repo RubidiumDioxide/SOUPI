@@ -15,6 +15,7 @@ else
         AnchorOrigin="Origin.BottomCenter" 
         TransformOrigin="Origin.TopCenter" 
         FullWidth="false"
+        
         RelativeWidth="DropdownWidth.Adaptive">
         <MudList T="NotificationDisplayDto">
             @foreach (var notification in notifications)
@@ -23,7 +24,7 @@ else
                     Text="@(notification.NotificationType switch
                     {
                         NotificationType.Info => $"Сообщение от {notification.SenderLogin} ",
-                        NotificationType.Invitation => $"{notification.SenderLogin} приглашает вас принять участие в проекте {notification.ProjectName} "
+                        NotificationType.Invitation => $"{notification.SenderLogin} приглашает вас принять участие в проекте {notification.ProjectName} в качестве {notification.Role}"
                     })"
                     SecondaryText=@notification.Message
                     Disabled=@notification.HasBeenViewed
@@ -39,12 +40,25 @@ else
                     })" /> 
 
                 <MudContainer Class="d-flex justify-end gap-2">
-                    @if (notification.NotificationType == NotificationType.Invitation)
+                    @if (!notification.HasBeenViewed)
                     {
-                        <MudIconButton Icon=@Icons.Material.Filled.Check Color="Color.Success">Принять</MudIconButton>
-                        <MudIconButton Icon=@Icons.Material.Filled.Close Color="Color.Error">Отклонить</MudIconButton>
+                        if (notification.NotificationType == NotificationType.Invitation)
+                        {
+                            <MudIconButton OnClick="(async () => await AcceptInvite(notification.Id))"
+                                           Icon=@Icons.Material.Filled.Check
+                                           Color="Color.Success">
+                                Принять
+                            </MudIconButton>
+                            <MudIconButton OnClick="(async () => await MarkAsViewed(notification.Id))"
+                                           Icon=@Icons.Material.Filled.Close
+                                           Color="Color.Error">
+                                Отклонить
+                            </MudIconButton>
+                        }
+                        <MudButton OnClick="(async () => await MarkAsViewed(notification.Id))">
+                            Прочитано
+                        </MudButton>
                     }
-                    <MudButton>Прочитано</MudButton>
                 </MudContainer>
             }
         </MudList>
@@ -66,8 +80,10 @@ else
         {
             try
             {
-                //await LoadNotifications(); 
-                notifications = testNotifications; 
+                await LoadNotifications(); 
+
+                //test 
+                //notifications = testNotifications; 
             }
             catch (SoupiException ex)
             {
@@ -83,7 +99,45 @@ else
     private async Task LoadNotifications()
     {
         notifications = await requestHandler.GetByReceiverId(User.Id);
-
+        
         StateHasChanged();
+    }
+
+    private async Task AcceptInvite(Guid notificationId)
+    {
+        try
+        {
+            await requestHandler.AcceptInvite(notificationId);
+            await LoadNotifications();
+
+            StateHasChanged();
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Произошла непредвиденная ошибка ", Severity.Error);
+        }
+    }
+
+    private async Task MarkAsViewed(Guid notificationId)
+    {
+        try
+        {
+            await requestHandler.MarkAsViewed(notificationId);
+            await LoadNotifications(); 
+
+            StateHasChanged();
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Произошла непредвиденная ошибка ", Severity.Error);
+        }
     }
 }

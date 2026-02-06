@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using SOUPI.Handlers.Interfaces; 
 using SOUPI.Handlers;
 using SOUPICore.Services.Interfaces;
+using Microsoft.AspNetCore.Components; 
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -77,9 +78,9 @@ builder.Logging.AddConsole();
 builder.Services.AddSingleton<AuthHttpClientFactory>();
 builder.Services.AddScoped<HttpClient>(sp =>
 {
+    var navManager = sp.GetRequiredService<NavigationManager>(); 
     var factory = sp.GetRequiredService<AuthHttpClientFactory>();
-    var baseAddress = new Uri(builder.Configuration["Urls"]);
-    var client = factory.CreateClient(baseAddress);
+    var client = factory.CreateClient(new Uri(navManager.BaseUri));
 
     return client;
 });

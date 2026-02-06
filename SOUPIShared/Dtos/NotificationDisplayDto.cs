@@ -8,9 +8,7 @@ namespace SOUPIShared.Dtos
     {
         public Guid Id { get; set; }
 
-        [Required(ErrorMessage = "Поле сообщения обязательное")]
         [MaxLength(255, ErrorMessage = "Сообщение слишком длинное (максимум 255 символов)")]
-        [MinLength(1, ErrorMessage = "Сообщение слишком короткое (минимум 1 символ)")]
         public string Message { get; set; } = default!;
 
         [Required]
@@ -33,7 +31,10 @@ namespace SOUPIShared.Dtos
 
         [Required]
         public NotificationType NotificationType { get; set; } = NotificationType.Info;
-        
+
+        [MaxLength(255, ErrorMessage = "Роль слишком длинная (максимум 255 символов)")]
+        public string? Role { get; set; } = null;
+
         [Required]
         public bool HasBeenViewed { get; set; } = false;
 
@@ -48,6 +49,7 @@ namespace SOUPIShared.Dtos
             ProjectId = notification.ProjectId;
             ProjectName = notification.Project.Name; 
             NotificationType = notification.NotificationType; 
+            Role = notification.Role; 
             HasBeenViewed = notification.HasBeenViewed; 
         }
 

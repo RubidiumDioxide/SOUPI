@@ -1,0 +1,150 @@
+﻿@inject INotificationRequestHandler notificationRequestHandler; 
+@inject IUserRequestHandler userRequestHandler; 
+@inject ISnackbar Snackbar 
+@using SOUPIShared.Misc; 
+
+
+<MudContainer MaxWidth="MaxWidth.False">
+    @if (Project == null || TeamMembers == null || availibleUsers == null)
+    {
+        <p>Loading... </p>
+    }
+    else
+    {
+        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mud-width-full">
+            <MudAutocomplete T="string"
+                             @bind-Value="@newTeamMemberLogin"
+                             SearchFunc="AutocompleteTeamMembers"
+                             Label="Логин нового участника"
+                             Variant="Variant.Outlined"
+                             For="@(() => newTeamMemberLogin)">
+                <NoItemsTemplate>
+                    <MudText Align="Align.Center" >
+                        Пользователи не найдены
+                    </MudText>
+                </NoItemsTemplate>
+            </MudAutocomplete>
+
+            <MudTextField T="string"
+                          MaxLength="255"
+                          @bind-Value="newTeamMemberRole"
+                          Label="Роль"
+                          Variant="Variant.Outlined" />
+
+            <MudTextField T="string"
+                          MaxLength="255"
+                          @bind-Value="inviteMessage"
+                          Label="Текст приглашения"
+                          Variant="Variant.Outlined" />
+
+            <MudButton OnClick="ResetTeamMember"
+                       Color="Color.Secondary"
+                       Variant="Variant.Text"
+                       Size="Size.Large">
+                Отмена
+            </MudButton>
+
+            <MudButton OnClick="CreateTeamMember"
+                       ButtonType="ButtonType.Submit"
+                       Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       Size="Size.Large">
+                Пригласить
+            </MudButton>
+        </MudStack>
+    }
+</MudContainer>
+
+
+    @code {
+    [CascadingParameter]
+    public UserDto User { get; set; } = default!; 
+
+    [Parameter, EditorRequired]
+    public ProjectDto Project { get; set; } = default!;
+    [Parameter, EditorRequired]
+    public IEnumerable<TeamMemberDisplayDto> TeamMembers { get; set; } = default!; 
+
+    private IEnumerable<UserDto>? availibleUsers { get; set; }
+
+    private string? newTeamMemberLogin { get; set; } = string.Empty;
+    private string? newTeamMemberRole { get; set; } = string.Empty;
+    private string? inviteMessage { get; set; } = string.Empty; 
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            await LoadAvailibleUsers();
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error); 
+        }
+    }
+
+    private async Task LoadAvailibleUsers()
+    {
+        availibleUsers = await userRequestHandler.Get();
+        availibleUsers = availibleUsers
+            .Where(u => !(TeamMembers.Select(tm => tm.UserLogin).Contains(u.Login)));
+    }
+
+    private async Task<IEnumerable<string>> AutocompleteTeamMembers(string query, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(query))
+        {
+            return availibleUsers.Select(u => u.Login);
+        }
+
+        return availibleUsers.Where(u => u.Login.Contains(query)).Select(u => u.Login);
+    }
+
+    private void ResetTeamMember()
+    {
+        newTeamMemberLogin = string.Empty; 
+        newTeamMemberRole = string.Empty; 
+        inviteMessage = string.Empty; 
+
+        StateHasChanged();
+    }
+
+    private async Task CreateTeamMember()
+    {
+        try
+        {
+            var invitedUser = availibleUsers.FirstOrDefault(u => u.Login == newTeamMemberLogin); 
+
+            if(invitedUser == null)
+            {
+                throw new SoupiException("Некорректное имя нового участника "); 
+            }
+
+            await notificationRequestHandler.Create(new NotificationDto
+            {
+                Message = inviteMessage, 
+                SenderId = User.Id, 
+                ReceiverId = invitedUser.Id, 
+                ProjectId = Project.Id, 
+                NotificationType = NotificationType.Invitation, 
+                Role = newTeamMemberRole 
+            }); 
+
+            Snackbar.Add($"Пользователь {newTeamMemberLogin} приглашен в команду проекта {Project.Name}. Он появится в команде, как только приглашение будет принято ", Severity.Success);
+
+            ResetTeamMember(); 
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+}

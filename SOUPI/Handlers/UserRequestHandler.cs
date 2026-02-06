@@ -13,6 +13,7 @@ namespace SOUPI.Handlers
         private readonly HttpClient _httpClient;
 
         private const string createUrl = "/api/user/create"; 
+        private const string getUrl = "/api/user/get/";
         private const string getByIdUrl = "/api/user/getbyid/";
         private const string getByLoginUrl = "/api/user/getbylogin/";
 
@@ -43,6 +44,30 @@ namespace SOUPI.Handlers
             {
                 _logger.LogError($"Не удалось зарегистрировать нового польхователя. {ex.Message}");
                 throw new SoupiException("Не удалось зарегистрировать нового польхователя. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
+        }
+
+        public async Task<IEnumerable<UserDto>> Get()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{getUrl}");
+
+                response.EnsureSuccessStatusCode();
+
+                var newContent = await response.Content.ReadAsStringAsync();
+
+                var newUserDto = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<UserDto>>(newContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                return newUserDto!;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Не удалось получить информацию о пользовтеле. {ex.Message}");
+                throw new SoupiException("Не удалось получить информацию о пользовтеле. Попробуйте позже или сообщите об ошибке в техподдержку ");
             }
         }
 

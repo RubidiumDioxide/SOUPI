@@ -12,8 +12,10 @@ namespace SOUPI.Handlers
         private readonly ILogger<NotificationRequestHandler> _logger;
         private readonly HttpClient _httpClient;
 
-        private const string createUrl = "/api/Notification/create";
         private const string getByReceiverIdUrl = "/api/Notification/getbyreceiverid/";
+        private const string createUrl = "/api/Notification/create/";
+        private const string acceptInviteUrl = "/api/Notification/acceptinvite/";
+        private const string markAsViewedUrl = "/api/Notification/markasviewed/";
 
         public NotificationRequestHandler(ILogger<NotificationRequestHandler> logger, HttpClient httpClient)
         {
@@ -66,6 +68,54 @@ namespace SOUPI.Handlers
             {
                 _logger.LogError($"Не удалось создать уведомление. {ex.Message}");
                 throw new SoupiException("Не удалось создать уведомление. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
+        }
+
+        public async Task<NotificationDto> AcceptInvite(Guid notificationId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{acceptInviteUrl}{notificationId}");
+
+                response.EnsureSuccessStatusCode();
+
+                var newContent = await response.Content.ReadAsStringAsync();
+
+                var notificationDto = System.Text.Json.JsonSerializer.Deserialize<NotificationDto>(newContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                return notificationDto!;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Не удалось принять приглашение: {ex.Message}");
+                throw new SoupiException("Не удалось принять приглашение. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
+        }
+
+        public async Task<NotificationDto> MarkAsViewed(Guid notificationId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{markAsViewedUrl}{notificationId}");
+
+                response.EnsureSuccessStatusCode();
+
+                var newContent = await response.Content.ReadAsStringAsync();
+
+                var notificationDto = System.Text.Json.JsonSerializer.Deserialize<NotificationDto>(newContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                return notificationDto!;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Не удалось отметить уведомление как прочитанное: {ex.Message}");
+                throw new SoupiException("Не удалось отметить уведомление как прочитанное. Попробуйте позже или сообщите об ошибке в техподдержку ");
             }
         }
     }
