@@ -132,7 +132,14 @@ namespace SOUPICore.Services
                     throw new BadRequestException("Проект нельзя удалить, т.к. он не найден в системе ");  
                 }
 
-                _context.Projects.Remove(project);
+                var teamMembers = project.TeamMembers;
+                var notifications = project.Notifications; 
+                var jobs = project.Jobs;
+
+                _context.TeamMembers.RemoveRange(teamMembers); 
+                _context.Notifications.RemoveRange(notifications); 
+                _context.Jobs.RemoveRange(jobs); 
+                _context.Projects.Remove(project); 
                 _context.SaveChanges();
             }
             catch (Exception ex)

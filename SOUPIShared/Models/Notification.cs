@@ -27,8 +27,10 @@ namespace SOUPIShared.Models
         public string? Role { get; set; } = null; 
 
         [Required]
-        public bool HasBeenViewed { get; set; } = false; 
+        public bool HasBeenViewed { get; set; } = false;
 
+        [Required]
+        public DateTime CreationDateTime { get; set; } = default!; 
 
         public virtual Project Project { get; set; } = default!;
         public virtual User Sender { get; set; } = default!;

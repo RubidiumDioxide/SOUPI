@@ -37,7 +37,10 @@ namespace SOUPIShared.Dtos
 
         [Required]
         public bool HasBeenViewed { get; set; } = false;
-
+        
+        [Required]
+        public DateTime CreationDateTime { get; set; } = default!;
+        
         public NotificationDisplayDto(Notification notification)
         {
             Id = notification.Id; 
@@ -51,6 +54,7 @@ namespace SOUPIShared.Dtos
             NotificationType = notification.NotificationType; 
             Role = notification.Role; 
             HasBeenViewed = notification.HasBeenViewed; 
+            CreationDateTime = notification.CreationDateTime; 
         }
 
         public NotificationDisplayDto() { }

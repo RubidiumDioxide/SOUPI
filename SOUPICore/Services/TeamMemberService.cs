@@ -3,8 +3,6 @@ using Microsoft.Extensions.Logging;
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions; 
-using SOUPIShared.Models;
-using SOUPIShared.Misc; 
 
 
 namespace SOUPICore.Services

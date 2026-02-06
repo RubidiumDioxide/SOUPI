@@ -152,6 +152,18 @@ public partial class SoupiDbContext : DbContext
             entity.HasOne(a => a.Assignment).WithMany(a => a.Activities) 
                 .HasForeignKey(a => a.AssignmentId) 
                 .OnDelete(DeleteBehavior.Restrict); 
-        }); 
+        });
+
+        modelBuilder.Entity<Project>()
+            .Property(i => i.CreationDateTime)
+            .HasDefaultValueSql("GETDATE()");
+
+        modelBuilder.Entity<Notification>()
+            .Property(i => i.CreationDateTime)
+            .HasDefaultValueSql("GETDATE()");
+
+        modelBuilder.Entity<Job>()
+            .Property(i => i.CreationDateTime)
+            .HasDefaultValueSql("GETDATE()");
     }
 }

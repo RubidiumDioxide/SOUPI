@@ -22,7 +22,7 @@ namespace SOUPIShared.Models
         public Guid CreatorId { get; set; }
 
         [Required]
-        public DateTime CreationDateTime { get; set; } = DateTime.Now;
+        public DateTime CreationDateTime { get; set; } = default!; 
 
         public string? Image { get; set; }
 

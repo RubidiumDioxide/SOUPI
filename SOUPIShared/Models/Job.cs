@@ -23,7 +23,7 @@ namespace SOUPIShared.Models
 
         public DateTime? Deadline { get; set; }
 
-        public DateTime? CreationDateTime { get; set; } = DateTime.Now;
+        public DateTime CreationDateTime { get; set; } = default; 
 
         public JobStatus Status { get; set; } = JobStatus.New; 
  
