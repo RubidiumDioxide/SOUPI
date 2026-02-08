@@ -17,13 +17,16 @@ else
         FullWidth="false"
         RelativeWidth="DropdownWidth.Adaptive">
         <ActivatorContent>
-            <MudIconButton Icon=@Icons.Material.Filled.Notifications
-                           OnClick="@(() => _open = !_open)">
-                @if (notifications.Any(n => !n.HasBeenViewed))
-                {
-                    <MudBadge Content="notifications.Where(n => !n.HasBeenViewed).Count()" Color="Color.Error" Overlap="true" />
-                }
-            </MudIconButton>
+            @if (notifications.Any(n => !n.HasBeenViewed))
+            {
+                <MudBadge Content="notifications.Where(n => !n.HasBeenViewed).Count()" Color="Color.Error" Overlap="true" >
+                    <MudIconButton Icon=@Icons.Material.Filled.Notifications OnClick="@(() => _open = !_open)"/>
+                </MudBadge>
+            }
+            else
+            {
+                <MudIconButton Icon=@Icons.Material.Filled.Notifications OnClick="@(() => _open = !_open)" />
+            }
         </ActivatorContent>
         <ChildContent>
             @foreach (var notification in notifications)

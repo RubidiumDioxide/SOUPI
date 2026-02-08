@@ -8,7 +8,7 @@
 
 <PageTitle>Проект @((project != null)? project.Name : string.Empty)</PageTitle>
 
-<MudContainer Class="pt-14">
+<MudContainer Gutters="false" Class="pt-14">
     @if (error != null)
     {
         <MudAlert Severity=severity>@error</MudAlert>
@@ -21,7 +21,7 @@
         }
         else
         {
-            <TeamTree Project="project"/>
+            <ProjectTeam Project="project"/>
         }
     }
 </MudContainer>

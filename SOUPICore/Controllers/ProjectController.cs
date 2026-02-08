@@ -31,10 +31,18 @@ namespace SOUPICore.Controllers
 
                 return Ok(projects);
             }
+            catch (NotFoundException)
+            {
+                return NotFound();
+            }
+            catch (BadRequestException)
+            {
+                return BadRequest();
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return StatusCode(500); 
+                return StatusCode(500);
             }
         }
 
@@ -49,7 +57,11 @@ namespace SOUPICore.Controllers
             }
             catch (NotFoundException)
             {
-                return NotFound(); 
+                return NotFound();
+            }
+            catch (BadRequestException)
+            {
+                return BadRequest();
             }
             catch (Exception ex)
             {
@@ -67,10 +79,18 @@ namespace SOUPICore.Controllers
 
                 return Ok(project);
             }
+            catch (NotFoundException)
+            {
+                return NotFound();
+            }
+            catch (BadRequestException)
+            {
+                return BadRequest();
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message); 
-                return StatusCode(500); 
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
             }
         }
 
@@ -86,6 +106,34 @@ namespace SOUPICore.Controllers
             catch (NotFoundException)
             {
                 return NotFound(); 
+            }
+            catch (BadRequestException)
+            {
+                return BadRequest(); 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<ProjectDto>> ChangeCreator([FromBody] ProjectDto updatedProjectDto)
+        {
+            try
+            {
+                var project = await _projectService.ChangeCreator(updatedProjectDto); 
+
+                return Ok(project);
+            }
+            catch (NotFoundException)
+            {
+                return NotFound();
+            }
+            catch (BadRequestException)
+            {
+                return BadRequest();
             }
             catch (Exception ex)
             {
@@ -105,7 +153,11 @@ namespace SOUPICore.Controllers
             }
             catch (NotFoundException)
             {
-                return NotFound(); 
+                return NotFound();
+            }
+            catch (BadRequestException)
+            {
+                return BadRequest();
             }
             catch (Exception ex)
             {

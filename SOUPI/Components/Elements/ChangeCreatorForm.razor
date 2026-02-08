@@ -1,0 +1,114 @@
+﻿@inject NavigationManager NavigationManager; 
+@inject IProjectRequestHandler projectRequestHandler;
+@inject ISnackbar Snackbar
+
+@if (User == null || Project == null || Creator == null || AvailibleCreators == null)
+{
+    <p>Loading... </p>
+}
+else
+{
+    <MudText Align="Align.Center">@($"Руководитель проекта: {Creator.UserLogin}")</MudText>
+    
+    <MudContainer MaxWidth="MaxWidth.False">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mud-width-full">
+            @if (User.Id == Creator.UserId)
+            {
+                if (!isChangingCreator)
+                {
+                    <MudButton OnClick=@(() => isChangingCreator = !isChangingCreator)
+                               Color="Color.Error"
+                               Variant="Variant.Text">
+                        Передать управление проектом
+                    </MudButton>
+                }
+                else
+                {
+                    <MudAutocomplete T="string"
+                                     @bind-Value="@newCreatorLogin"
+                                     SearchFunc="AutocompleteTeamMembers"
+                                     Label="Логин нового руководителя проекта"
+                                     Variant="Variant.Outlined"
+                                     For="@(() => newCreatorLogin)">
+                        <NoItemsTemplate>
+                            <MudText Align="Align.Center">
+                                Пользователи не найдены
+                            </MudText>
+                        </NoItemsTemplate>
+                    </MudAutocomplete>
+
+                    <MudButton OnClick="ChangeCreator"
+                               Color="Color.Error"
+                               Variant="Variant.Text">
+                        Подтвердить
+                    </MudButton>
+                }
+            }
+        </MudStack>
+    </MudContainer>
+}
+
+@code {
+    [CascadingParameter]
+    private UserDto? User { get; set; }
+    
+    [Parameter, EditorRequired]
+    public TeamMemberDisplayDto? Creator { get; set; }
+    [Parameter, EditorRequired]
+    public ProjectDto Project { get; set; } = default!;
+    [Parameter, EditorRequired]
+    public IEnumerable<TeamMemberDisplayDto>? AvailibleCreators { get; set; }
+
+    private bool isChangingCreator = false;
+    private string? newCreatorLogin = string.Empty; 
+
+    private async Task<IEnumerable<string>> AutocompleteTeamMembers(string query, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(query))
+        {
+            return AvailibleCreators.Select(u => u.UserLogin);
+        }
+
+        return AvailibleCreators.Where(u => u.UserLogin.Contains(query)).Select(u => u.UserLogin);
+    }
+
+    private async Task ChangeCreator()
+    {
+        try
+        {
+            var newCreator = AvailibleCreators.FirstOrDefault(s => s.UserLogin == newCreatorLogin);
+
+            if (newCreator == null)
+            {
+                throw new SoupiException("Некорректное имя нового руководителя проекта ");
+            }
+
+            await projectRequestHandler.ChangeCreator(new ProjectDto
+            {
+                Id = Project.Id,
+                Name = Project.Name,
+                Description = Project.Description,
+                GithubRepository = Project.GithubRepository,
+                CreatorId = newCreator.UserId,
+                CreationDateTime = Project.CreationDateTime,
+                Image = Project.Image
+            });
+
+            //refresh the whole page 
+            
+
+
+            Snackbar.Add($"Управление проектом успешно передано пользователю {newCreator.UserLogin} ", Severity.Success);
+
+            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+}

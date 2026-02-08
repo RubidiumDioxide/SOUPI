@@ -10,6 +10,8 @@ namespace SOUPI.Handlers.Interfaces
 
         public Task<GithubUser> GetUserByLogin(string login);
 
+        public Task<IEnumerable<GithubUser>> GetUsersByLogins(IEnumerable<string> logins); 
+
         public Task<IEnumerable<Repository>> GetRepositoriesForCurrentUser(); 
     }
 }

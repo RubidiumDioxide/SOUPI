@@ -1,0 +1,159 @@
+﻿@inject ITeamMemberRequestHandler teamMemberRequestHandler;
+@inject ISnackbar Snackbar
+
+
+@if (User == null || TeamMember == null || TeamMembers == null || availibleSupervisors == null)
+{
+    <p>Loading... </p>
+}
+else
+{
+    <MudStack Row="true" Class="mud-width-full bg-opacity-10" Style="padding: 0;">
+        <MudAutocomplete T="string"
+                        Clearable="true"
+                         @bind-Value="@updatedSupervisorLogin"
+                         SearchFunc="AutocompleteTeamMembers"
+                         Label="Логин нового руководителя"
+                         Variant="Variant.Outlined"
+                         For="@(() => updatedSupervisorLogin)">
+            <NoItemsTemplate>
+                <MudText Align="Align.Center">
+                    Пользователи не найдены
+                </MudText>
+            </NoItemsTemplate>
+        </MudAutocomplete>
+
+        <MudTextField T="string"
+                      MaxLength="255"
+                      @bind-Value="updatedRole"
+                      Label="Новая роль"
+                      Variant="Variant.Outlined" />
+        <MudIconButton OnClick="UpdateTeamMember" Icon=@Icons.Material.Filled.Check Color=Color.Success />
+    </MudStack>
+}
+
+
+@code {
+    [CascadingParameter]
+    public UserDto User { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public EventCallback Rerender { get; set; }
+    [Parameter, EditorRequired]
+    public TeamMemberDisplayDto TeamMember { get; set; } = default!; 
+    [Parameter, EditorRequired]
+    public IEnumerable<TeamMemberDisplayDto> TeamMembers { get; set; } = default!;
+
+    private IEnumerable<TeamMemberDisplayDto>? availibleSupervisors { get; set; }
+
+    private string? updatedSupervisorLogin { get; set; } = null; 
+    private string? updatedRole { get; set; } = string.Empty; 
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            await LoadForm(); 
+            await LoadAvailibleUsers();
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error); 
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Произошла непредвиденная ошибка ", Severity.Error); 
+        }
+    }
+
+    private async Task LoadForm()
+    {
+        updatedRole = TeamMember.Role;
+        updatedSupervisorLogin = TeamMember.SupervisorLogin; 
+
+        StateHasChanged(); 
+    }
+
+    private async Task LoadAvailibleUsers()
+    {
+        availibleSupervisors = ExcludeAllSubordinates(TeamMembers, TeamMember.Id); 
+
+        StateHasChanged(); 
+    }
+
+    private async Task<IEnumerable<string>> AutocompleteTeamMembers(string query, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(query))
+        {
+            return availibleSupervisors.Select(u => u.UserLogin);
+        }
+
+        return availibleSupervisors.Where(u => u.UserLogin.Contains(query)).Select(u => u.UserLogin);
+    }
+
+    private async Task UpdateTeamMember()
+    {
+        try
+        {
+            TeamMemberDisplayDto? newSupervisor = null; 
+
+            if(updatedSupervisorLogin != null)
+            {
+                newSupervisor = availibleSupervisors.FirstOrDefault(s => s.UserLogin == updatedSupervisorLogin);
+            }
+
+            if (newSupervisor == null && updatedSupervisorLogin != null) 
+            {
+                throw new SoupiException("Некорректное имя нового руководителя ");
+            }
+
+            await teamMemberRequestHandler.Update(new TeamMemberDto
+            {
+                Id = TeamMember.Id, 
+                UserId = TeamMember.UserId, 
+                ProjectId = TeamMember.ProjectId, 
+                Role = updatedRole, 
+                SupervisorId = (newSupervisor != null)? newSupervisor.Id : null  
+            });
+
+            await Rerender.InvokeAsync();
+
+            Snackbar.Add($"Запись участника команды {TeamMember.UserLogin} успешно изменена. ", Severity.Success);
+
+            StateHasChanged(); 
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+
+    public List<TeamMemberDisplayDto> ExcludeAllSubordinates(IEnumerable<TeamMemberDisplayDto> allMembers, Guid supervisorId)
+    {
+        var subordinates = new HashSet<Guid>();
+
+        var queue = new Queue<Guid>();
+        queue.Enqueue(supervisorId);
+
+        while (queue.Count > 0)
+        {
+            var currentId = queue.Dequeue();
+            var directReports = allMembers
+                .Where(m => m.SupervisorId == currentId)
+                .Select(m => m.Id);
+
+            foreach (var reportId in directReports)
+            {
+                if (subordinates.Add(reportId))
+                    queue.Enqueue(reportId);
+            }
+        }
+
+        return allMembers.Where(m => !subordinates.Contains(m.Id) && m.Id != TeamMember.Id).ToList();
+    }
+
+}

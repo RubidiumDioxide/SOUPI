@@ -1,0 +1,117 @@
+﻿@inject NavigationManager NavigationManager; 
+@inject ITeamMemberRequestHandler teamMemberRequestHandler; 
+@inject IUserRequestHandler userRequestHandler; 
+@inject IGithubRequestHandler githubRequestHandler; 
+@inject ISnackbar Snackbar 
+@using SOUPIShared.Misc; 
+
+
+<MudContainer Gutters="false" MaxWidth="MaxWidth.False">
+    <MudText Align=Align.Center Typo=Typo.h5>Команда проекта</MudText>
+
+    @if (User == null || GithubUser == null || Project == null || teamMembers == null || teamMemberGithubUsers == null || creator == null || availibleCreators == null)
+    {
+        <p>Loading... </p>
+    }
+    else
+    {
+       @if (User.Id == creator.UserId)
+        {
+            <NewTeamMemberForm Project=Project
+                               TeamMembers=teamMembers />
+        }
+
+        <ChangeCreatorForm Creator="creator"
+                           Project=Project
+                           AvailibleCreators=availibleCreators />
+
+        <TeamTree TeamMembers=teamMembers
+                  Project=Project
+                  TeamMemberGithubUsers=teamMemberGithubUsers
+                  Rerender="Rerender"/>
+    }
+</MudContainer>
+
+
+    @code {
+    [CascadingParameter]
+    private UserDto? User { get; set; }
+    [CascadingParameter]
+    private GithubUser? GithubUser { get; set; } 
+
+    [Parameter, EditorRequired]
+    public ProjectDto Project { get; set; } = default!;
+
+    private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; }  
+    private TeamMemberDisplayDto? creator { get; set; } 
+    private IDictionary<string, GithubUser>? teamMemberGithubUsers { get; set; }
+
+    private IEnumerable<TeamMemberDisplayDto>? availibleCreators { get; set; }
+
+    private string? error { get; set; } = null; 
+    private Severity severity { get; set; } = Severity.Warning; 
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            await LoadTeamMembers();
+            await LoadTeamMemberGithubUsers();
+            await LoadCreator(); 
+            await LoadAvailibleCreators(); 
+
+            //test
+            //teamMembers = SOUPIShared.TestData.TeamMembers.testTeamMembers; 
+        }
+        catch (SoupiException ex)
+        {
+            error = ex.Message;
+            severity = Severity.Error;
+        }
+        catch (Exception ex)
+        {
+            error = "Произошла непредвиденная ошибка ";
+            severity = Severity.Error;
+        }
+    }
+
+    private async Task LoadTeamMembers()
+    {
+        teamMembers = await teamMemberRequestHandler.GetByProjectId(Project.Id);
+
+        StateHasChanged();
+    } 
+
+    private async Task LoadTeamMemberGithubUsers()
+    {
+        var githubUsers = await githubRequestHandler.GetUsersByLogins(teamMembers.Select(tm => tm.UserLogin)); 
+
+        teamMemberGithubUsers = githubUsers.ToDictionary(gu => gu.Login); 
+
+        StateHasChanged(); 
+    }
+
+    private async Task LoadCreator()
+    {
+        creator = teamMembers.FirstOrDefault(tm => tm.UserId == Project.CreatorId);
+
+        StateHasChanged();
+    }
+
+    private async Task LoadAvailibleCreators()
+    {
+        availibleCreators = teamMembers.Where(tm => tm.Id != creator.Id);
+
+        StateHasChanged();
+    }
+
+    public async Task Rerender()
+    {
+        await LoadTeamMembers();
+        await LoadTeamMemberGithubUsers();
+        await LoadCreator();
+        await LoadAvailibleCreators();
+
+        StateHasChanged(); 
+    }
+}

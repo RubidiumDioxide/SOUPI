@@ -1,0 +1,100 @@
+﻿@inject NavigationManager NavigationManager; 
+@inject ITeamMemberRequestHandler teamMemberRequestHandler;
+@inject ISnackbar Snackbar
+
+@if (User == null || Project == null || TeamMembers == null || SelectedTeamMember == null || SelectedTeamMemberGithubUser == null)
+{
+    <p>Loading... </p>
+}
+else 
+{
+    <MudCard Elevation="25">
+        <MudCardHeader>
+            <CardHeaderAvatar>
+                <MudAvatar Size=Size.Large>
+                    <MudImage Src="@SelectedTeamMemberGithubUser.AvatarUrl" Alt="Profile picture" />
+                </MudAvatar>
+            </CardHeaderAvatar>
+            <CardHeaderContent>
+                <MudLink Href="@($"/users/{SelectedTeamMember.UserId}")">@SelectedTeamMember.UserLogin</MudLink>
+                <MudIcon Color="Color.Primary" Icon=@Icons.Custom.Brands.GitHub Size="Size.Small" @onclick="GoToGitHubUserProfile" />
+            </CardHeaderContent>
+        </MudCardHeader>
+
+        <MudCardContent>
+            @if (SelectedTeamMember.Role != null)
+            {
+                <MudText Typo="Typo.body1">Роль: @SelectedTeamMember.Role</MudText>
+            }
+
+            @if (SelectedTeamMember.SupervisorId != null)
+            {
+                <MudText Typo="Typo.body1">Руководитель : @SelectedTeamMember.SupervisorLogin</MudText>
+            }
+
+            @if (User.Id == Project.CreatorId)
+            {
+                @if (isEditing)
+                {
+                    <EditTeamMemberForm TeamMember=SelectedTeamMember
+                                        TeamMembers=TeamMembers
+                                        Rerender=Rerender/>
+                }
+
+                <MudContainer Class="d-flex justify-end gap-2 mt-4">
+                    <MudButton OnClick="@(() => isEditing = !isEditing)" Variant="Variant.Text">Редактировать</MudButton>
+                    @if (SelectedTeamMember.UserId != Project.CreatorId)
+                    {
+                        <MudButton OnClick="DeleteTeamMember" Color="Color.Error" Variant="Variant.Text">Исключить</MudButton>
+                    }
+                </MudContainer>
+            }
+        </MudCardContent>
+    </MudCard>
+
+}
+
+@code {
+    [CascadingParameter]
+    private UserDto? User { get; set; }
+    
+    [Parameter, EditorRequired]
+    public EventCallback Rerender { get; set; }
+    [Parameter, EditorRequired]
+    public IEnumerable<TeamMemberDisplayDto> TeamMembers { get; set; } = default!;
+    [Parameter, EditorRequired]
+    public ProjectDto Project { get; set; } = default!;
+    [Parameter, EditorRequired]
+    public TeamMemberDisplayDto SelectedTeamMember { get; set; }
+    [Parameter, EditorRequired]
+    public GithubUser SelectedTeamMemberGithubUser { get; set; } 
+
+    private bool isEditing = false;
+
+    private async Task DeleteTeamMember()
+    {
+        try
+        {
+            await teamMemberRequestHandler.DeleteById(SelectedTeamMember.Id);
+
+            await Rerender.InvokeAsync();
+
+            Snackbar.Add($"Пользователь {SelectedTeamMember.UserLogin} успешно исключен из команды. ", Severity.Success);
+
+            StateHasChanged();
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+
+    private void GoToGitHubUserProfile()
+    {
+        NavigationManager.NavigateTo(SelectedTeamMemberGithubUser.HtmlUrl);
+    }
+}

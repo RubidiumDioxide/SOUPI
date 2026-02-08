@@ -1,91 +1,84 @@
-﻿@inject ITeamMemberRequestHandler teamMemberRequestHandler; 
-@inject IUserRequestHandler userRequestHandler; 
-@inject ISnackbar Snackbar 
-@using SOUPIShared.Misc; 
-@using static SOUPIShared.Extensions.TeamMemberDtoExtensions; 
+﻿@inject ISnackbar Snackbar
+@using static SOUPIShared.Extensions.TeamMemberDtoExtensions;
 
 
-<MudContainer MaxWidth="MaxWidth.False">
-    @if (Project == null || teamMembers == null || treeTeamMembers == null)
-    {
-        <p>Loading... </p>
-    }
-    else
-    {
-        <NewTeamMemberForm Project=Project
-                           TeamMembers=teamMembers />
-
-        <MudContainer Style="display:flex; flex-direction:row; flex-wrap: nowrap" Class="ma-0 mt-2 pa-0" MaxWidth="MaxWidth.False">
-            <MudContainer MaxWidth=MaxWidth.False Style="width: 50%">
-                <MudCard Elevation="25">
-                    <MudTreeView Items="@treeTeamMembers" @bind-SelectedValue="selectedTeamMember">
-                        <ItemTemplate>
-                            @{
-                                var teamMember = context.Value;
-                            }
-                            <MudTreeViewItem @bind-Expanded="@context.Expanded"
-                                             Items="@context.Children"
-                                             Value="@context.Value"
-                                             Icon="@context.Icon"
-                                             Text="@context.Value?.UserLogin">
-                                <Content>
-                                    <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded" Visible="@context.HasChildren" />
-                                    <MudText>@($"{teamMember?.UserLogin} ({((teamMember?.Role != null) ? teamMember.Role : string.Empty)})")</MudText>
-                                </Content>
-                            </MudTreeViewItem>
-                        </ItemTemplate>
-                    </MudTreeView>
-                </MudCard>
-            </MudContainer>
-
-            <MudContainer MaxWidth=MaxWidth.False Style="width: 50%">
-                @if (selectedTeamMember != null)
-                {
-                    <TeamTreeMemberCard TeamMember="selectedTeamMember" />
-                }
-            </MudContainer>
-        </MudContainer>
-    }
-</MudContainer>
-
-
-@code
+@if (Project == null || TeamMembers == null || TeamMemberGithubUsers == null || treeTeamMembers == null)
 {
+    <p>Loading... </p>
+}
+else
+{
+    <MudContainer Gutters="false" Style="display:flex; flex-direction:row; flex-wrap: nowrap" Class="ma-0 pa-2" MaxWidth="MaxWidth.False">
+        <MudContainer MaxWidth=MaxWidth.False Style="width: 50%">
+            <MudCard Elevation="25">
+                <MudTreeView Items="@treeTeamMembers" @bind-SelectedValue="selectedTeamMember">
+                    <ItemTemplate>
+                        @{
+                            var teamMember = context.Value;
+                        }
+                        <MudTreeViewItem @bind-Expanded="@context.Expanded"
+                        Items="@context.Children"
+                        Value="@context.Value"
+                        Icon="@context.Icon"
+                        Text="@context.Value?.UserLogin">
+                            <Content>
+                                <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded" Visible="@context.HasChildren" />
+                                <MudText>@($"{teamMember?.UserLogin} ({((teamMember?.Role != null) ? teamMember.Role : string.Empty)})")</MudText>
+                            </Content>
+                        </MudTreeViewItem>
+                    </ItemTemplate>
+                </MudTreeView>
+            </MudCard>
+        </MudContainer>
+
+        <MudContainer MaxWidth=MaxWidth.False Style="width: 50%">
+            @if (selectedTeamMember != null)
+            {
+                <TeamMemberCard TeamMembers=TeamMembers
+                                Project=Project
+                                SelectedTeamMember=selectedTeamMember
+                                SelectedTeamMemberGithubUser=@((selectedTeamMember != null)? TeamMemberGithubUsers[selectedTeamMember.UserLogin] : null)
+                                Rerender=Rerender/>
+            }
+        </MudContainer>
+    </MudContainer>
+}
+
+
+@code {
+    [Parameter, EditorRequired]
+    public EventCallback Rerender { get; set; }
+    [Parameter, EditorRequired]
+    public IEnumerable<TeamMemberDisplayDto> TeamMembers { get; set; }
     [Parameter, EditorRequired]
     public ProjectDto Project { get; set; } = default!;
+    [Parameter, EditorRequired]
+    public IDictionary<string, GithubUser> TeamMemberGithubUsers { get; set; }
 
-    private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; }  
-    private List<TreeItemData<TeamMemberDisplayDto>>? treeTeamMembers { get; set; } 
+    private List<TreeItemData<TeamMemberDisplayDto>>? treeTeamMembers { get; set; }
     private TeamMemberDisplayDto? selectedTeamMember { get; set; }
-
-    private string? error { get; set; } = null; 
-    private Severity severity { get; set; } = Severity.Warning; 
 
     protected override async Task OnParametersSetAsync()
     {
         try
         {
-            await LoadTeamMembers(); 
-
-            //test
-            //teamMembers = SOUPIShared.TestData.TeamMembers.testTeamMembers; 
+            await LoadTreeTeamMembers();
+            
+            selectedTeamMember = null; 
         }
         catch (SoupiException ex)
         {
-            error = ex.Message;
-            severity = Severity.Error;
+            Snackbar.Add(ex.Message, Severity.Error);
         }
         catch (Exception ex)
         {
-            error = "Произошла непредвиденная ошибка ";
-            severity = Severity.Error;
+            Snackbar.Add("Произошла непредвиденная ошибка ", Severity.Error);
         }
     }
 
-    private async Task LoadTeamMembers()
+    private async Task LoadTreeTeamMembers()
     {
-        teamMembers = await teamMemberRequestHandler.GetByProjectId(Project.Id);
-        treeTeamMembers = teamMembers!.BuildTreeItemData();
+        treeTeamMembers = TeamMembers.BuildTreeItemData();
 
         StateHasChanged();
     } 

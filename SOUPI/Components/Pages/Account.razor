@@ -50,7 +50,8 @@
     [CascadingParameter]
     private GithubUser? GithubUser { get; set; }
 
-    private void GoToGitHubUserProfile(){
+    private void GoToGitHubUserProfile()
+    {
         NavigationManager.NavigateTo(GithubUser!.HtmlUrl); 
     }
 }

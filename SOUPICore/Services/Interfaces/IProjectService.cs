@@ -13,6 +13,8 @@ namespace SOUPICore.Services.Interfaces
 
         public Task<ProjectDto> Update(ProjectDto changedProjectDto);
 
+        public Task<ProjectDto> ChangeCreator(ProjectDto updatedProjectDto);
+
         public Task Delete(Guid Id); 
     }
 }

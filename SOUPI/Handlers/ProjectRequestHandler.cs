@@ -12,10 +12,11 @@ namespace SOUPI.Handlers
         private readonly ILogger<ProjectRequestHandler> _logger;
         private readonly HttpClient _httpClient;
 
-        private const string createUrl = "/api/project/create";
+        private const string createUrl = "/api/project/create/";
         private const string getByUserIdUrl = "/api/project/getbyuserid/";
         private const string getByIdUrl = "/api/project/getbyid/";
         private const string updateUrl = "/api/project/update/"; 
+        private const string changeCreatorUrl = "/api/project/changeCreator/"; 
         private const string deleteUrl = "/api/project/delete/"; 
 
         public ProjectRequestHandler(ILogger<ProjectRequestHandler> logger, HttpClient httpClient)
@@ -127,6 +128,32 @@ namespace SOUPI.Handlers
             {
                 _logger.LogError($"Не удалось сохранить изменения: {ex.Message}");
                 throw new SoupiException("Не удалось сохранить изменения ");
+            }
+        }
+
+        public async Task<ProjectDto> ChangeCreator(ProjectDto updatedProjectDto)
+        {
+            try
+            {
+                var content = JsonContent.Create(updatedProjectDto);
+
+                var response = await _httpClient.PostAsync(changeCreatorUrl, content);
+
+                response.EnsureSuccessStatusCode();
+
+                var newContent = await response.Content.ReadAsStringAsync();
+
+                var result = System.Text.Json.JsonSerializer.Deserialize<ProjectDto>(newContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                return result!;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Не удалось передать управление проектом: {ex.Message}");
+                throw new SoupiException("Не удалось передать управление проектом ");
             }
         }
 
