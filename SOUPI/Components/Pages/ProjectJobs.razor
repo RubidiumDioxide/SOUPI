@@ -1,0 +1,26 @@
+﻿@page "/projectjobs" 
+@rendermode InteractiveServer
+
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
+    <GanttChart Jobs="Jobs" @bind-SelectedJob="SelectedJob"/>
+
+    <JobManager @ref="_jobManagerRef" @bind-Job="SelectedJob"/>
+</MudContainer>
+
+
+@code {
+    private JobManager? _jobManagerRef; 
+    private GanttJob? SelectedJob;
+
+    private List<GanttJob> Jobs = new() {
+        new GanttJob { id = "T1", name = "Planning", start = new DateTime(2026, 2, 1), end = new DateTime(2026, 2, 10), progress = 100 },
+        new GanttJob { id = "T2", name = "Development", start = new DateTime(2026, 2, 11), end = new DateTime(2026, 3, 20), progress = 20, dependencies = "T1" },
+        new GanttJob { id = "T3", name = "Testing", start = new DateTime(2026, 3, 21), end = new DateTime(2026, 4, 15), progress = 0, dependencies = "T2" }
+    };
+
+    private void SelectedTaskChanged(GanttJob newJob)
+    {
+        StateHasChanged(); 
+    }
+}

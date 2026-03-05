@@ -18,8 +18,7 @@ namespace SOUPIShared.Dtos
         [Required]
         public Guid CreatorId { get; set; }
         public DateTime CreationDateTime { get; set; } = DateTime.Now;
-        public string? Image { get; set; }
-    
+
         public ProjectDto(Project project)
         {
             Id = project.Id; 
@@ -28,7 +27,6 @@ namespace SOUPIShared.Dtos
             GithubRepository = project.GithubRepository; 
             CreatorId = project.CreatorId; 
             CreationDateTime = project.CreationDateTime; 
-            Image = project.Image;
         }
 
         public ProjectDto() { }

@@ -1,0 +1,18 @@
+﻿{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "lib": [ "DOM", "DOM.Iterable", "ESNext" ],
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "sourceMap": true,
+    "strict": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "."
+  },
+  "include": [ "gantt/src/**/*" ]
+}

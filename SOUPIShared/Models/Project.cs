@@ -24,8 +24,6 @@ namespace SOUPIShared.Models
         [Required]
         public DateTime CreationDateTime { get; set; } = default!; 
 
-        public string? Image { get; set; }
-
 
         public virtual User Creator { get; set; } = default!;
         public virtual List<TeamMember> TeamMembers { get; set; } = default!; 

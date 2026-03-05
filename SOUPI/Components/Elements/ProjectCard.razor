@@ -1,9 +1,5 @@
 ﻿<MudItem xs="12" sm="6" md="4">
-    <MudCard Elevation="25">
-        @if (Project.Image != null)
-        {
-            /*<MudCardMedia Image=@($"uploads/{Project.Image}") />*/
-        }
+    <MudCard Elevation="25"> 
         <MudCardHeader>
             <CardHeaderContent>
                 <MudLink Href="@($"/projects/{Project.Id}")" Typo="Typo.h6">@Project.Name</MudLink>

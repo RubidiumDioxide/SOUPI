@@ -1,0 +1,87 @@
+﻿@inject IJSRuntime JS
+
+
+<MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+    <MudText Typo="Typo.h4">Project Roadmap</MudText>
+
+    <MudToggleGroup T="string" Value="currentViewMode" ValueChanged="ChangeScale" Delimiters="true" Color="Color.Primary">
+        <MudToggleItem Value="@("Day")" />
+        <MudToggleItem Value="@("Week")" />
+        <MudToggleItem Value="@("Month")" />
+    </MudToggleGroup>
+</MudStack>
+
+<MudPaper Elevation="2" Class="pa-0 mb-6" Style="overflow: hidden;">
+    <div id="react-gantt-root"></div>
+</MudPaper>
+
+
+@code {
+    private IJSObjectReference? module;
+    private DotNetObjectReference<GanttChart>? dotnetRef = null;
+    private bool isInitialized = false;
+
+    private string currentViewMode = "Week";
+    //private string prevViewMode = "Week";
+    [Parameter, EditorRequired]
+    public GanttJob? SelectedJob { get; set; } = null;
+    [Parameter, EditorRequired]
+    public List<GanttJob> Jobs { get; set; } = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            dotnetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("interop.registerRazorComponent", dotnetRef);
+
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/gantt.bundle.js");
+
+            await module.InvokeVoidAsync(
+                 "init",
+                 Jobs,
+                 currentViewMode
+             );
+
+            isInitialized = true;
+        }
+    }
+
+    [Parameter]
+    public EventCallback<GanttJob> SelectedJobChanged { get; set; }
+
+    [JSInvokable]
+    public async Task SelectJobFromJS(string jobId)
+    {
+        SelectedJob = Jobs.FirstOrDefault(t => t.id == jobId);
+        await SelectedJobChanged.InvokeAsync(SelectedJob);
+    }
+
+    private async Task ChangeScale(string newViewMode)
+    {
+        if (isInitialized && module != null && currentViewMode != newViewMode)
+        {
+            currentViewMode = newViewMode;
+            await module.InvokeVoidAsync("setViewMode", currentViewMode);
+        }
+    }
+
+    public async void Dispose()
+    {
+        try
+        {
+            if (module != null)
+            {
+                await module.InvokeVoidAsync("cleanup");
+                await module.DisposeAsync();
+            }
+
+            dotnetRef?.Dispose();
+            dotnetRef = null;
+        }
+        catch
+        {
+            // игнорируем — Dispose не должен валить приложение
+        }
+    }
+}

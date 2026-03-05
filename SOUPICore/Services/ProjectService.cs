@@ -69,8 +69,7 @@ namespace SOUPICore.Services
                     Name = newProjectDto.Name,
                     Description = newProjectDto.Description,
                     GithubRepository = newProjectDto.GithubRepository,
-                    CreatorId = newProjectDto.CreatorId,
-                    Image = newProjectDto.Image,
+                    CreatorId = newProjectDto.CreatorId, 
                 };
 
                 await _context.Projects.AddAsync(newProject);
@@ -108,7 +107,6 @@ namespace SOUPICore.Services
 
                 project.Name = updatedProjectDto.Name;
                 project.Description = updatedProjectDto.Description; 
-                project.Image = updatedProjectDto.Image; 
 
                 await _context.SaveChangesAsync();
 

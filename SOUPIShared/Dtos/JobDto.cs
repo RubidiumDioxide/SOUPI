@@ -1,4 +1,5 @@
-﻿using SOUPIShared.Models;
+﻿using SOUPIShared.Misc;
+using SOUPIShared.Models;
 using System.ComponentModel.DataAnnotations;
 
 
@@ -22,7 +23,14 @@ namespace SOUPIShared.Dtos
         [MaxLength(255, ErrorMessage = "Содержание задачи слишком длинное (максимум 255 символов)")]
         public string? Body { get; set; }
 
-        public DateTime? Deadline { get; set; }
+        [Required]
+        public DateTime StartDateTime { get; set; } 
+        
+        [Required] 
+        public DateTime EndDateTime { get; set; }
+
+        [Required] 
+        public int Progress { get; set; } 
 
         public DateTime? CreationDateTime { get; set; } = DateTime.Now;
 
@@ -30,6 +38,7 @@ namespace SOUPIShared.Dtos
 
         public Guid? ParentJobId { get; set; }
 
+        public Guid? NextJobId { get; set; }
 
         public JobDto(Job job)
         {
@@ -38,10 +47,13 @@ namespace SOUPIShared.Dtos
             CreatorId = job.CreatorId; 
             Title = job.Title; 
             Body = job.Body; 
-            Deadline = job.Deadline; 
+            StartDateTime = job.StartDateTime; 
+            EndDateTime = job.EndDateTime; 
+            Progress = job.Progress; 
             CreationDateTime = job.CreationDateTime; 
             Status = job.Status; 
             ParentJobId = job.ParentJobId; 
+            NextJobId = job.NextJobId; 
         }
 
         public JobDto() { }

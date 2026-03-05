@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations; 
+﻿using SOUPIShared.Misc;
+using System.ComponentModel.DataAnnotations; 
 
 
 namespace SOUPIShared.Models
@@ -19,9 +20,16 @@ namespace SOUPIShared.Models
         public string Title { get; set; } = default!;
 
         [MaxLength(255, ErrorMessage = "Содержание задачи слишком длинное (максимум 255 символов)")]
-        public string? Body { get; set; } 
+        public string? Body { get; set; }
 
-        public DateTime? Deadline { get; set; }
+        [Required]
+        public DateTime StartDateTime { get; set; }
+
+        [Required]
+        public DateTime EndDateTime { get; set; }
+
+        [Required]
+        public int Progress { get; set; }
 
         public DateTime CreationDateTime { get; set; } = default; 
 
@@ -29,13 +37,15 @@ namespace SOUPIShared.Models
  
         public Guid? ParentJobId { get; set; }
 
+        public Guid? NextJobId { get; set; } 
+
 
         public virtual Project Project { get; set; } = default!; 
         public virtual User Creator { get; set; } = default!; 
         public virtual Job? ParentJob { get; set; }
-        public virtual List<Job> ChildJobs { get; set; } = default!;
-        public virtual List<JobSequence> JobSequencesToPreceding { get; set; } = default!; 
-        public virtual List<JobSequence> JobSequencesToSubsequent { get; set; } = default!; 
+        public virtual List<Job> ChildJobs { get; set; } = default!; 
+        public virtual Job? PreviousJob { get; set; } 
+        public virtual Job? NextJob { get; set; } 
         public virtual List<Assignment> Assignments { get; set; } = default!; 
     }
 }

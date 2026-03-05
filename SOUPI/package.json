@@ -1,0 +1,25 @@
+{
+  "scripts": {
+    "build": "webpack --mode production"
+  },
+  "dependencies": {
+    "frappe-gantt": "^1.2.1",
+    "mini-css-extract-plugin": "^2.10.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.0",
+    "@babel/preset-react": "^7.28.5",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "babel-loader": "^10.0.0",
+    "css-loader": "^7.1.4",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.3",
+    "webpack": "^5.105.2",
+    "webpack-cli": "^6.0.1"
+  }
+}
