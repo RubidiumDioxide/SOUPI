@@ -65,16 +65,12 @@ builder.Services.AddAuthentication(options =>
     });
 builder.Services.AddAuthorization();
 
-builder.Services.AddDbContext<SoupiDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 builder.Services.AddDbContext<SoupiDbContext>(
     options => options
         .UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => { b.MigrationsAssembly("SOUPI"); })
         .UseLazyLoadingProxies()
     );
 
-builder.Logging.AddConsole();
 builder.Services.AddSingleton<AuthHttpClientFactory>();
 builder.Services.AddScoped<HttpClient>(sp =>
 {
@@ -94,7 +90,9 @@ builder.Services.AddScoped<INotificationRequestHandler, NotificationRequestHandl
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITeamMemberService, TeamMemberService>(); 
-builder.Services.AddScoped<INotificationService, NotificationService>(); 
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 builder.Services.AddMudServices(config =>
 {

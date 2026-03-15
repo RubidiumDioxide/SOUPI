@@ -4,11 +4,12 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using SOUPICore;
 using SOUPICore.Services;
-using SOUPIShared.Models;
-using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions;
 using SOUPIShared.Misc;
-using Xunit;
+using SOUPIShared.Models;
+using SOUPIShared.Resources;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options; 
 
 
 namespace SOUPICoreTests
@@ -26,9 +27,21 @@ namespace SOUPICoreTests
                 .Options;
 
             _context = new SoupiDbContext(options);
-            _service = new JobService(_loggerMock.Object, _context);
-        }
+            _loggerMock = new Mock<ILogger<JobService>>();
 
+            var localizationOptions = Microsoft.Extensions.Options.Options.Create(new LocalizationOptions
+            {
+                ResourcesPath = ""
+            });  
+
+            var factory = new ResourceManagerStringLocalizerFactory(
+                localizationOptions,
+                Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance);
+
+            var localizer = new StringLocalizer<ServiceErrorMessages>(factory);
+
+            _service = new JobService(_context, _loggerMock.Object, localizer);
+        }
 
         // --- HELPERS ---
 
@@ -79,6 +92,7 @@ namespace SOUPICoreTests
 
 
         // --- TESTS ---
+        // --- GetByProjectId ---
         [Fact]
         public async Task GetByProjectId_ShouldReturnJobs_WhenProjectHasJobs()
         {
@@ -107,21 +121,48 @@ namespace SOUPICoreTests
         public async Task GetByProjectId_ShouldReturnEmpty_WhenProjectHasNoJobs()
         {
             // Arrange
-            var projectId = Guid.NewGuid(); // Random ID with no data
+            var user = await SeedUser();
+            var project = await SeedProject(user.Id);
+
+            // Seed no jobs 
 
             // Act
-            var result = await _service.GetByProjectId(projectId);
+            var result = await _service.GetByProjectId(project.Id);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeEmpty();
+            result.Should().HaveCount(0);
+        }
+
+        [Fact]
+        public async Task GetByProjectId_ShouldThrowBadRequestExceptionAndLogError_WhenNoSuchProjectExists()
+        {
+            // Arrange
+            // random Id
+            var projectId = Guid.NewGuid();
+            string expectedMessage = ServiceErrorMessages.JobService_GetByProjectId_ProjectNotFound;
+
+            // Act
+            Func<Task> act = async () => await _service.GetByProjectId(projectId);
+
+            // Assert
+            await act.Should().ThrowAsync<BadRequestException>()
+                .WithMessage(expectedMessage); 
+            _loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => true),
+                    It.IsAny<BadRequestException>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+                Times.Once);
         }
 
         [Fact]
         public async Task GetByProjectId_ShouldLogErrorAndThrow_WhenExceptionOccurs()
         {
             // Arrange
-            // We force an exception by disposing the context before the call
+            // force an exception by disposing the context before the call
             _context.Dispose();
 
             // Act
@@ -136,21 +177,23 @@ namespace SOUPICoreTests
                     It.IsAny<EventId>(),
                     It.Is<It.IsAnyType>((v, t) => true),
                     It.IsAny<Exception>(),
-                    It.Is<Func<It.IsAnyType, Exception, string>>((v, t) => true)),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.Once);
         }
+
+
+        // --- GetById ---
+
+
+
 
         public void Dispose()
         {
             try
             {
-                // Check if context is already disposed or if database is accessible
                 _context.Database.EnsureDeleted();
             }
-            catch (ObjectDisposedException)
-            {
-                // Silence this exception during cleanup if the test already disposed it
-            }
+            catch (ObjectDisposedException) {}
             finally
             {
                 _context.Dispose();

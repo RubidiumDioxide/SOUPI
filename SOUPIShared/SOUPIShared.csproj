@@ -10,4 +10,20 @@
     <PackageReference Include="MudBlazor" Version="8.15.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Resources\ServiceErrorMessages.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ServiceErrorMessages.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\ServiceErrorMessages.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>ServiceErrorMessages.Designer.cs</LastGenOutput>
+      <CustomToolNamespace></CustomToolNamespace>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

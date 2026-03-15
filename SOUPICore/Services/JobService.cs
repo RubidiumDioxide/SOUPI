@@ -1,28 +1,47 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging; 
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions;
 using SOUPIShared.Models;
+using SOUPIShared.Resources; 
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
 
 namespace SOUPICore.Services
 {
     public class JobService : IJobService
     {
-        private readonly ILogger<JobService> _logger;
         private readonly SoupiDbContext _context;
+        private readonly ILogger<JobService> _logger;
+        private readonly IStringLocalizer<ServiceErrorMessages> _localizer; 
 
-        public JobService(ILogger<JobService> logger, SoupiDbContext context)
+        public JobService(SoupiDbContext context, ILogger<JobService> logger, IStringLocalizer<ServiceErrorMessages> localizer)
         {
-            _logger = logger;
             _context = context;
+            _logger = logger;
+            _localizer = localizer; 
+        }
+
+        private string GetResource(string description, [CallerMemberName] string methodName = "")
+        {
+            var key = $"{GetType().Name}_{methodName}_{description}";
+            return _localizer[key];
         }
 
         public async Task<IEnumerable<JobDto>> GetByProjectId(Guid projectId)
         {
             try
             {
+                var project = await _context.Projects.FindAsync(projectId);
+
+                if (project == null)
+                {
+                    throw new BadRequestException(GetResource("ProjectNotFound"));
+                }
+
                 var jobs = await _context.Jobs
                     .Where(j => j.ProjectId == projectId)
                     .ToListAsync();
