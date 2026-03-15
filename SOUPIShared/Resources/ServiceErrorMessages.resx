@@ -117,7 +117,34 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="JobService_GetByProjectId_ProjectNotFound" xml:space="preserve">
-    <value>Невозможно получить задачи проекта, т.к. проекта не существует в системе</value>
+  <data name="ParentNotFound" xml:space="preserve">
+    <value>Родительская задача не существует в системе</value>
+  </data>
+  <data name="JobSequenceAlreadyExists" xml:space="preserve">
+    <value>Связь между задачами уже существует</value>
+  </data>
+  <data name="JobSequenceNotFound" xml:space="preserve">
+    <value>Связь между задачами не существует в системе </value>
+  </data>
+  <data name="JobIncompatibleEndStartDates" xml:space="preserve">
+    <value>Дата окончания задачи не может быть раньше или равна дате начала задачи</value>
+  </data>
+  <data name="JobNotFound" xml:space="preserve">
+    <value>Задача не существует в системе</value>
+  </data>
+  <data name="JobIncompatibleStartProjectDates" xml:space="preserve">
+    <value>Дата начала задачи не может быть раньше даты начала проекта</value>
+  </data>
+  <data name="ProjectNotFound" xml:space="preserve">
+    <value>Проект не существует в системе</value>
+  </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>Пользователя не существует в системе</value>
+  </data>
+  <data name="JobSequenceCyclical" xml:space="preserve">
+    <value>Связь образует цикл</value>
+  </data>
+  <data name="JobsDifferentLevels" xml:space="preserve">
+    <value>Задачи находятся на разных уровнях</value>
   </data>
 </root>

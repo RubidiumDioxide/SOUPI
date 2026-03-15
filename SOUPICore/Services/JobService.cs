@@ -6,8 +6,6 @@ using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions;
 using SOUPIShared.Models;
 using SOUPIShared.Resources; 
-using System.Reflection;
-using System.Runtime.CompilerServices;
 
 
 namespace SOUPICore.Services
@@ -25,12 +23,6 @@ namespace SOUPICore.Services
             _localizer = localizer; 
         }
 
-        private string GetResource(string description, [CallerMemberName] string methodName = "")
-        {
-            var key = $"{GetType().Name}_{methodName}_{description}";
-            return _localizer[key];
-        }
-
         public async Task<IEnumerable<JobDto>> GetByProjectId(Guid projectId)
         {
             try
@@ -39,7 +31,7 @@ namespace SOUPICore.Services
 
                 if (project == null)
                 {
-                    throw new BadRequestException(GetResource("ProjectNotFound"));
+                    throw new BadRequestException(_localizer["ProjectNotFound"]);
                 }
 
                 var jobs = await _context.Jobs
@@ -117,7 +109,7 @@ namespace SOUPICore.Services
 
                 if (job == null)
                 {
-                    throw new BadRequestException("Невозможно изменить задачу, т.к. такой задачи не существует в системе");
+                    throw new BadRequestException(_localizer["JobNotFound"]);
                 }
 
                 job.Title = updatedJobDto.Title;
@@ -154,7 +146,7 @@ namespace SOUPICore.Services
 
                 if (job == null)
                 {
-                    throw new BadRequestException("Невозможно изменить задачу, т.к. такой задачи не существует в системе");
+                    throw new BadRequestException(_localizer["JobNotFound"]);
                 }
 
                 if(job.ParentJobId == newParentId)
@@ -188,19 +180,19 @@ namespace SOUPICore.Services
 
                 if (firstJob == null || secondJob == null)
                 {
-                    throw new BadRequestException("Невозможно связать задачи, т.к. одной или обоих связуемых задач нет в системе ");
+                    throw new BadRequestException(_localizer["JobNotFound"]);
                 }
 
                 if (!IsSameLevel(firstJob, secondJob))
                 {
-                    throw new BadRequestException("Невозможно связать задачи, т.к. они находятся на разных уровнях");
+                    throw new BadRequestException(_localizer["JobsDifferentLevels"]);
                 }
 
                 var existingjobSequence = await _context.JobSequences.FirstOrDefaultAsync(js => js.FirstJobId == firstJob.Id && js.SecondJobId == secondJob.Id); 
 
                 if(existingjobSequence != null)
                 {
-                    throw new BadRequestException("Незвозможно связать задачи, т.к. между ними уже существует связь ");
+                    throw new BadRequestException(_localizer["JobSequenceAlreadyExists"]);
                 }
 
                 await CheckIfCyclic(firstJobId, secondJobId);
@@ -229,7 +221,7 @@ namespace SOUPICore.Services
 
                 if (jobSequence == null)
                 {
-                    throw new BadRequestException("Невозможно удалить связь, т.к. ее нет в системе ");
+                    throw new BadRequestException(_localizer["JobSequenceNotFound"]);
                 }
 
                 _context.Remove(jobSequence);
@@ -256,7 +248,7 @@ namespace SOUPICore.Services
 
                 if (job == null)
                 {
-                    throw new BadRequestException("Невозможно удалить задачу, т.к. ее нет в системе "); 
+                    throw new BadRequestException(_localizer["JobNotFound"]); 
                 }
 
                 var jobSequences = job.NextJobSequences.Concat(job.PreviousJobSequences);
@@ -326,7 +318,7 @@ namespace SOUPICore.Services
                 // If we reach the FirstJobId, a cycle is detected 
                 if(currentJobId == targetJobId)
                 {
-                    throw new BadRequestException("Невозможно создать связь, т.к. она образует цикл");
+                    throw new BadRequestException(_localizer["JobSequenceCyclical"]);
                 }
 
                 if (!visited.Contains(currentJobId))
@@ -362,28 +354,28 @@ namespace SOUPICore.Services
 
                 if (parentJob == null)
                 {
-                    throw new BadRequestException("Ошибка в записи задачи: родительская задача не существует в системе ");
+                    throw new BadRequestException(_localizer["ParentNotFound"]);
                 }
             }
 
             if (project == null)
             {
-                throw new BadRequestException($"Ошибка в записи задачи: такого проекта не существует в системе");
+                throw new BadRequestException(_localizer["ProjectNotFound"]);
             }
 
             if (creator == null)
             {
-                throw new BadRequestException($"Ошибка в записи задачи: такого пользователя не существует в системе");
+                throw new BadRequestException(_localizer["UserNotFound"]);
             }
 
             if (job.EndDateTime <= job.StartDateTime)
             {
-                throw new BadRequestException($"Ошибка в записи задачи: дата окончания не может быть раньше или равна дате начала задачи ");
+                throw new BadRequestException(_localizer["JobIncompatibleEndStartDates"]);
             }
 
             if (job.StartDateTime < project.StartDateTime)
             {
-                throw new BadRequestException($"Ошибка в записи задачи: т. к. дата начала не может быть раньше даты начала проекта ");
+                throw new BadRequestException(_localizer["JobIncompatibleStartProjectDates"]);
             }
         }
     }

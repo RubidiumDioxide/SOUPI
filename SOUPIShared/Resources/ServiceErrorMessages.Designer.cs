@@ -61,11 +61,92 @@ namespace SOUPIShared.Resources {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на Невозможно получить задачи проекта, т.к. проекта не существует в системе.
+        ///   Ищет локализованную строку, похожую на Дата окончания задачи не может быть раньше или равна дате начала задачи.
         /// </summary>
-        public static string JobService_GetByProjectId_ProjectNotFound {
+        public static string JobIncompatibleEndStartDates {
             get {
-                return ResourceManager.GetString("JobService_GetByProjectId_ProjectNotFound", resourceCulture);
+                return ResourceManager.GetString("JobIncompatibleEndStartDates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Дата начала задачи не может быть раньше даты начала проекта.
+        /// </summary>
+        public static string JobIncompatibleStartProjectDates {
+            get {
+                return ResourceManager.GetString("JobIncompatibleStartProjectDates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Задача не существует в системе.
+        /// </summary>
+        public static string JobNotFound {
+            get {
+                return ResourceManager.GetString("JobNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Задачи находятся на разных уровнях.
+        /// </summary>
+        public static string JobsDifferentLevels {
+            get {
+                return ResourceManager.GetString("JobsDifferentLevels", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Связь между задачами уже существует.
+        /// </summary>
+        public static string JobSequenceAlreadyExists {
+            get {
+                return ResourceManager.GetString("JobSequenceAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Связь образует цикл.
+        /// </summary>
+        public static string JobSequenceCyclical {
+            get {
+                return ResourceManager.GetString("JobSequenceCyclical", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Связь между задачами не существует в системе .
+        /// </summary>
+        public static string JobSequenceNotFound {
+            get {
+                return ResourceManager.GetString("JobSequenceNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Родительская задача не существует в системе.
+        /// </summary>
+        public static string ParentNotFound {
+            get {
+                return ResourceManager.GetString("ParentNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Проект не существует в системе.
+        /// </summary>
+        public static string ProjectNotFound {
+            get {
+                return ResourceManager.GetString("ProjectNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Пользователя не существует в системе.
+        /// </summary>
+        public static string UserNotFound {
+            get {
+                return ResourceManager.GetString("UserNotFound", resourceCulture);
             }
         }
     }

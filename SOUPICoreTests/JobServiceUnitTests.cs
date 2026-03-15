@@ -140,7 +140,7 @@ namespace SOUPICoreTests
             // Arrange
             // random Id
             var projectId = Guid.NewGuid();
-            string expectedMessage = ServiceErrorMessages.JobService_GetByProjectId_ProjectNotFound;
+            string expectedMessage = ServiceErrorMessages.ProjectNotFound;
 
             // Act
             Func<Task> act = async () => await _service.GetByProjectId(projectId);
@@ -181,11 +181,13 @@ namespace SOUPICoreTests
                 Times.Once);
         }
 
-
         // --- GetById ---
-
-
-
+        // --- Create --- 
+        // --- UpdateContent ---
+        // --- UpdateParent ---
+        // --- CreateLink ---
+        // --- DeleteLink --- 
+        // --- Delete --- 
 
         public void Dispose()
         {
