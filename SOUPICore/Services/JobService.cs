@@ -279,7 +279,7 @@ namespace SOUPICore.Services
         {
             foreach (var j in job.ChildJobs)
             {
-                DeleteChildrenRecursive(job);
+                DeleteChildrenRecursive(j);
             }
 
             _context.Jobs.Remove(job); 
