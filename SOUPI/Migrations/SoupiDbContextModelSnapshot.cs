@@ -102,9 +102,6 @@ namespace SOUPI.Migrations
                     b.Property<DateTime>("EndDateTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("NextJobId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid?>("ParentJobId")
                         .HasColumnType("uniqueidentifier");
 
@@ -132,15 +129,33 @@ namespace SOUPI.Migrations
                     b.HasIndex("Id")
                         .IsUnique();
 
-                    b.HasIndex("NextJobId")
-                        .IsUnique()
-                        .HasFilter("[NextJobId] IS NOT NULL");
-
                     b.HasIndex("ParentJobId");
 
                     b.HasIndex("ProjectId");
 
                     b.ToTable("JOB", (string)null);
+                });
+
+            modelBuilder.Entity("SOUPIShared.Models.JobSequence", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("FirstJobId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SecondJobId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SecondJobId");
+
+                    b.HasIndex("FirstJobId", "SecondJobId")
+                        .IsUnique();
+
+                    b.ToTable("JOBSEQUENCE", (string)null);
                 });
 
             modelBuilder.Entity("SOUPIShared.Models.Notification", b =>
@@ -214,13 +229,13 @@ namespace SOUPI.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<string>("Image")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("StartDateTime")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -326,11 +341,6 @@ namespace SOUPI.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SOUPIShared.Models.Job", "NextJob")
-                        .WithOne("PreviousJob")
-                        .HasForeignKey("SOUPIShared.Models.Job", "NextJobId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("SOUPIShared.Models.Job", "ParentJob")
                         .WithMany("ChildJobs")
                         .HasForeignKey("ParentJobId")
@@ -344,11 +354,28 @@ namespace SOUPI.Migrations
 
                     b.Navigation("Creator");
 
-                    b.Navigation("NextJob");
-
                     b.Navigation("ParentJob");
 
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("SOUPIShared.Models.JobSequence", b =>
+                {
+                    b.HasOne("SOUPIShared.Models.Job", "FirstJob")
+                        .WithMany("NextJobSequences")
+                        .HasForeignKey("FirstJobId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SOUPIShared.Models.Job", "SecondJob")
+                        .WithMany("PreviousJobSequences")
+                        .HasForeignKey("SecondJobId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FirstJob");
+
+                    b.Navigation("SecondJob");
                 });
 
             modelBuilder.Entity("SOUPIShared.Models.Notification", b =>
@@ -426,7 +453,9 @@ namespace SOUPI.Migrations
 
                     b.Navigation("ChildJobs");
 
-                    b.Navigation("PreviousJob");
+                    b.Navigation("NextJobSequences");
+
+                    b.Navigation("PreviousJobSequences");
                 });
 
             modelBuilder.Entity("SOUPIShared.Models.Project", b =>

@@ -24,9 +24,9 @@
     private string currentViewMode = "Week";
     //private string prevViewMode = "Week";
     [Parameter, EditorRequired]
-    public GanttJob? SelectedJob { get; set; } = null;
+    public GanttJobDto? SelectedJob { get; set; } = null;
     [Parameter, EditorRequired]
-    public List<GanttJob> Jobs { get; set; } = default!;
+    public List<GanttJobDto> Jobs { get; set; } = default!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -48,7 +48,7 @@
     }
 
     [Parameter]
-    public EventCallback<GanttJob> SelectedJobChanged { get; set; }
+    public EventCallback<GanttJobDto> SelectedJobChanged { get; set; }
 
     [JSInvokable]
     public async Task SelectJobFromJS(string jobId)

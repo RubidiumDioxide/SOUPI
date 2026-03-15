@@ -10,43 +10,34 @@
             </CardHeaderActions>
         </MudCardHeader>
         <MudCardContent>
-            <MudGrid>
-                <MudItem xs="12" md="6">
-                    <MudTextField @bind-Value="Job.name"
-                                  Label="Job Name"
-                                  Variant="Variant.Outlined"
-                                  Class="mb-4" />
+            <MudStack Style="width: 50%">
+                <MudTextField @bind-Value="Job.name"
+                              Label="Job Name"
+                              Variant="Variant.Outlined"
+                              Class="mb-4" />
 
-                    <MudText Typo="Typo.caption" Class="ml-2">Progress: @Job.progress%</MudText>
-                    <MudSlider @bind-Value="Job.progress"
-                               Min="0" Max="100"
-                               Color="Color.Primary"
-                               ValueLabel="true" />
-                </MudItem>
+                <MudText Typo="Typo.caption" Class="ml-2">Progress: @Job.progress%</MudText>
+                <MudSlider @bind-Value="Job.progress"
+                           Min="0" Max="100"
+                           Color="Color.Primary"
+                           ValueLabel="true" />
 
-                <MudItem xs="12" md="6">
-                    <MudGrid>
-                        <MudItem xs="6">
-                            <MudDatePicker Label="Start Date"
-                                           @bind-Date="Job.start"
-                                           PickerVariant="PickerVariant.Dialog"
-                                           Variant="Variant.Outlined" />
-                        </MudItem>
-                        <MudItem xs="6">
-                            <MudDatePicker Label="End Date"
-                                           @bind-Date="Job.end"
-                                           PickerVariant="PickerVariant.Dialog"
-                                           Variant="Variant.Outlined" />
-                        </MudItem>
-                    </MudGrid>
-                    <div class="d-flex justify-end mt-6">
-                        <MudButton Variant="Variant.Filled"
-                                   Color="Color.Primary">
-                            Done
-                        </MudButton>
-                    </div>
-                </MudItem>
-            </MudGrid>
+                <MudDatePicker Label="Start Date"
+                               @bind-Date="Job.start"
+                               PickerVariant="PickerVariant.Dialog"
+                               Variant="Variant.Outlined" />
+
+                <MudDatePicker Label="End Date"
+                               @bind-Date="Job.end"
+                               PickerVariant="PickerVariant.Dialog"
+                               Variant="Variant.Outlined" />
+
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary">
+                    Done
+                </MudButton>
+            </MudStack> 
         </MudCardContent>
     </MudCard>
 }
@@ -60,8 +51,8 @@ else
 
 @code {
     [Parameter, EditorRequired]
-    public GanttJob? Job { get; set; } = new();
+    public GanttJobDto? Job { get; set; } = new();
 
     [Parameter]
-    public EventCallback<GanttJob> JobChanged { get; set; }
+    public EventCallback<GanttJobDto> JobChanged { get; set; }
 }

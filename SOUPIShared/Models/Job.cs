@@ -37,15 +37,13 @@ namespace SOUPIShared.Models
  
         public Guid? ParentJobId { get; set; }
 
-        public Guid? NextJobId { get; set; } 
-
 
         public virtual Project Project { get; set; } = default!; 
         public virtual User Creator { get; set; } = default!; 
         public virtual Job? ParentJob { get; set; }
         public virtual List<Job> ChildJobs { get; set; } = default!; 
-        public virtual Job? PreviousJob { get; set; } 
-        public virtual Job? NextJob { get; set; } 
-        public virtual List<Assignment> Assignments { get; set; } = default!; 
+        public virtual List<Assignment> Assignments { get; set; } = default!;
+        public virtual List<JobSequence> NextJobSequences { get; set; } = default!; 
+        public virtual List<JobSequence> PreviousJobSequences { get; set; } = default!; 
     }
 }

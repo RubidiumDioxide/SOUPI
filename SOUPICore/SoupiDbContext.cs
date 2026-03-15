@@ -20,6 +20,7 @@ public partial class SoupiDbContext : DbContext
     public virtual DbSet<Notification> Notifications { get; set; } 
     public virtual DbSet<TeamMember> TeamMembers { get; set; } 
     public virtual DbSet<Job> Jobs { get; set; } 
+    public virtual DbSet<JobSequence> JobSequences { get; set; } 
     public virtual DbSet<Assignment> Assignments { get; set; } 
     public virtual DbSet<Activity> Activities { get; set; } 
 
@@ -105,11 +106,6 @@ public partial class SoupiDbContext : DbContext
             entity.HasOne(j => j.ParentJob).WithMany(t => t.ChildJobs)
                 .HasForeignKey(j => j.ParentJobId) 
                 .OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne(j => j.NextJob)
-                .WithOne(j => j.PreviousJob)
-                .HasForeignKey<Job>(j => j.NextJobId) 
-                .IsRequired(false) 
-                .OnDelete(DeleteBehavior.Restrict); 
         });
 
         modelBuilder.Entity<Assignment>(entity =>
@@ -140,6 +136,23 @@ public partial class SoupiDbContext : DbContext
             entity.HasOne(a => a.Assignment).WithMany(a => a.Activities) 
                 .HasForeignKey(a => a.AssignmentId) 
                 .OnDelete(DeleteBehavior.Restrict); 
+        });
+
+        modelBuilder.Entity<JobSequence>(entity =>
+        {
+            entity.HasKey(js => js.Id);
+
+            entity.ToTable("JOBSEQUENCE");
+
+            entity.HasIndex(js => new { js.FirstJobId, js.SecondJobId }).IsUnique();
+
+            entity.HasOne(js => js.FirstJob).WithMany(j => j.NextJobSequences)
+                .HasForeignKey(js => js.FirstJobId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(js => js.SecondJob).WithMany(j => j.PreviousJobSequences)
+                .HasForeignKey(js => js.SecondJobId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Project>()

@@ -32,13 +32,12 @@ namespace SOUPIShared.Dtos
         [Required] 
         public int Progress { get; set; } 
 
-        public DateTime? CreationDateTime { get; set; } = DateTime.Now;
+        public DateTime CreationDateTime { get; set; } = DateTime.Now;
 
         public JobStatus Status { get; set; } = JobStatus.New;
 
         public Guid? ParentJobId { get; set; }
 
-        public Guid? NextJobId { get; set; }
 
         public JobDto(Job job)
         {
@@ -53,7 +52,6 @@ namespace SOUPIShared.Dtos
             CreationDateTime = job.CreationDateTime; 
             Status = job.Status; 
             ParentJobId = job.ParentJobId; 
-            NextJobId = job.NextJobId; 
         }
 
         public JobDto() { }

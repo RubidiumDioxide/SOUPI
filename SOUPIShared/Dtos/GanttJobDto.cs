@@ -3,7 +3,7 @@
 
 namespace SOUPIShared.Dtos
 {
-    public class GanttJob
+    public class GanttJobDto
     {
         public string id { get; set; } = "";
         public string name { get; set; } = "";
@@ -12,16 +12,17 @@ namespace SOUPIShared.Dtos
         public int progress { get; set; }
         public string? dependencies { get; set; } 
 
-        public GanttJob(Job job) 
+
+        public GanttJobDto(Job job) 
         {
             id = job.Id.ToString(); 
             name = job.Title; 
             start = job.StartDateTime; 
             end = job.EndDateTime; 
-            progress = job.Progress; 
-            dependencies = (job.PreviousJob != null)? job.PreviousJob.Id.ToString() : null; 
+            progress = job.Progress;
+            dependencies = string.Join(", ", job.PreviousJobSequences.Select(js => js.FirstJobId.ToString())); 
         }
 
-        public GanttJob() { } 
+        public GanttJobDto() { } 
     }
 }

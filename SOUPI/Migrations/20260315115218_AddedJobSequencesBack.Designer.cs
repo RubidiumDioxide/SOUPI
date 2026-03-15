@@ -12,8 +12,8 @@ using SOUPICore;
 namespace SOUPI.Migrations
 {
     [DbContext(typeof(SoupiDbContext))]
-    [Migration("20260206121205_AddedOptionalRoleToNotification")]
-    partial class AddedOptionalRoleToNotification
+    [Migration("20260315115218_AddedJobSequencesBack")]
+    partial class AddedJobSequencesBack
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -94,20 +94,28 @@ namespace SOUPI.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<DateTime?>("CreationDateTime")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreationDateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
 
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("Deadline")
+                    b.Property<DateTime>("EndDateTime")
                         .HasColumnType("datetime2");
 
                     b.Property<Guid?>("ParentJobId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("Progress")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("StartDateTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -133,13 +141,17 @@ namespace SOUPI.Migrations
 
             modelBuilder.Entity("SOUPIShared.Models.JobSequence", b =>
                 {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("FirstJobId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("SecondJobId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("FirstJobId", "SecondJobId");
+                    b.HasKey("Id");
 
                     b.HasIndex("SecondJobId");
 
@@ -154,6 +166,11 @@ namespace SOUPI.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
 
                     b.Property<bool>("HasBeenViewed")
                         .HasColumnType("bit");
@@ -200,7 +217,9 @@ namespace SOUPI.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreationDateTime")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
 
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uniqueidentifier");
@@ -213,13 +232,13 @@ namespace SOUPI.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<string>("Image")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("StartDateTime")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -346,13 +365,13 @@ namespace SOUPI.Migrations
             modelBuilder.Entity("SOUPIShared.Models.JobSequence", b =>
                 {
                     b.HasOne("SOUPIShared.Models.Job", "FirstJob")
-                        .WithMany("JobSequencesToSubsequent")
+                        .WithMany("NextJobSequences")
                         .HasForeignKey("FirstJobId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("SOUPIShared.Models.Job", "SecondJob")
-                        .WithMany("JobSequencesToPreceding")
+                        .WithMany("PreviousJobSequences")
                         .HasForeignKey("SecondJobId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -437,9 +456,9 @@ namespace SOUPI.Migrations
 
                     b.Navigation("ChildJobs");
 
-                    b.Navigation("JobSequencesToPreceding");
+                    b.Navigation("NextJobSequences");
 
-                    b.Navigation("JobSequencesToSubsequent");
+                    b.Navigation("PreviousJobSequences");
                 });
 
             modelBuilder.Entity("SOUPIShared.Models.Project", b =>

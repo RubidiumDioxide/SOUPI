@@ -22,8 +22,10 @@ namespace SOUPIShared.Models
         public Guid CreatorId { get; set; }
 
         [Required]
-        public DateTime CreationDateTime { get; set; } = default!; 
+        public DateTime CreationDateTime { get; set; } = default!;
 
+        [Required] 
+        public DateTime StartDateTime { get; set; } = default!; 
 
         public virtual User Creator { get; set; } = default!;
         public virtual List<TeamMember> TeamMembers { get; set; } = default!; 
