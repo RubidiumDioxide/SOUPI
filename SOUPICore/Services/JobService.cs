@@ -5,7 +5,8 @@ using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions;
 using SOUPIShared.Models;
-using SOUPIShared.Resources; 
+using SOUPIShared.Resources;
+using static SOUPIShared.Extensions.JobExtensions; 
 
 
 namespace SOUPICore.Services
@@ -55,7 +56,7 @@ namespace SOUPICore.Services
 
                 if (job == null)
                 {
-                    throw new NotFoundException();
+                    throw new NotFoundException(_localizer["JobNotFound"]);
                 }
                 else
                 {
@@ -171,69 +172,6 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task CreateLink(Guid firstJobId, Guid secondJobId)
-        {
-            try
-            {
-                var firstJob = _context.Jobs.Find(firstJobId);
-                var secondJob = _context.Jobs.Find(secondJobId);
-
-                if (firstJob == null || secondJob == null)
-                {
-                    throw new BadRequestException(_localizer["JobNotFound"]);
-                }
-
-                if (!IsSameLevel(firstJob, secondJob))
-                {
-                    throw new BadRequestException(_localizer["JobsDifferentLevels"]);
-                }
-
-                var existingjobSequence = await _context.JobSequences.FirstOrDefaultAsync(js => js.FirstJobId == firstJob.Id && js.SecondJobId == secondJob.Id); 
-
-                if(existingjobSequence != null)
-                {
-                    throw new BadRequestException(_localizer["JobSequenceAlreadyExists"]);
-                }
-
-                await CheckIfCyclic(firstJobId, secondJobId);
-
-                var newJobSequence = new JobSequence() 
-                {
-                    FirstJobId = firstJobId, 
-                    SecondJobId = secondJobId 
-                };
-
-                await _context.JobSequences.AddAsync(newJobSequence); 
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
-        }
-
-        public async Task DeleteLink(Guid jobSequenceId)
-        {
-            try
-            {
-                var jobSequence = await _context.JobSequences.FindAsync(jobSequenceId);
-
-                if (jobSequence == null)
-                {
-                    throw new BadRequestException(_localizer["JobSequenceNotFound"]);
-                }
-
-                _context.Remove(jobSequence);
-                await _context.SaveChangesAsync(); 
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
-        }
-
         /// <summary>
         /// Если есть дочерние задачи, переносятся к родителю 
         /// </summary>
@@ -253,7 +191,7 @@ namespace SOUPICore.Services
 
                 var jobSequences = job.NextJobSequences.Concat(job.PreviousJobSequences);
 
-                _context.RemoveRange(jobSequences);
+                _context.JobSequences.RemoveRange(jobSequences);
 
                 if(job.ChildJobs.Count != 0)
                 {
@@ -270,7 +208,7 @@ namespace SOUPICore.Services
                     }   
                 }
 
-                _context.Remove(job);
+                _context.Jobs.Remove(job);
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -279,7 +217,6 @@ namespace SOUPICore.Services
                 throw;
             }
         }
-
 
         /// <summary>
         /// Рекурсивно удаляет ВСЕ дочерние задачи job 
@@ -293,53 +230,7 @@ namespace SOUPICore.Services
                 DeleteChildrenRecursive(j);
             }
 
-            _context.Jobs.Remove(job); 
-        }
-
-        private bool IsSameLevel(Job previousJob, Job currentJob)
-        {
-            return previousJob.ParentJobId == currentJob.ParentJobId;
-        }
-
-        private async Task CheckIfCyclic(Guid firstJobId, Guid secondJobId)
-        {
-            var startJobId = secondJobId;
-            var targetJobId = firstJobId;  
-
-            var queue = new Queue<Guid>(); 
-            var visited = new HashSet<Guid>();
-
-            queue.Enqueue(startJobId); 
-
-            while (queue.Count > 0)
-            {
-                var currentJobId = queue.Dequeue();
-
-                // If we reach the FirstJobId, a cycle is detected 
-                if(currentJobId == targetJobId)
-                {
-                    throw new BadRequestException(_localizer["JobSequenceCyclical"]);
-                }
-
-                if (!visited.Contains(currentJobId))
-                {
-                    visited.Add(currentJobId);
-
-                    // Fetch all sequences where the current job is the 'predecessor' (FirstJob)
-                    var nextJobIds = await _context.JobSequences
-                        .Where(js => js.FirstJobId == currentJobId)
-                        .Select(js => js.SecondJobId)
-                        .ToListAsync();
-
-                    foreach (var nextId in nextJobIds)
-                    {
-                        if (!visited.Contains(nextId))
-                        {
-                            queue.Enqueue(nextId);
-                        }
-                    }
-                }
-            }
+            _context.Jobs.Remove(job);
         }
 
         private async Task CheckIfValidJob(Job job)

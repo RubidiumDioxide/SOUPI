@@ -61,6 +61,24 @@ namespace SOUPIShared.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Назначение этого участника команды на эту задачу уже существует.
+        /// </summary>
+        public static string AssignmentAlreadyExists {
+            get {
+                return ResourceManager.GetString("AssignmentAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Назначения нет в системе .
+        /// </summary>
+        public static string AssignmentNotFound {
+            get {
+                return ResourceManager.GetString("AssignmentNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Дата окончания задачи не может быть раньше или равна дате начала задачи.
         /// </summary>
         public static string JobIncompatibleEndStartDates {
@@ -138,6 +156,15 @@ namespace SOUPIShared.Resources {
         public static string ProjectNotFound {
             get {
                 return ResourceManager.GetString("ProjectNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Участника команды нет в системе .
+        /// </summary>
+        public static string TeamMemberNotFound {
+            get {
+                return ResourceManager.GetString("TeamMemberNotFound", resourceCulture);
             }
         }
         

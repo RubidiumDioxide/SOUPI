@@ -9,10 +9,10 @@ using SOUPIShared.Misc;
 using SOUPIShared.Models;
 using SOUPIShared.Resources;
 using Microsoft.Extensions.Localization;
-using Microsoft.Extensions.Options; 
+using Microsoft.Extensions.Options;
 
 
-namespace SOUPICoreTests
+namespace SOUPICoreTests.Tests
 {
     public class JobServiceUnitTests : IDisposable
     {
@@ -43,11 +43,15 @@ namespace SOUPICoreTests
             _service = new JobService(_context, _loggerMock.Object, localizer);
         }
 
+
         // --- HELPERS ---
 
         private async Task<User> SeedUser()
         {
-            var user = new User { Id = Guid.NewGuid(), Login = $"user_{Guid.NewGuid().ToString()[..8]}" };
+            var user = new User { 
+                Id = Guid.NewGuid(), 
+                Login = $"user_{Guid.NewGuid().ToString()[..8]}" 
+            };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
             return user;
@@ -61,8 +65,16 @@ namespace SOUPICoreTests
                 Name = "Test Project",
                 CreatorId = creatorId,
                 CreationDateTime = DateTime.UtcNow,
-                StartDateTime = DateTime.UtcNow.AddDays(-10)
+                StartDateTime = DateTime.UtcNow.AddDays(1)
             };
+            _context.Projects.Add(project);
+            await _context.SaveChangesAsync();
+            return project;
+        }
+
+        private async Task<Project> SeedProject(Project project, Guid creatorId)
+        {
+            project.CreatorId = creatorId; 
             _context.Projects.Add(project);
             await _context.SaveChangesAsync();
             return project;
@@ -85,6 +97,16 @@ namespace SOUPICoreTests
                 NextJobSequences = new List<JobSequence>(),
                 PreviousJobSequences = new List<JobSequence>()
             };
+            _context.Jobs.Add(job);
+            await _context.SaveChangesAsync();
+            return job;
+        }
+
+        private async Task<Job> SeedJob(Job job, Guid projectId, Guid creatorId, Guid? parentId = null)
+        {
+            job.ProjectId = projectId;
+            job.CreatorId = creatorId;
+            job.ParentJobId = projectId;  
             _context.Jobs.Add(job);
             await _context.SaveChangesAsync();
             return job;
@@ -138,7 +160,6 @@ namespace SOUPICoreTests
         public async Task GetByProjectId_ShouldThrowBadRequestExceptionAndLogError_WhenNoSuchProjectExists()
         {
             // Arrange
-            // random Id
             var projectId = Guid.NewGuid();
             string expectedMessage = ServiceErrorMessages.ProjectNotFound;
 
@@ -182,6 +203,68 @@ namespace SOUPICoreTests
         }
 
         // --- GetById ---
+        [Fact]
+        public async Task GetById_ShouldReturnJob_WhenIdIsValid()
+        {
+            // Arrange
+            var user = await SeedUser();
+            var project = await SeedProject(user.Id);
+            var job = await SeedJob(project.Id, user.Id);
+
+            // Act
+            var result = await _service.GetById(job.Id);
+
+            // Assert
+            result.Should().NotBeNull(); 
+            result.Id.Should().Be(job.Id); 
+        }
+
+        [Fact]
+        public async Task GetById_ShouldThrowNotFoundExceptionAndLogError_WhenJobWithSpecifiedIdDoesntExist()
+        {
+            // Arrange
+            var jobId = Guid.NewGuid();
+            string expectedMessage = ServiceErrorMessages.JobNotFound;
+
+            // Act
+            Func<Task> act = async () => await _service.GetById(jobId);
+
+            // Assert
+            await act.Should().ThrowAsync<NotFoundException>()
+                .WithMessage(expectedMessage);
+            _loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => true),
+                    It.IsAny<BadRequestException>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task GetById_ShouldLogErrorAndThrow_WhenExceptionOccurs()
+        {
+            // Arrange
+            // force an exception by disposing the context before the call
+            _context.Dispose();
+
+            // Act
+            Func<Task> act = async () => await _service.GetById(Guid.NewGuid());
+
+            // Assert
+            await act.Should().ThrowAsync<Exception>();
+
+            _loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => true),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+                Times.Once);
+        }
+
         // --- Create --- 
         // --- UpdateContent ---
         // --- UpdateParent ---

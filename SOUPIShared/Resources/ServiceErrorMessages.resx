@@ -123,11 +123,11 @@
   <data name="JobSequenceAlreadyExists" xml:space="preserve">
     <value>Связь между задачами уже существует</value>
   </data>
+  <data name="AssignmentAlreadyExists" xml:space="preserve">
+    <value>Назначение этого участника команды на эту задачу уже существует</value>
+  </data>
   <data name="JobSequenceNotFound" xml:space="preserve">
     <value>Связь между задачами не существует в системе </value>
-  </data>
-  <data name="JobIncompatibleEndStartDates" xml:space="preserve">
-    <value>Дата окончания задачи не может быть раньше или равна дате начала задачи</value>
   </data>
   <data name="JobNotFound" xml:space="preserve">
     <value>Задача не существует в системе</value>
@@ -146,5 +146,14 @@
   </data>
   <data name="JobsDifferentLevels" xml:space="preserve">
     <value>Задачи находятся на разных уровнях</value>
+  </data>
+  <data name="JobIncompatibleEndStartDates" xml:space="preserve">
+    <value>Дата окончания задачи не может быть раньше или равна дате начала задачи</value>
+  </data>
+  <data name="AssignmentNotFound" xml:space="preserve">
+    <value>Назначения нет в системе </value>
+  </data>
+  <data name="TeamMemberNotFound" xml:space="preserve">
+    <value>Участника команды нет в системе </value>
   </data>
 </root>
