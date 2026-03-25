@@ -156,4 +156,7 @@
   <data name="TeamMemberNotFound" xml:space="preserve">
     <value>Участника команды нет в системе </value>
   </data>
+  <data name="JobCyclic" xml:space="preserve">
+    <value>Связь между задачами образует цикл</value>
+  </data>
 </root>

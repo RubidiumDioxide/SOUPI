@@ -79,6 +79,15 @@ namespace SOUPIShared.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Связь между задачами образует цикл.
+        /// </summary>
+        public static string JobCyclic {
+            get {
+                return ResourceManager.GetString("JobCyclic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Дата окончания задачи не может быть раньше или равна дате начала задачи.
         /// </summary>
         public static string JobIncompatibleEndStartDates {

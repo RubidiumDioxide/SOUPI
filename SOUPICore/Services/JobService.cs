@@ -6,7 +6,6 @@ using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions;
 using SOUPIShared.Models;
 using SOUPIShared.Resources;
-using static SOUPIShared.Extensions.JobExtensions; 
 
 
 namespace SOUPICore.Services
@@ -88,7 +87,7 @@ namespace SOUPICore.Services
                     ParentJobId = newJobDto.ParentJobId, 
                 };
 
-                await CheckIfValidJob(newJob); 
+                await CheckIfValidJob(newJob);
 
                 await _context.Jobs.AddAsync(newJob);
                 await _context.SaveChangesAsync();
@@ -120,6 +119,7 @@ namespace SOUPICore.Services
                 job.Progress = updatedJobDto.Progress;
                 job.Status = updatedJobDto.Status;
 
+                await CheckIfValidJob(job); 
                 await _context.SaveChangesAsync();
 
                 return new JobDto(job); 
@@ -160,6 +160,7 @@ namespace SOUPICore.Services
                 job.ParentJobId = newParentId; 
                 
                 await CheckIfValidJob(job);
+                await CheckIfCyclic(job.Id, job.ParentJobId);
 
                 await _context.SaveChangesAsync();
 
@@ -173,7 +174,9 @@ namespace SOUPICore.Services
         }
 
         /// <summary>
-        /// Если есть дочерние задачи, переносятся к родителю 
+        /// Если есть дочерние задачи и preserveChildren == true, переносятся к родителю 
+        /// Если есть дочерние задачи и preserveChildren == false, удаляются 
+        /// Последовательные связи удаляются 
         /// </summary>
         /// <param name="jobId"></param>
         /// <returns></returns>
@@ -217,6 +220,9 @@ namespace SOUPICore.Services
                 throw;
             }
         }
+
+
+        // --- HELPERS ---
 
         /// <summary>
         /// Рекурсивно удаляет ВСЕ дочерние задачи job 
@@ -267,6 +273,49 @@ namespace SOUPICore.Services
             if (job.StartDateTime < project.StartDateTime)
             {
                 throw new BadRequestException(_localizer["JobIncompatibleStartProjectDates"]);
+            }
+        }
+
+        private async Task CheckIfCyclic(Guid childJobId, Guid? parentJobId)
+        {
+            if (parentJobId == null) return; 
+
+            var startJobId = childJobId;
+            var targetJobId = parentJobId;
+
+            var queue = new Queue<Guid>();
+            var visited = new HashSet<Guid>();
+
+            queue.Enqueue(startJobId);
+
+            while (queue.Count > 0)
+            {
+                var currentJobId = queue.Dequeue();
+
+                // If we reach the FirstJobId, a cycle is detected 
+                if (currentJobId == targetJobId)
+                {
+                    throw new BadRequestException(_localizer["JobCyclic"]);
+                }
+
+                if (!visited.Contains(currentJobId))
+                {
+                    visited.Add(currentJobId);
+
+                    // Fetch all sequences where the current job is the 'predecessor' 
+                    var nextJobIds = await _context.Jobs
+                        .Where(j => j.ParentJobId == currentJobId)
+                        .Select(j => j.Id)
+                        .ToListAsync();
+
+                    foreach (var nextId in nextJobIds) 
+                    { 
+                        if (!visited.Contains(nextId))
+                        {
+                            queue.Enqueue(nextId);
+                        }
+                    }
+                }
             }
         }
     }
