@@ -13,9 +13,9 @@ namespace SOUPICore.Services
     {
         private readonly SoupiDbContext _context;
         private readonly ILogger<AssignmentService> _logger;
-        private readonly IStringLocalizer<ServiceErrorMessages> _localizer;
+        private readonly IStringLocalizer<JobServiceErrorMessages> _localizer;
 
-        public AssignmentService(SoupiDbContext context, ILogger<AssignmentService> logger, IStringLocalizer<ServiceErrorMessages> localizer)
+        public AssignmentService(SoupiDbContext context, ILogger<AssignmentService> logger, IStringLocalizer<JobServiceErrorMessages> localizer)
         {
             _context = context;
             _logger = logger;

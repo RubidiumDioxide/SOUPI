@@ -21,7 +21,22 @@ namespace SOUPIShared.Extensions
                 jobDto.ParentJobId == job.ParentJobId;
         }
 
-        public static bool ArePropertiesEquivalent(this JobDto jobDto, Job job)
+        public static bool IsEquivalent(this JobDto firstJobDto, JobDto secondJobDto)
+        {
+            return firstJobDto.Id == secondJobDto.Id &&
+                firstJobDto.ProjectId == secondJobDto.ProjectId &&
+                firstJobDto.CreatorId == secondJobDto.CreatorId &&
+                firstJobDto.Title == secondJobDto.Title &&
+                firstJobDto.Body == secondJobDto.Body &&
+                firstJobDto.StartDateTime == secondJobDto.StartDateTime &&
+                firstJobDto.EndDateTime == secondJobDto.EndDateTime &&
+                firstJobDto.Progress == secondJobDto.Progress &&
+                firstJobDto.CreationDateTime == secondJobDto.CreationDateTime &&
+                firstJobDto.Status == secondJobDto.Status &&
+                firstJobDto.ParentJobId == secondJobDto.ParentJobId;
+        }
+
+        public static bool AreNonKeyPropertiesEquivalent(this JobDto jobDto, Job job)
         {
             return jobDto.ProjectId == job.ProjectId &&
                 jobDto.CreatorId == job.CreatorId &&
@@ -35,7 +50,7 @@ namespace SOUPIShared.Extensions
                 jobDto.ParentJobId == job.ParentJobId; 
         }
 
-        public static bool ArePropertiesEquivalent(this JobDto firstJobDto, JobDto secondJobDto)
+        public static bool AreNonKeyPropertiesEquivalent(this JobDto firstJobDto, JobDto secondJobDto)
         {
             return firstJobDto.ProjectId == secondJobDto.ProjectId &&
                 firstJobDto.CreatorId == secondJobDto.CreatorId &&

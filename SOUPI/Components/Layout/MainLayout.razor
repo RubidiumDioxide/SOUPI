@@ -14,9 +14,12 @@
     <MudAppBar Elevation="1">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Typo="Typo.h5" Class="ml-3">SOUPI</MudText>
+        
         <MudSpacer />
+        
         @if(user != null && githubUser != null)
         {
+            <MudText Class="ma-4 pa-0">@user.Login</MudText> 
             <CascadingValue Value=@user IsFixed=true>
                 <CascadingValue Value=@githubUser IsFixed=true>
                     <NotificationList />

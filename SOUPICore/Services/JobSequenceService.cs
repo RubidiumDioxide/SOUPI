@@ -15,30 +15,32 @@ namespace SOUPICore.Services
     {
         private readonly SoupiDbContext _context;
         private readonly ILogger<JobSequenceService> _logger;
-        private readonly IStringLocalizer<ServiceErrorMessages> _localizer;
+        private readonly IStringLocalizer<JobSequenceServiceErrorMessages> _localizer;
 
-        public JobSequenceService(SoupiDbContext context, ILogger<JobSequenceService> logger, IStringLocalizer<ServiceErrorMessages> localizer)
+        public JobSequenceService(SoupiDbContext context, ILogger<JobSequenceService> logger, IStringLocalizer<JobSequenceServiceErrorMessages> localizer)
         {
             _context = context;
             _logger = logger;
             _localizer = localizer;
         }
 
-        public async Task CreateSequence(JobSequenceDto newJobSequenceDto)
+        public async Task<JobSequenceDto> Create(Guid firstJobId, Guid secondJobId)
         {
             try
             {
                 var newJobSequence = new JobSequence()
                 {
-                    FirstJobId = newJobSequenceDto.FirstJobId,
-                    SecondJobId = newJobSequenceDto.SecondJobId
+                    FirstJobId = firstJobId, 
+                    SecondJobId = secondJobId 
                 };
 
                 await CheckIfValidJobSequence(newJobSequence);
                 await CheckIfCyclic(newJobSequence.FirstJobId, newJobSequence.SecondJobId);
 
-                await _context.JobSequences.AddAsync(newJobSequence);
-                await _context.SaveChangesAsync();
+                await _context.JobSequences.AddAsync(newJobSequence); 
+                await _context.SaveChangesAsync(); 
+
+                return new JobSequenceDto(newJobSequence); 
             }
             catch (Exception ex)
             {
@@ -47,7 +49,7 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task DeleteSequence(Guid jobSequenceId)
+        public async Task Delete(Guid jobSequenceId)
         {
             try
             {
@@ -108,7 +110,7 @@ namespace SOUPICore.Services
                 // If we reach the FirstJobId, a cycle is detected 
                 if (currentJobId == targetJobId)
                 {
-                    throw new BadRequestException(_localizer["JobSequenceCyclical"]);
+                    throw new BadRequestException(_localizer["JobSequenceCyclic"]);
                 }
 
                 if (!visited.Contains(currentJobId))

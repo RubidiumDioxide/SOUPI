@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOUPIShared", "..\SOUPIShar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOUPICore", "..\SOUPICore\SOUPICore.csproj", "{0F281B7C-F78E-49CA-B8AC-3505110B4E91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOUPICoreTests", "..\SOUPICoreTests\SOUPICoreTests.csproj", "{E7D05615-BA6D-66F5-A716-982CB75699EF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SOUPITests", "..\SOUPICoreTests\SOUPITests.csproj", "{E7D05615-BA6D-66F5-A716-982CB75699EF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

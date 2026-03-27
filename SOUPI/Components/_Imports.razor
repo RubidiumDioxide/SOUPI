@@ -16,6 +16,7 @@
 @using Microsoft.AspNetCore.Mvc.RazorPages
 @using Microsoft.AspNetCore.Http
 @using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Options  
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage; 
@@ -30,12 +31,11 @@
 
 // SOUPI Core - invisible to "client" 
 
-// SOUPI Shared - only Dtos and Exceptions visible, Models belong to Core 
+// SOUPI Shared - only Dtos, Exceptions and Misc visible, Models belong to Core 
 // possibly separate later  
 @using SOUPIShared.Dtos 
 @using SOUPIShared.Exceptions;
-
-// Octokit 
+@using SOUPIShared.Misc; 
 @using Octokit
 @using GithubUser = Octokit.User
 

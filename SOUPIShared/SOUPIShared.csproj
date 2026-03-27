@@ -11,17 +11,26 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Resources\ServiceErrorMessages.Designer.cs">
+    <Compile Update="Resources\JobSequenceServiceErrorMessages.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>ServiceErrorMessages.resx</DependentUpon>
+      <DependentUpon>JobSequenceServiceErrorMessages.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\JobServiceErrorMessages.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>JobServiceErrorMessages.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Resources\ServiceErrorMessages.resx">
+    <EmbeddedResource Update="Resources\JobSequenceServiceErrorMessages.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>ServiceErrorMessages.Designer.cs</LastGenOutput>
+      <LastGenOutput>JobSequenceServiceErrorMessages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\JobServiceErrorMessages.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>JobServiceErrorMessages.Designer.cs</LastGenOutput>
       <CustomToolNamespace></CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>

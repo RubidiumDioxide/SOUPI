@@ -11,9 +11,10 @@ using SOUPIShared.Misc;
 using SOUPIShared.Models;
 using SOUPIShared.Resources;
 using static SOUPIShared.Extensions.JobDtoExtensions;
+using static SOUPITests.Helpers.Helpers; 
 
 
-namespace SOUPICoreTests.Tests
+namespace SOUPITests.Core.Services
 {
     public class JobServiceUnitTests : IDisposable
     {
@@ -39,7 +40,7 @@ namespace SOUPICoreTests.Tests
                 localizationOptions,
                 Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance);
 
-            var localizer = new StringLocalizer<ServiceErrorMessages>(factory);
+            var localizer = new StringLocalizer<JobServiceErrorMessages>(factory);
 
             _service = new JobService(_context, _loggerMock.Object, localizer);
         }
@@ -51,16 +52,16 @@ namespace SOUPICoreTests.Tests
         public async Task GetByProjectId_ShouldReturnJobs_WhenProjectHasJobs()
         {
             // Arrange
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id);
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id);
 
             // Seed two jobs for this project
-            await SeedJob(project.Id, user.Id);
-            await SeedJob(project.Id, user.Id);
+            await SeedJob(_context, project.Id, user.Id);
+            await SeedJob(_context, project.Id, user.Id);
 
             // Seed one job for a different project (to ensure filtering works)
-            var otherProject = await SeedProject(user.Id);
-            await SeedJob(otherProject.Id, user.Id);
+            var otherProject = await SeedProject(_context, user.Id);
+            await SeedJob(_context, otherProject.Id, user.Id);
 
             // Act
             var result = await _service.GetByProjectId(project.Id);
@@ -75,8 +76,8 @@ namespace SOUPICoreTests.Tests
         public async Task GetByProjectId_ShouldReturnEmpty_WhenProjectHasNoJobs()
         {
             // Arrange
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id);
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id);
 
             // Seed no jobs 
 
@@ -93,7 +94,7 @@ namespace SOUPICoreTests.Tests
         {
             // Arrange
             var projectId = Guid.NewGuid();
-            string expectedMessage = ServiceErrorMessages.ProjectNotFound;
+            string expectedMessage = JobServiceErrorMessages.ProjectNotFound;
 
             // Act
             Func<Task> act = async () => await _service.GetByProjectId(projectId);
@@ -140,9 +141,9 @@ namespace SOUPICoreTests.Tests
         public async Task GetById_ShouldReturnJob_WhenIdIsValid()
         {
             // Arrange
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id);
-            var job = await SeedJob(project.Id, user.Id);
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id);
+            var job = await SeedJob(_context, project.Id, user.Id);
 
             // Act
             var result = await _service.GetById(job.Id);
@@ -157,7 +158,7 @@ namespace SOUPICoreTests.Tests
         {
             // Arrange
             var jobId = Guid.NewGuid();
-            string expectedMessage = ServiceErrorMessages.JobNotFound;
+            string expectedMessage = JobServiceErrorMessages.JobNotFound;
 
             // Act
             Func<Task> act = async () => await _service.GetById(jobId);
@@ -204,8 +205,8 @@ namespace SOUPICoreTests.Tests
         public async Task Create_ShouldReturnJobDto_WhenJobDtoIsValid()
         {
             // Arrange
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id);
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id);
             var newJobDto = SeedJobDto(project.Id, user.Id);
 
             // Act
@@ -217,23 +218,23 @@ namespace SOUPICoreTests.Tests
             createdJob.Should().NotBeNull();
             
             // sent dto and created object should be property equivalent  
-            newJobDto.ArePropertiesEquivalent(createdJob).Should().Be(true);
+            newJobDto.AreNonKeyPropertiesEquivalent(createdJob).Should().Be(true);
 
             // received dto and created object should be property equivalent
             createdJobDto.IsEquivalent(createdJob).Should().Be(true);
 
             // sent and received dtos should be property equivalent 
-            createdJobDto.ArePropertiesEquivalent(newJobDto).Should().Be(true);
+            createdJobDto.AreNonKeyPropertiesEquivalent(newJobDto).Should().Be(true);
         }
 
         [Fact]
         public async Task Create_ShouldLogErrorAndThrowBadRequestException_WhenProjectDosentExist()
         {
             // Arrange
-            var user = await SeedUser();
+            var user = await SeedUser(_context);
             var projectId = Guid.NewGuid(); 
             var newJobDto = SeedJobDto(projectId, user.Id);
-            string expectedMessage = ServiceErrorMessages.ProjectNotFound;
+            string expectedMessage = JobServiceErrorMessages.ProjectNotFound;
 
             // Act
             Func<Task> act = async () => await _service.Create(newJobDto);
@@ -257,9 +258,9 @@ namespace SOUPICoreTests.Tests
         {
             // Arrange
             var userId = Guid.NewGuid(); 
-            var project = await SeedProject(userId); 
+            var project = await SeedProject(_context, userId); 
             var newJobDto = SeedJobDto(project.Id, userId);
-            string expectedMessage = ServiceErrorMessages.UserNotFound;
+            string expectedMessage = JobServiceErrorMessages.UserNotFound;
 
             // Act
             Func<Task> act = async () => await _service.Create(newJobDto);
@@ -282,11 +283,11 @@ namespace SOUPICoreTests.Tests
         public async Task Create_ShouldLogErrorAndThrowBadRequestException_WhenParentJobDosentExist()
         {
             // Arrange
-            var user = await SeedUser(); 
-            var project = await SeedProject(user.Id);
+            var user = await SeedUser(_context); 
+            var project = await SeedProject(_context, user.Id);
             var parentJobId = Guid.NewGuid();  
             var newJobDto = SeedJobDto(project.Id, user.Id, parentJobId);
-            string expectedMessage = ServiceErrorMessages.ParentNotFound;
+            string expectedMessage = JobServiceErrorMessages.ParentNotFound;
 
             // Act
             Func<Task> act = async () => await _service.Create(newJobDto);
@@ -309,8 +310,8 @@ namespace SOUPICoreTests.Tests
         public async Task Create_ShouldLogErrorAndThrowBadRequestException_WhenEndDateEarlierThanStartDate()
         {
             // Arrange
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id);
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id);
             var newJobDto = new JobDto
             {
                 Id = Guid.NewGuid(), 
@@ -324,7 +325,7 @@ namespace SOUPICoreTests.Tests
                 Status = JobStatus.New
             };
 
-            string expectedMessage = ServiceErrorMessages.JobIncompatibleEndStartDates;
+            string expectedMessage = JobServiceErrorMessages.JobIncompatibleEndStartDates;
 
             // Act
             Func<Task> act = async () => await _service.Create(newJobDto);
@@ -347,8 +348,8 @@ namespace SOUPICoreTests.Tests
         public async Task Create_ShouldLogErrorAndThrowBadRequestException_WhenStartDateEarlierThanProjectStartDate()
         {
             // Arrange
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id);
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id);
             var newJobDto = new JobDto
             {
                 Id = Guid.NewGuid(),
@@ -362,7 +363,7 @@ namespace SOUPICoreTests.Tests
                 Status = JobStatus.New
             };
 
-            string expectedMessage = ServiceErrorMessages.JobIncompatibleStartProjectDates;
+            string expectedMessage = JobServiceErrorMessages.JobIncompatibleStartProjectDates;
 
             // Act
             Func<Task> act = async () => await _service.Create(newJobDto);
@@ -385,8 +386,8 @@ namespace SOUPICoreTests.Tests
         public async Task Create_ShouldLogErrorAndThrow_WhenExceptionOccurs()
         {
             // Arrange 
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id);
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id);
             var newJobDto = SeedJobDto(project.Id, user.Id);
 
             // force an exception by disposing the context before the call 
@@ -414,9 +415,9 @@ namespace SOUPICoreTests.Tests
         public async Task UpdateContent_ShouldReturnJobDto_WhenJobExists()
         {
             // Arrange
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id);
-            var job = await SeedJob(project.Id, user.Id);
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id);
+            var job = await SeedJob(_context, project.Id, user.Id);
             var updatedJobDto = new JobDto(job);
             updatedJobDto.Title = "newTitle";
             updatedJobDto.Body = "newBody"; 
@@ -434,22 +435,22 @@ namespace SOUPICoreTests.Tests
             updatedJob.Should().NotBeNull();
 
             // sent dto and created object should be property equivalent  
-            newJobDto.ArePropertiesEquivalent(updatedJob).Should().Be(true);
+            newJobDto.AreNonKeyPropertiesEquivalent(updatedJob).Should().Be(true);
 
             // received dto and created object should be property equivalent
             newJobDto.IsEquivalent(updatedJob).Should().Be(true);
 
             // sent and received dtos should be property equivalent 
-            updatedJobDto.ArePropertiesEquivalent(newJobDto).Should().Be(true);
+            updatedJobDto.AreNonKeyPropertiesEquivalent(newJobDto).Should().Be(true);
         }
 
         [Fact]
         public async Task UpdateContent_ShouldLogErrorAndThrowBadRequestException_WhenProjectDosentExist()
         {
             // Arrange
-            var user = await SeedUser();
+            var user = await SeedUser(_context);
             var projectId = Guid.NewGuid(); 
-            var job = await SeedJob(projectId, user.Id);
+            var job = await SeedJob(_context, projectId, user.Id);
             var updatedJobDto = new JobDto(job);
             updatedJobDto.Title = "newTitle";
             updatedJobDto.Body = "newBody";
@@ -457,7 +458,7 @@ namespace SOUPICoreTests.Tests
             updatedJobDto.EndDateTime = DateTime.UtcNow.AddDays(11);
             updatedJobDto.Progress = 70;
             updatedJobDto.Status = JobStatus.Working;
-            string expectedMessage = ServiceErrorMessages.ProjectNotFound;
+            string expectedMessage = JobServiceErrorMessages.ProjectNotFound;
 
             // Act
             Func<Task> act = async () => await _service.UpdateContent(updatedJobDto);
@@ -481,8 +482,8 @@ namespace SOUPICoreTests.Tests
         {
             // Arrange
             var userId = Guid.NewGuid();
-            var project = await SeedProject(userId); 
-            var job = await SeedJob(project.Id, userId);
+            var project = await SeedProject(_context, userId); 
+            var job = await SeedJob(_context, project.Id, userId);
             var updatedJobDto = new JobDto(job);
             updatedJobDto.Title = "newTitle";
             updatedJobDto.Body = "newBody";
@@ -490,7 +491,7 @@ namespace SOUPICoreTests.Tests
             updatedJobDto.EndDateTime = DateTime.UtcNow.AddDays(11);
             updatedJobDto.Progress = 70;
             updatedJobDto.Status = JobStatus.Working;
-            string expectedMessage = ServiceErrorMessages.UserNotFound;
+            string expectedMessage = JobServiceErrorMessages.UserNotFound;
 
             // Act
             Func<Task> act = async () => await _service.UpdateContent(updatedJobDto);
@@ -513,9 +514,9 @@ namespace SOUPICoreTests.Tests
         public async Task UpdateContent_ShouldLogErrorAndThrowBadRequestException_WhenEndDateEarlierThanStartDate()
         {
             // Arrange
-            var user = await SeedUser(); 
-            var project = await SeedProject(user.Id);
-            var job = await SeedJob(project.Id, user.Id);
+            var user = await SeedUser(_context); 
+            var project = await SeedProject(_context, user.Id);
+            var job = await SeedJob(_context, project.Id, user.Id);
             var updatedJobDto = new JobDto(job);
             updatedJobDto.Title = "newTitle";
             updatedJobDto.Body = "newBody";
@@ -523,7 +524,7 @@ namespace SOUPICoreTests.Tests
             updatedJobDto.EndDateTime = DateTime.UtcNow.AddDays(10);
             updatedJobDto.Progress = 70;
             updatedJobDto.Status = JobStatus.Working;
-            string expectedMessage = ServiceErrorMessages.JobIncompatibleEndStartDates;
+            string expectedMessage = JobServiceErrorMessages.JobIncompatibleEndStartDates;
 
             // Act
             Func<Task> act = async () => await _service.UpdateContent(updatedJobDto);
@@ -546,9 +547,9 @@ namespace SOUPICoreTests.Tests
         public async Task UpdateContent_ShouldLogErrorAndThrowBadRequestException_WhenStartDateEarlierThenProjectStartDate()
         {
             // Arrange
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id);
-            var job = await SeedJob(project.Id, user.Id);
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id);
+            var job = await SeedJob(_context, project.Id, user.Id);
             var updatedJobDto = new JobDto(job);
             updatedJobDto.Title = "newTitle";
             updatedJobDto.Body = "newBody";
@@ -556,7 +557,7 @@ namespace SOUPICoreTests.Tests
             updatedJobDto.EndDateTime = DateTime.UtcNow.AddDays(11);
             updatedJobDto.Progress = 70;
             updatedJobDto.Status = JobStatus.Working;
-            string expectedMessage = ServiceErrorMessages.JobIncompatibleStartProjectDates; 
+            string expectedMessage = JobServiceErrorMessages.JobIncompatibleStartProjectDates; 
 
             // Act
             Func<Task> act = async () => await _service.UpdateContent(updatedJobDto);
@@ -579,8 +580,8 @@ namespace SOUPICoreTests.Tests
         public async Task UpdateContent_ShouldLogErrorAndThrow_WhenExceptionOccurs()
         {
             // Arrange 
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id);
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id);
             var newJobDto = SeedJobDto(project.Id, user.Id);
 
             // force an exception by disposing the context before the call 
@@ -608,14 +609,14 @@ namespace SOUPICoreTests.Tests
         public async Task UpdateParent_ShouldReturnJobDtoAndDeleteAssociatedJobSequences_WhenUpdateValid()
         {
             // Arrange
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id);
-            var firstJob = await SeedJob(project.Id, user.Id);
-            var secondJob = await SeedJob(project.Id, user.Id, null);
-            var thirdJob = await SeedJob(project.Id, user.Id, null);
-            var fourthJob = await SeedJob(project.Id, user.Id, null);
-            var secondThirdJob = await SeedJobSequence(secondJob.Id, thirdJob.Id); 
-            var thirdFourthJob = await SeedJobSequence(thirdJob.Id, fourthJob.Id);
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id);
+            var firstJob = await SeedJob(_context, project.Id, user.Id);
+            var secondJob = await SeedJob(_context, project.Id, user.Id, null);
+            var thirdJob = await SeedJob(_context, project.Id, user.Id, null);
+            var fourthJob = await SeedJob(_context, project.Id, user.Id, null);
+            var secondThirdJob = await SeedJobSequence(_context, secondJob.Id, thirdJob.Id); 
+            var thirdFourthJob = await SeedJobSequence(_context, thirdJob.Id, fourthJob.Id);
 
             // Act
             var updatedJobDto = await _service.UpdateParent(thirdJob.Id, firstJob.Id);
@@ -638,11 +639,11 @@ namespace SOUPICoreTests.Tests
         public async Task UpdateParent_ShouldLogErrorAndThrowBadRequestException_WhenJobDosentExist()
         {
             // Arrange
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id);
-            var firstJob = await SeedJob(project.Id, user.Id);
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id);
+            var firstJob = await SeedJob(_context, project.Id, user.Id);
             var secondJobId = Guid.NewGuid();
-            string expectedMessage = ServiceErrorMessages.JobNotFound; 
+            string expectedMessage = JobServiceErrorMessages.JobNotFound; 
 
             // Act
             Func<Task> act = async () => await _service.UpdateParent(secondJobId, firstJob.Id); 
@@ -665,10 +666,10 @@ namespace SOUPICoreTests.Tests
         public async Task UpdateParent_ShouldLogErrorAndThrowBadRequestException_WhenParentJobDosentExist()
         {
             // Arrange
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id);
-            var firstJob = await SeedJob(project.Id, user.Id);
-            string expectedMessage = ServiceErrorMessages.ParentNotFound;
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id);
+            var firstJob = await SeedJob(_context, project.Id, user.Id);
+            string expectedMessage = JobServiceErrorMessages.ParentNotFound;
 
             // Act
             Func<Task> act = async () => await _service.UpdateParent(firstJob.Id, Guid.NewGuid());
@@ -691,14 +692,14 @@ namespace SOUPICoreTests.Tests
         public async Task UpdateParent_ShouldLogErrorAndThrowBadRequestException_WhenHierarchyCyclic()
         {
             // Arrange
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id);
-            var firstJob = await SeedJob(project.Id, user.Id);
-            var secondJob = await SeedJob(project.Id, user.Id, firstJob.Id);
-            var thirdJob = await SeedJob(project.Id, user.Id, secondJob.Id);
-            var fourthJob = await SeedJob(project.Id, user.Id, secondJob.Id);
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id);
+            var firstJob = await SeedJob(_context, project.Id, user.Id);
+            var secondJob = await SeedJob(_context, project.Id, user.Id, firstJob.Id);
+            var thirdJob = await SeedJob(_context, project.Id, user.Id, secondJob.Id);
+            var fourthJob = await SeedJob(_context, project.Id, user.Id, secondJob.Id);
 
-            string expectedMessage = ServiceErrorMessages.JobCyclic;
+            string expectedMessage = JobServiceErrorMessages.JobCyclic;
 
             // Act
             Func<Task> act = async () => await _service.UpdateParent(firstJob.Id, fourthJob.Id);
@@ -721,10 +722,10 @@ namespace SOUPICoreTests.Tests
         public async Task UpdateParent_ShouldLogErrorAndThrow_WhenExceptionOccurs()
         {
             // Arrange 
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id);
-            var firstJob = await SeedJob(project.Id, user.Id);
-            var secondJob = await SeedJob(project.Id, user.Id); 
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id);
+            var firstJob = await SeedJob(_context, project.Id, user.Id);
+            var secondJob = await SeedJob(_context, project.Id, user.Id); 
 
             // force an exception by disposing the context before the call 
             _context.Dispose();
@@ -751,17 +752,17 @@ namespace SOUPICoreTests.Tests
         public async Task Delete_WithPreserveChildrenFalse_ShouldDeleteJobAndMoveChildrenToJobsParentAndDeleteAssociatedJobSequences_WhenJobExists()
         {
             // Arrange
-            var user = await SeedUser();   
-            var project = await SeedProject(user.Id);
-            var firstJob = await SeedJob(project.Id, user.Id);
-            var secondJob = await SeedJob(project.Id, user.Id, firstJob.Id);             // target
-            var thirdJob = await SeedJob(project.Id, user.Id, secondJob.Id);
-            var fourthJob = await SeedJob(project.Id, user.Id, secondJob.Id);
-            var fifthJob = await SeedJob(project.Id, user.Id, firstJob.Id);
-            var sixthJob = await SeedJob(project.Id, user.Id, firstJob.Id);
+            var user = await SeedUser(_context);   
+            var project = await SeedProject(_context, user.Id);
+            var firstJob = await SeedJob(_context, project.Id, user.Id);
+            var secondJob = await SeedJob(_context, project.Id, user.Id, firstJob.Id);             // target
+            var thirdJob = await SeedJob(_context, project.Id, user.Id, secondJob.Id);
+            var fourthJob = await SeedJob(_context, project.Id, user.Id, secondJob.Id);
+            var fifthJob = await SeedJob(_context, project.Id, user.Id, firstJob.Id);
+            var sixthJob = await SeedJob(_context, project.Id, user.Id, firstJob.Id);
 
-            var fifthSecondJob = await SeedJobSequence(fifthJob.Id, secondJob.Id);
-            var secondSixthJob = await SeedJobSequence(secondJob.Id, sixthJob.Id);
+            var fifthSecondJob = await SeedJobSequence(_context, fifthJob.Id, secondJob.Id);
+            var secondSixthJob = await SeedJobSequence(_context, secondJob.Id, sixthJob.Id);
 
             // Act
             await _service.Delete(secondJob.Id, false);
@@ -786,17 +787,17 @@ namespace SOUPICoreTests.Tests
         public async Task Delete_WithPreserveChildrenTrue_ShouldDeleteJobAndMoveChildrenToJobsParentAndDeleteAssociatedJobSequences_WhenJobExists()
         {
             // Arrange
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id);
-            var firstJob = await SeedJob(project.Id, user.Id);
-            var secondJob = await SeedJob(project.Id, user.Id, firstJob.Id);             // target
-            var thirdJob = await SeedJob(project.Id, user.Id, secondJob.Id);
-            var fourthJob = await SeedJob(project.Id, user.Id, secondJob.Id);
-            var fifthJob = await SeedJob(project.Id, user.Id, firstJob.Id);
-            var sixthJob = await SeedJob(project.Id, user.Id, firstJob.Id);
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id);
+            var firstJob = await SeedJob(_context, project.Id, user.Id);
+            var secondJob = await SeedJob(_context, project.Id, user.Id, firstJob.Id);             // target
+            var thirdJob = await SeedJob(_context, project.Id, user.Id, secondJob.Id);
+            var fourthJob = await SeedJob(_context, project.Id, user.Id, secondJob.Id);
+            var fifthJob = await SeedJob(_context, project.Id, user.Id, firstJob.Id);
+            var sixthJob = await SeedJob(_context, project.Id, user.Id, firstJob.Id);
 
-            var fifthSecondJob = await SeedJobSequence(fifthJob.Id, secondJob.Id);
-            var secondSixthJob = await SeedJobSequence(secondJob.Id, sixthJob.Id);
+            var fifthSecondJob = await SeedJobSequence(_context, fifthJob.Id, secondJob.Id);
+            var secondSixthJob = await SeedJobSequence(_context, secondJob.Id, sixthJob.Id);
 
             // Act
             await _service.Delete(secondJob.Id, true);
@@ -823,9 +824,9 @@ namespace SOUPICoreTests.Tests
         public async Task Delete_ShouldLogErrorAndThrowBadRequestException_WhenJobDoesntExist()
         {
             // Arrange
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id); 
-            string expectedMessage = ServiceErrorMessages.JobNotFound;
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id); 
+            string expectedMessage = JobServiceErrorMessages.JobNotFound;
 
             // Act
             Func<Task> act = async () => await _service.Delete(Guid.NewGuid(), true); 
@@ -848,9 +849,9 @@ namespace SOUPICoreTests.Tests
         public async Task Delete_ShouldLogErrorAndThrow_WhenExceptionOccurs()
         {
             // Arrange 
-            var user = await SeedUser();
-            var project = await SeedProject(user.Id);
-            var firstJob = await SeedJob(project.Id, user.Id);
+            var user = await SeedUser(_context);
+            var project = await SeedProject(_context, user.Id);
+            var firstJob = await SeedJob(_context, project.Id, user.Id);
             
             // force an exception by disposing the context before the call 
             _context.Dispose();
@@ -871,105 +872,7 @@ namespace SOUPICoreTests.Tests
                 Times.Once);
         }
         
-        
-        // --- HELPERS ---
-        private async Task<User> SeedUser()
-        {
-            var user = new User
-            {
-                Id = Guid.NewGuid(),
-                Login = $"user_{Guid.NewGuid().ToString()[..8]}"
-            };
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-            return user;
-        }
-
-        private async Task<Project> SeedProject(Guid creatorId)
-        {
-            var project = new Project
-            {
-                Id = Guid.NewGuid(),
-                Name = "Test Project",
-                CreatorId = creatorId,
-                CreationDateTime = DateTime.UtcNow,
-                StartDateTime = DateTime.UtcNow 
-            };
-            _context.Projects.Add(project);
-            await _context.SaveChangesAsync();
-            return project;
-        }
-
-        private async Task<Project> SeedProject(Project project, Guid creatorId)
-        {
-            project.CreatorId = creatorId;
-            _context.Projects.Add(project);
-            await _context.SaveChangesAsync();
-            return project;
-        }
-
-        private async Task<Job> SeedJob(Guid projectId, Guid creatorId, Guid? parentId = null)
-        {
-            var job = new Job
-            {
-                Id = Guid.NewGuid(),
-                Title = "Test Job",
-                ProjectId = projectId,
-                CreatorId = creatorId,
-                StartDateTime = DateTime.UtcNow,
-                EndDateTime = DateTime.UtcNow.AddDays(1),
-                Progress = 0,
-                Status = JobStatus.New,
-                ParentJobId = parentId,
-                ChildJobs = new List<Job>(),
-                NextJobSequences = new List<JobSequence>(),
-                PreviousJobSequences = new List<JobSequence>()
-            };
-            _context.Jobs.Add(job);
-            await _context.SaveChangesAsync();
-            return job;
-        }
-
-        private async Task<Job> SeedJob(Job job, Guid projectId, Guid creatorId, Guid? parentJobId = null)
-        {
-            job.ProjectId = projectId;
-            job.CreatorId = creatorId;
-            job.ParentJobId = parentJobId;
-            _context.Jobs.Add(job);
-            await _context.SaveChangesAsync();
-            return job;
-        }
-
-        private static JobDto SeedJobDto(Guid projectId, Guid creatorId, Guid? parentId = null)
-        {
-            var jobDto = new JobDto
-            {
-                Id = Guid.NewGuid(),
-                Title = "Test Job",
-                ProjectId = projectId,
-                CreatorId = creatorId,
-                StartDateTime = DateTime.UtcNow,
-                EndDateTime = DateTime.UtcNow.AddDays(1),
-                Progress = 0,
-                Status = JobStatus.New,
-                ParentJobId = parentId, 
-            };
-            return jobDto;
-        }
-
-        private async Task<JobSequence> SeedJobSequence(Guid firstJobId, Guid secondJobId)
-        {
-            var jobSequence = new JobSequence
-            {
-                Id = Guid.NewGuid(),
-                FirstJobId = firstJobId, 
-                SecondJobId = secondJobId 
-            };
-            _context.JobSequences.Add(jobSequence);
-            await _context.SaveChangesAsync();
-            return jobSequence;
-        }
-
+  
         public void Dispose()
         {
             try

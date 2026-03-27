@@ -1,13 +1,12 @@
-﻿
+﻿using SOUPIShared.Dtos;
 
-using SOUPIShared.Dtos;
 
 namespace SOUPICore.Services.Interfaces
 {
     public interface IJobSequenceService
     {
-        public Task CreateSequence(JobSequenceDto newJobSequenceDto);
+        public Task<JobSequenceDto> Create(Guid firstJobId, Guid secondJobId); 
 
-        public Task DeleteSequence(Guid jobSequenceId);
+        public Task Delete(Guid jobSequenceId);
     }
 }

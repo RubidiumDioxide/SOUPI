@@ -14,7 +14,8 @@ using Microsoft.EntityFrameworkCore;
 using SOUPI.Handlers.Interfaces; 
 using SOUPI.Handlers;
 using SOUPICore.Services.Interfaces;
-using Microsoft.AspNetCore.Components; 
+using Microsoft.AspNetCore.Components;
+using SOUPIShared.Misc;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -70,6 +71,9 @@ builder.Services.AddDbContext<SoupiDbContext>(
         .UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => { b.MigrationsAssembly("SOUPI"); })
         .UseLazyLoadingProxies()
     );
+
+builder.Services.Configure<TestSettings>(builder.Configuration.GetSection("TestSettings")); 
+builder.Services.AddHostedService<InitializationService>();
 
 builder.Services.AddSingleton<AuthHttpClientFactory>();
 builder.Services.AddScoped<HttpClient>(sp =>

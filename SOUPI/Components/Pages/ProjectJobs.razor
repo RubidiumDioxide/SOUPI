@@ -2,7 +2,9 @@
 @rendermode InteractiveServer
 
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
+<PageTitle>Задачи проекта</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.False" Class="mt-8" Gutters="true">
     <GanttChart Jobs="Jobs" @bind-SelectedJob="SelectedJob"/>
 
     <JobManager @ref="_jobManagerRef" @bind-Job="SelectedJob"/>
