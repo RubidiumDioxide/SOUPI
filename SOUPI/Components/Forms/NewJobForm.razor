@@ -1,0 +1,96 @@
+﻿<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5">Новая задача</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (User == null || Project == null || newJob == null)
+        {
+            <MudText Align="Align.Center">Загрузка...</MudText>
+        }
+        else
+        {
+            <EditForm Model=@newJob OnValidSubmit="OnValidSubmit">
+                <DataAnnotationsValidator />
+                @* Content kept exactly as provided *@
+                <MudTextField @bind-Value=@newJob.Title
+                              For="@(() => newJob.Title)"
+                              Label="Название задачи"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Normal" />
+
+                <MudTextField @bind-Value=@newJob.Body
+                              For="@(() => newJob.Body)"
+                              Label="Описание задачи"
+                              Variant="Variant.Outlined"
+                              Lines="3"
+                              Margin="Margin.Normal" />
+
+                <div class="d-flex gap-4">
+                    <MudDatePicker @bind-Value=@newJob.StartDateTime
+                                   Label="Дата начала"
+                                   Variant="Variant.Outlined"
+                                   Editable="true" />
+
+                    <MudDatePicker @bind-Value=@newJob.EndDateTime
+                                   Label="Дата завершения"
+                                   Variant="Variant.Outlined"
+                                   Editable="true" />
+                </div>
+
+                <MudNumericField @bind-Value=@newJob.Progress
+                                 Label="Прогресс (%)"
+                                 Variant="Variant.Outlined"
+                                 Min="0" Max="100"
+                                 Margin="Margin.Normal" />
+
+                <MudSelect @bind-Value=@newJob.Status
+                           Label="Статус"
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Normal">
+                    @foreach (JobStatus item in Enum.GetValues(typeof(JobStatus)))
+                    {
+                        <MudSelectItem Value="@item">@item.ToString()</MudSelectItem>
+                    }
+                </MudSelect>
+                
+                <div class="d-flex justify-end mt-4">
+                    <MudButton OnClick="Cancel" Class="mr-2">Отмена</MudButton>
+                    <MudButton OnClick="ResetForm" Color="Color.Secondary" Variant="Variant.Filled" Class="mr-2">Сбросить</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled">Создать</MudButton>
+                </div>
+            </EditForm>
+        }
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public UserDto? User { get; set; } 
+    [Parameter, EditorRequired]
+    public ProjectDto? Project { get; set; }
+
+    private JobDto newJob = new JobDto();
+
+    protected override void OnParametersSet()
+    {
+        ResetForm();     
+    }
+
+    private void ResetForm()
+    {
+        newJob = new JobDto();
+        
+        if (Project != null) newJob.ProjectId = Project.Id;
+        StateHasChanged();
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task OnValidSubmit()
+    {
+        MudDialog.Close(DialogResult.Ok(newJob));
+    }
+}

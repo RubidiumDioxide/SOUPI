@@ -14,8 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using SOUPI.Handlers.Interfaces; 
 using SOUPI.Handlers;
 using SOUPICore.Services.Interfaces;
-using Microsoft.AspNetCore.Components;
-using SOUPIShared.Misc;
+using Microsoft.AspNetCore.Components; 
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -72,7 +71,6 @@ builder.Services.AddDbContext<SoupiDbContext>(
         .UseLazyLoadingProxies()
     );
 
-builder.Services.Configure<TestSettings>(builder.Configuration.GetSection("TestSettings")); 
 builder.Services.AddHostedService<InitializationService>();
 
 builder.Services.AddSingleton<AuthHttpClientFactory>();
@@ -89,11 +87,13 @@ builder.Services.AddScoped<IGithubRequestHandler, GithubRequestHandler>();
 builder.Services.AddScoped<IUserRequestHandler, UserRequestHandler>();
 builder.Services.AddScoped<IProjectRequestHandler, ProjectRequestHandler>();
 builder.Services.AddScoped<ITeamMemberRequestHandler, TeamMemberRequestHandler>();
+builder.Services.AddScoped<IJobRequestHandler, JobRequestHandler>(); 
 builder.Services.AddScoped<INotificationRequestHandler, NotificationRequestHandler>(); 
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITeamMemberService, TeamMemberService>(); 
+builder.Services.AddScoped<IJobService, JobService>(); 
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");

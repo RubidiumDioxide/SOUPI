@@ -38,6 +38,8 @@ namespace SOUPIShared.Dtos
 
         public Guid? ParentJobId { get; set; }
 
+        public string? Dependencies { get; set; } = default!; 
+
 
         public JobDto(Job job)
         {
@@ -51,7 +53,11 @@ namespace SOUPIShared.Dtos
             Progress = job.Progress; 
             CreationDateTime = job.CreationDateTime; 
             Status = job.Status; 
-            ParentJobId = job.ParentJobId; 
+            ParentJobId = job.ParentJobId;
+            Dependencies = (job.PreviousJobSequences.Count == 0) ?
+                null : 
+                string.Join(", ", job.PreviousJobSequences
+                    .Select(js => js.FirstJobId.ToString())); 
         }
 
         public JobDto() { }

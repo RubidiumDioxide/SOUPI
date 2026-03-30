@@ -1,28 +1,138 @@
-﻿@page "/projectjobs" 
-@rendermode InteractiveServer
+﻿@page "/projectjobs/{projectId:guid}" 
+@rendermode InteractiveServer 
+@inject IProjectRequestHandler projectRequestHandler
+@inject IJobRequestHandler jobRequestHandler
+@inject ITeamMemberRequestHandler teamMemberRequestHandler
+@inject IGithubRequestHandler githubRequestHandler
+@inject IDialogService DialogService
 
 
 <PageTitle>Задачи проекта</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.False" Class="mt-8" Gutters="true">
-    <GanttChart Jobs="Jobs" @bind-SelectedJob="SelectedJob"/>
+    @if(error != null)
+    {
+        <MudAlert Severity=severity>@error</MudAlert>
+    }
+    else
+    {
+        @if (User == null || GithubUser == null || project == null || jobs == null || ganttJobs == null ||teamMembers == null)
+        {
+            <MudText Align="Align.Center">Loading... </MudText>
+        }
+        else
+        {
+            @if (!teamMembers.Select(tm => tm.UserId).Contains(User.Id))
+            {
+                <UnauthorizedPlaceholder />
+            }
+            else
+            {
+                <MudButton OnClick="OpenDialog" Variant="Variant.Filled" Color="Color.Primary">
+                    Добавить задачу
+                </MudButton>
 
-    <JobManager @ref="_jobManagerRef" @bind-Job="SelectedJob"/>
+                if(ganttJobs.Count() == 0)
+                {
+                    <MudAlert Severity=Severity.Warning>Здесь пока ничего нет :(</MudAlert> 
+                }
+                else
+                {
+                    <GanttChart GanttJobs=@ganttJobs @bind-SelectedGanttJob="selectedGanttJob" />
+
+                    <JobManager @bind-Job=@selectedGanttJob />
+                }
+            }
+        }
+    }
 </MudContainer>
 
 
-@code {
-    private JobManager? _jobManagerRef; 
-    private GanttJobDto? SelectedJob;
+    @code {
+    [CascadingParameter]
+    private UserDto? User { get; set; }
+    [CascadingParameter]
+    private GithubUser? GithubUser { get; set; }
 
-    private List<GanttJobDto> Jobs = new() {
-        new GanttJobDto { id = "T1", name = "Planning", start = new DateTime(2026, 2, 1), end = new DateTime(2026, 2, 10), progress = 100 },
-        new GanttJobDto { id = "T2", name = "Development", start = new DateTime(2026, 2, 11), end = new DateTime(2026, 3, 20), progress = 20, dependencies = "T1" },
-        new GanttJobDto { id = "T3", name = "Testing", start = new DateTime(2026, 3, 21), end = new DateTime(2026, 4, 15), progress = 0, dependencies = "T2" }
-    };
+    [Parameter]
+    public Guid projectId { get; set; }
 
-    private void SelectedTaskChanged(GanttJobDto newJob)
+    private ProjectDto? project { get; set; } 
+    private IEnumerable<JobDto>? jobs { get; set; } 
+    private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; }  
+    private IEnumerable<GanttJobDto>? ganttJobs { get; set; }
+    private GanttJobDto? selectedGanttJob { get; set; } 
+
+    private string? error { get; set; } = null;
+    private Severity severity { get; set; } = Severity.Warning;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (User != null && GithubUser != null)
+        {
+            try
+            {
+                await LoadProject();
+                await LoadJobs(); 
+                await LoadTeamMembers(); 
+            }
+            catch (SoupiException ex)
+            {
+                error = ex.Message;
+                severity = Severity.Error;
+            }
+            catch (Exception ex)
+            {
+                error = "Произошла непредвиденная ошибка ";
+                severity = Severity.Error;
+            }
+        }
+    }
+
+    private async Task LoadProject()
+    {
+        project = await projectRequestHandler.GetById(projectId);
+
+        StateHasChanged();
+    }
+
+    private async Task LoadJobs()
+    {
+        jobs = await jobRequestHandler.GetByProjectId(projectId);
+
+        ganttJobs = jobs.Select(j => new GanttJobDto(j)); 
+
+        StateHasChanged();
+    }
+
+    private async Task LoadTeamMembers()
+    {
+        teamMembers = await teamMemberRequestHandler.GetByProjectId(projectId);
+
+        StateHasChanged();
+    } 
+
+    private void SelectedGanttJobChanged(GanttJobDto newJob)
     {
         StateHasChanged(); 
+    }
+
+    private async Task OpenDialog()
+    {
+        var parameters = new DialogParameters<NewJobForm>
+        {
+            { x => x.User, User}, 
+            { x => x.Project, project } 
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, FullWidth = true, MaxWidth = MaxWidth.Small };
+
+        var dialog = await DialogService.ShowAsync<NewJobForm>("Новая задача", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            // Handle the successful creation (e.g., refresh list)
+        }
     }
 }

@@ -13,14 +13,14 @@ namespace SOUPIShared.Dtos
         public string? dependencies { get; set; } 
 
 
-        public GanttJobDto(Job job) 
+        public GanttJobDto(JobDto jobDto) 
         {
-            id = job.Id.ToString(); 
-            name = job.Title; 
-            start = job.StartDateTime; 
-            end = job.EndDateTime; 
-            progress = job.Progress;
-            dependencies = string.Join(", ", job.PreviousJobSequences.Select(js => js.FirstJobId.ToString())); 
+            id = jobDto.Id.ToString(); 
+            name = jobDto.Title; 
+            start = jobDto.StartDateTime; 
+            end = jobDto.EndDateTime; 
+            progress = jobDto.Progress;
+            dependencies = jobDto.Dependencies; 
         }
 
         public GanttJobDto() { } 

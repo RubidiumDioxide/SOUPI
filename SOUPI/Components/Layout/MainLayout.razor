@@ -78,6 +78,7 @@
 
     private GithubUser? githubUser { get; set; }
     private UserDto? user { get; set; } 
+
     private bool _isDarkMode; 
     private bool _drawerOpen = false; 
     private bool _isAuthenticated = false; 
@@ -148,7 +149,7 @@
             });
         }
     }
-
+    
     private async Task SaveSelectedTheme()
     {
         await SessionStorage.SetAsync("isDarkMode", _isDarkMode);

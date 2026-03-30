@@ -1,32 +1,32 @@
 ﻿@inject IJSRuntime JS
 
 
-<MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
-    <MudText Typo="Typo.h4">Project Roadmap</MudText>
-
+<MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4 mt-4">
+    <MudText Typo="Typo.h5">Задачи проекта</MudText>
+    
     <MudToggleGroup T="string" Value="currentViewMode" ValueChanged="ChangeScale" Delimiters="true" Color="Color.Primary">
-        <MudToggleItem Value="@("Day")" />
-        <MudToggleItem Value="@("Week")" />
-        <MudToggleItem Value="@("Month")" />
+        <MudToggleItem Value="@("Day")">День</MudToggleItem>
+        <MudToggleItem Value="@("Week")">Неделя</MudToggleItem>
+        <MudToggleItem Value="@("Month")">Месяц</MudToggleItem>
     </MudToggleGroup>
 </MudStack>
 
 <MudPaper Elevation="2" Class="pa-0 mb-6" Style="overflow: hidden;">
     <div id="react-gantt-root"></div>
-</MudPaper>
+</MudPaper>   
 
 
 @code {
+    [Parameter, EditorRequired]
+    public GanttJobDto? SelectedGanttJob { get; set; } = null;
+    [Parameter, EditorRequired]
+    public IEnumerable<GanttJobDto> GanttJobs { get; set; } = default!;
+
     private IJSObjectReference? module;
     private DotNetObjectReference<GanttChart>? dotnetRef = null;
     private bool isInitialized = false;
 
     private string currentViewMode = "Week";
-    //private string prevViewMode = "Week";
-    [Parameter, EditorRequired]
-    public GanttJobDto? SelectedJob { get; set; } = null;
-    [Parameter, EditorRequired]
-    public List<GanttJobDto> Jobs { get; set; } = default!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -39,7 +39,7 @@
 
             await module.InvokeVoidAsync(
                  "init",
-                 Jobs,
+                 GanttJobs,
                  currentViewMode
              );
 
@@ -47,14 +47,14 @@
         }
     }
 
-    [Parameter]
-    public EventCallback<GanttJobDto> SelectedJobChanged { get; set; }
+    [Parameter, EditorRequired]
+    public EventCallback<GanttJobDto> SelectedGanttJobChanged { get; set; }
 
     [JSInvokable]
     public async Task SelectJobFromJS(string jobId)
     {
-        SelectedJob = Jobs.FirstOrDefault(t => t.id == jobId);
-        await SelectedJobChanged.InvokeAsync(SelectedJob);
+        SelectedGanttJob = GanttJobs.FirstOrDefault(t => t.id == jobId);
+        await SelectedGanttJobChanged.InvokeAsync(SelectedGanttJob);
     }
 
     private async Task ChangeScale(string newViewMode)

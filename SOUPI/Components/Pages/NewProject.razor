@@ -17,7 +17,7 @@
     {
         @if (User == null || GithubUser == null || newProject == null)
         {
-            <MudText Align="Align.Center">Loading... </MudText>
+            <MudText Align="Align.Center">Загрузка... </MudText>
         }
         else
         {
@@ -34,7 +34,7 @@
                         <MudDatePicker @bind-Value=@newProject.StartDateTime Label="Дата начала проекта" Variant=Variant.Outlined />
                     </MudCardContent>
                     <MudCardActions Class="mt-1 ma-auto">
-                        <MudButton @ref=submitButton ButtonType=ButtonType.Submit Color="Color.Primary" Variant="Variant.Filled">Создать</MudButton>
+                        <MudButton ButtonType=ButtonType.Submit Color="Color.Primary" Variant="Variant.Filled">Создать</MudButton>
                         <MudButton onclick="ResetForm" Color="Color.Secondary" Variant="Variant.Filled">Сбросить</MudButton>
                     </MudCardActions>
                 </MudCard>
@@ -55,19 +55,15 @@
 
     private ProjectDto newProject = new ProjectDto(); 
 
-    private MudButton submitButton { get; set; } 
-
     private void ResetForm()
     {
         newProject = new ProjectDto();
         StateHasChanged();
     }
 
-    // REWORK 
+    // REWORK (move validation to handler logic )
     private async Task OnValidSubmit()
     {
-        submitButton.Disabled = true; 
-
         newProject.CreatorId = User.Id; 
 
         try
@@ -101,7 +97,5 @@
         {
             Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
         }
-
-        submitButton.Disabled = false;
     }
 }

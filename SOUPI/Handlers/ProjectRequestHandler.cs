@@ -49,7 +49,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<ProjectDto> GetById(Guid id)
+        public async Task<ProjectDto?> GetById(Guid id)
         {
             try
             {
@@ -157,11 +157,11 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task Delete(Guid id)
+        public async Task Delete(Guid projectId)
         {
             try
             {
-                var response = await _httpClient.DeleteAsync($"{deleteUrl}{id}");
+                var response = await _httpClient.DeleteAsync($"{deleteUrl}{projectId}");
 
                 response.EnsureSuccessStatusCode();
             }
