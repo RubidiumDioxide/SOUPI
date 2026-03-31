@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions;
 using SOUPIShared.Models;
@@ -9,7 +10,7 @@ using SOUPIShared.Resources;
 
 namespace SOUPICore.Services
 {
-    public class AssignmentService
+    public class AssignmentService : IAssignmentService 
     {
         private readonly SoupiDbContext _context;
         private readonly ILogger<AssignmentService> _logger;
@@ -22,7 +23,20 @@ namespace SOUPICore.Services
             _localizer = localizer;
         }
 
-        public async Task CreateAssignment(AssignmentDto newAssignmentDto)
+        public async Task<IEnumerable<AssignmentDto>> GetByJobId(Guid jobId)
+        {
+            try
+            {
+                return _context.Assignments.Where(a => a.JobId == jobId).Select(a => new AssignmentDto(a)); 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
+        }
+
+        public async Task<AssignmentDto> Create(AssignmentDto newAssignmentDto)
         {
             try
             {
@@ -37,6 +51,8 @@ namespace SOUPICore.Services
 
                 await _context.Assignments.AddAsync(newAssignment);
                 await _context.SaveChangesAsync();
+
+                return new AssignmentDto(newAssignment);
             }
             catch (Exception ex)
             {
@@ -45,7 +61,7 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task DeleteAssignment(Guid assignmentId)
+        public async Task Delete(Guid assignmentId)
         {
             try
             {

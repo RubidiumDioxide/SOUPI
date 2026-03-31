@@ -6,8 +6,10 @@ namespace SOUPICore.Services.Interfaces
 {
     public interface IAssignmentService
     {
-        public Task CreateAssignment(AssignmentDto newAssignmentDto);
+        public Task<IEnumerable<AssignmentDto>> GetByJobId(Guid jobId); 
 
-        public Task DeleteAssignment(Guid assignmentId);
+        public Task<AssignmentDto> Create(AssignmentDto newAssignmentDto);
+
+        public Task Delete(Guid assignmentId);
     }
 }
