@@ -12,8 +12,6 @@ let currentViewMode: string = 'Week';
 function render() {
     if (!root) return;
 
-    console.log(currentViewMode); 
-
     root.render(
         <React.StrictMode>
             <GanttChart
@@ -41,6 +39,12 @@ export function init(
 export function setViewMode(viewMode: string) {
     currentViewMode = viewMode
     
+    render();
+}
+
+export function setJobs(jobs: GanttJob []) {
+    currentJobs = jobs; 
+
     render();
 }
 

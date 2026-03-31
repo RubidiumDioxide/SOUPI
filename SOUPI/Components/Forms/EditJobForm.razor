@@ -1,0 +1,158 @@
+﻿@inject IJobRequestHandler jobRequestHandler; 
+@inject ISnackbar Snackbar
+
+
+@if (Job != null)
+{
+    <MudCard Elevation="4" Class="border-t-4 mud-border-primary">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Редактирование задачи @Job.Title</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Default" />
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudContainer Gutters="false" Style="display:flex; flex-direction:row; flex-wrap: nowrap" Class="ma-0 pa-2" MaxWidth="MaxWidth.False">
+                <MudContainer MaxWidth=MaxWidth.False Style="width: 50%">
+                    <EditForm Model=@Job OnValidSubmit="SaveJob">
+                        <DataAnnotationsValidator />
+
+                        <MudTextField @bind-Value=@Job.Title
+                                      For="@(() => Job.Title)"
+                                      Label="Название задачи"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Normal" />
+
+                        <MudTextField @bind-Value=@Job.Body
+                                      For="@(() => Job.Body)"
+                                      Label="Описание задачи"
+                                      Variant="Variant.Outlined"
+                                      Lines="3"
+                                      Margin="Margin.Normal" />
+
+                        <div class="d-flex gap-4">
+                            <MudDatePicker @bind-Date=@startDateTime
+                                           Label="Дата начала"
+                                           Variant="Variant.Outlined"
+                                           Editable="true" />
+
+                            <MudDatePicker @bind-Date=@endDateTime
+                                           Label="Дата завершения"
+                                           Variant="Variant.Outlined"
+                                           Editable="true" />
+                        </div>
+
+                        <MudSlider @bind-Value="Job.Progress"
+                                   Min="0" Max="100"
+                                   Color="Color.Primary"
+                                   ValueLabel="true">
+                            Прогресс (%)
+                        </MudSlider>
+
+                        <MudSelect @bind-Value=@Job.Status
+                                   Label="Статус"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Normal">
+                            @foreach (JobStatus item in Enum.GetValues(typeof(JobStatus)))
+                            {
+                                <MudSelectItem Value="@item">@item.ToString()</MudSelectItem>
+                            }
+                        </MudSelect>
+             
+                        <MudButton ButtonType="ButtonType.Submit" 
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary">
+                                   Сохранить
+                        </MudButton> 
+                        <MudButton OnClick="ResetForm"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Secondary">
+                            Отмена
+                        </MudButton>
+                    </EditForm>
+                </MudContainer>
+                <MudContainer MaxWidth=MaxWidth.False Style="width: 50%">
+                    <MudText>Поставить сюда кнопки связей </MudText>
+                </MudContainer>
+            </MudContainer>
+        </MudCardContent>
+    </MudCard>
+}
+else
+{
+    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" ContentAlignment="HorizontalAlignment.Center">
+        Нажмите на задачу на диаграмме Ганта, чтобы открыть ее в редакторе. 
+    </MudAlert>
+}
+
+
+@code {
+    [Parameter, EditorRequired]
+    public JobDto? Job { get; set; } = new(); 
+    [Parameter, EditorRequired] 
+    public ProjectDto? Project { get; set;} = new();  
+    [Parameter, EditorRequired]
+    public EventCallback<JobDto> JobChanged { get; set; }
+    [Parameter, EditorRequired]
+    public EventCallback SelectedJobUpdated { get; set; }
+
+    public JobDto? jobBackup { get; set; } = new(); 
+    private DateTime? startDateTime = DateTime.Today;
+    private DateTime? endDateTime = DateTime.Today.AddDays(10);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if(Job != null && jobBackup != null)
+        {
+            jobBackup.CopyContentProperties(Job); 
+
+            startDateTime = Job.StartDateTime; 
+            endDateTime = Job.EndDateTime; 
+        }
+    }
+
+    private void ResetForm()
+    {
+        Job.CopyContentProperties(jobBackup);
+
+        startDateTime = Job.StartDateTime;
+        endDateTime = Job.EndDateTime;
+
+        StateHasChanged();
+    }
+
+    public async Task SaveJob()
+    {
+        try
+        {
+            Job.StartDateTime = startDateTime ?? default;
+            Job.EndDateTime = endDateTime ?? default;
+
+            if (Job.EndDateTime <= Job.StartDateTime)
+            {
+                throw new SoupiException("Дата конце задачи должна быть позже даты начала ");
+            }
+
+            if (Job.StartDateTime < Project!.StartDateTime)
+            {
+                throw new SoupiException("Дата начала задачи не должна быть раньше даты начала проекта ");
+            }
+
+            await jobRequestHandler.UpdateContent(Job);
+
+            await SelectedJobUpdated.InvokeAsync(); 
+
+            Snackbar.Add("Задача успешно изменена", Severity.Success);
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+}

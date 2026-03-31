@@ -1,4 +1,8 @@
-﻿<MudDialog>
+﻿@inject IJobRequestHandler jobRequestHandler; 
+@inject ISnackbar Snackbar
+
+
+<MudDialog>
     <TitleContent>
         <MudText Typo="Typo.h5">Новая задача</MudText>
     </TitleContent>
@@ -9,9 +13,9 @@
         }
         else
         {
-            <EditForm Model=@newJob OnValidSubmit="OnValidSubmit">
+            <EditForm Model=@newJob OnValidSubmit="CreateNewJob">
                 <DataAnnotationsValidator />
-                @* Content kept exactly as provided *@
+
                 <MudTextField @bind-Value=@newJob.Title
                               For="@(() => newJob.Title)"
                               Label="Название задачи"
@@ -26,12 +30,12 @@
                               Margin="Margin.Normal" />
 
                 <div class="d-flex gap-4">
-                    <MudDatePicker @bind-Value=@newJob.StartDateTime
+                    <MudDatePicker @bind-Date=@startDateTime 
                                    Label="Дата начала"
                                    Variant="Variant.Outlined"
                                    Editable="true" />
 
-                    <MudDatePicker @bind-Value=@newJob.EndDateTime
+                    <MudDatePicker @bind-Date=@endDateTime 
                                    Label="Дата завершения"
                                    Variant="Variant.Outlined"
                                    Editable="true" />
@@ -42,6 +46,14 @@
                                  Variant="Variant.Outlined"
                                  Min="0" Max="100"
                                  Margin="Margin.Normal" />
+
+                <MudSlider @bind-Value="newJob.Progress"
+                           Min="0" Max="100"
+                           Color="Color.Primary"
+                           ValueLabel="true" >
+                    Прогресс (%)
+                </MudSlider>
+
 
                 <MudSelect @bind-Value=@newJob.Status
                            Label="Статус"
@@ -66,31 +78,67 @@
 @code {
     [CascadingParameter]
     IMudDialogInstance MudDialog { get; set; } = default!;
-
     [Parameter, EditorRequired]
     public UserDto? User { get; set; } 
     [Parameter, EditorRequired]
     public ProjectDto? Project { get; set; }
 
     private JobDto newJob = new JobDto();
+    private DateTime? startDateTime = DateTime.Today; 
+    private DateTime? endDateTime = DateTime.Today.AddDays(10); 
 
     protected override void OnParametersSet()
     {
-        ResetForm();     
+        if(User != null && Project != null)
+        {
+            ResetForm();       
+        }
     }
 
     private void ResetForm()
     {
         newJob = new JobDto();
-        
-        if (Project != null) newJob.ProjectId = Project.Id;
+
+        newJob.ProjectId = Project!.Id;
+        newJob.CreatorId = User!.Id; 
+
         StateHasChanged();
     }
 
     private void Cancel() => MudDialog.Cancel();
 
-    private async Task OnValidSubmit()
+    private async Task CreateNewJob()
     {
-        MudDialog.Close(DialogResult.Ok(newJob));
+        try
+        {
+            newJob.StartDateTime = startDateTime ?? default; 
+            newJob.EndDateTime = endDateTime ?? default;  
+
+            if(newJob.EndDateTime <= newJob.StartDateTime)
+            {
+                throw new SoupiException("Дата конце задачи должна быть позже даты начала "); 
+            }
+
+            if (newJob.StartDateTime < Project!.StartDateTime)
+            {
+                throw new SoupiException("Дата начала задачи не должна быть раньше даты начала проекта "); 
+            }
+
+            await jobRequestHandler.Create(newJob); 
+
+            ResetForm(); 
+
+            Snackbar.Add("Задача успешно создана", Severity.Success);
+
+            MudDialog.Close(DialogResult.Ok(newJob));
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch(Exception)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);    
+        }
     }
 }

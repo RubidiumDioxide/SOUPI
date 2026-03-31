@@ -54,10 +54,14 @@ namespace SOUPIShared.Dtos
             CreationDateTime = job.CreationDateTime; 
             Status = job.Status; 
             ParentJobId = job.ParentJobId;
-            Dependencies = (job.PreviousJobSequences.Count == 0) ?
-                null : 
-                string.Join(", ", job.PreviousJobSequences
-                    .Select(js => js.FirstJobId.ToString())); 
+            
+            if (job.PreviousJobSequences != null)
+            {
+                Dependencies = (job.PreviousJobSequences.Count == 0) ?
+                   null :
+                   string.Join(", ", job.PreviousJobSequences
+                       .Select(js => js.FirstJobId.ToString()));
+            }
         }
 
         public JobDto() { }

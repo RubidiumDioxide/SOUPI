@@ -11,7 +11,7 @@
     </MudToggleGroup>
 </MudStack>
 
-<MudPaper Elevation="2" Class="pa-0 mb-6" Style="overflow: hidden;">
+<MudPaper Elevation="2" Class="pa-0 mb-6" Style="overflow-x: auto">
     <div id="react-gantt-root"></div>
 </MudPaper>   
 
@@ -21,6 +21,8 @@
     public GanttJobDto? SelectedGanttJob { get; set; } = null;
     [Parameter, EditorRequired]
     public IEnumerable<GanttJobDto> GanttJobs { get; set; } = default!;
+    [Parameter, EditorRequired]
+    public EventCallback<GanttJobDto> SelectedGanttJobChanged { get; set; }
 
     private IJSObjectReference? module;
     private DotNetObjectReference<GanttChart>? dotnetRef = null;
@@ -47,14 +49,27 @@
         }
     }
 
-    [Parameter, EditorRequired]
-    public EventCallback<GanttJobDto> SelectedGanttJobChanged { get; set; }
-
     [JSInvokable]
     public async Task SelectJobFromJS(string jobId)
     {
         SelectedGanttJob = GanttJobs.FirstOrDefault(t => t.id == jobId);
         await SelectedGanttJobChanged.InvokeAsync(SelectedGanttJob);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (module != null)
+        {
+            await module.InvokeVoidAsync("setJobs", GanttJobs);
+        }
+    } 
+
+    public async Task SetGanttJobs()
+    {
+        if (module != null)
+        {
+            await module.InvokeVoidAsync("setJobs", GanttJobs);
+        }
     }
 
     private async Task ChangeScale(string newViewMode)

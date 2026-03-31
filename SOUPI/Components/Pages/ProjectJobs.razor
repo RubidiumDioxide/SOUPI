@@ -28,9 +28,11 @@
             }
             else
             {
-                <MudButton OnClick="OpenDialog" Variant="Variant.Filled" Color="Color.Primary">
-                    Добавить задачу
-                </MudButton>
+                <div class="d-flex justify-center ma-4">
+                    <MudButton OnClick="OpenDialog" Variant="Variant.Filled" Color="Color.Primary">
+                        Добавить задачу
+                    </MudButton>
+                </div>
 
                 if(ganttJobs.Count() == 0)
                 {
@@ -38,9 +40,9 @@
                 }
                 else
                 {
-                    <GanttChart GanttJobs=@ganttJobs @bind-SelectedGanttJob="selectedGanttJob" />
+                    <GanttChart @ref=ganttChart GanttJobs=@ganttJobs @bind-SelectedGanttJob="selectedGanttJob" @bind-SelectedGanttJob:after="SelectedGanttJobUpdated" />
 
-                    <JobManager @bind-Job=@selectedGanttJob />
+                    <EditJobForm @bind-Job=@selectedJob Project=@project SelectedJobUpdated="JobsUpdated"/>
                 }
             }
         }
@@ -62,6 +64,9 @@
     private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; }  
     private IEnumerable<GanttJobDto>? ganttJobs { get; set; }
     private GanttJobDto? selectedGanttJob { get; set; } 
+    private JobDto? selectedJob { get; set; }
+
+    private GanttChart ganttChart { get; set; }
 
     private string? error { get; set; } = null;
     private Severity severity { get; set; } = Severity.Warning;
@@ -112,17 +117,25 @@
         StateHasChanged();
     } 
 
-    private void SelectedGanttJobChanged(GanttJobDto newJob)
+    private void SelectedGanttJobUpdated()
     {
-        StateHasChanged(); 
+        if (jobs != null && selectedGanttJob != null)
+        {
+            selectedJob = jobs.FirstOrDefault(j => j.Id.ToString() == selectedGanttJob.id);    
+        }
+    }
+
+    private async Task JobsUpdated()
+    {
+        await LoadJobs(); 
     }
 
     private async Task OpenDialog()
     {
         var parameters = new DialogParameters<NewJobForm>
         {
-            { x => x.User, User}, 
-            { x => x.Project, project } 
+            { x => x.User, User }, 
+            { x => x.Project, project }, 
         };
 
         var options = new DialogOptions { CloseOnEscapeKey = true, FullWidth = true, MaxWidth = MaxWidth.Small };
@@ -132,7 +145,7 @@
 
         if (!result.Canceled)
         {
-            // Handle the successful creation (e.g., refresh list)
+            await JobsUpdated(); 
         }
     }
 }

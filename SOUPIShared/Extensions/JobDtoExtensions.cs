@@ -63,5 +63,25 @@ namespace SOUPIShared.Extensions
                 firstJobDto.Status == secondJobDto.Status &&
                 firstJobDto.ParentJobId == secondJobDto.ParentJobId;
         }
+
+        public static void CopyContentProperties(this JobDto firstJobDto, JobDto secondJobDto)
+        {
+            firstJobDto.Title = secondJobDto.Title;
+            firstJobDto.Body = secondJobDto.Body;
+            firstJobDto.StartDateTime = secondJobDto.StartDateTime;
+            firstJobDto.EndDateTime = secondJobDto.EndDateTime;
+            firstJobDto.Progress = secondJobDto.Progress; 
+            firstJobDto.Status = secondJobDto.Status;
+        }
+
+        public static void CopyContentProperties(this JobDto jobDto, Job job)
+        {
+            jobDto.Title = job.Title;
+            jobDto.Body = job.Body;
+            jobDto.StartDateTime = job.StartDateTime;
+            jobDto.EndDateTime = job.EndDateTime; 
+            jobDto.Progress = job.Progress; 
+            jobDto.Status = job.Status;
+        }
     }
 }

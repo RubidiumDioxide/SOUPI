@@ -18,9 +18,9 @@ namespace SOUPIShared.Dtos
         [Required]
         public Guid CreatorId { get; set; }
         [Required]
-        public DateTime CreationDateTime { get; set; } = DateTime.Now;
+        public DateTime CreationDateTime { get; set; } 
         [Required] 
-        public DateTime StartDateTime { get; set; } = DateTime.Now; 
+        public DateTime StartDateTime { get; set; } 
 
 
         public ProjectDto(Project project)

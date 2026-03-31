@@ -1,9 +1,9 @@
-﻿@page "/newproject"
+﻿@page "/newproject" 
+@attribute [Authorize] 
 @inject NavigationManager NavigationManager
 @inject IGithubRequestHandler githubRequestHandler 
 @inject IProjectRequestHandler projectRequestHandler
 @inject ISnackbar Snackbar
-@attribute [Authorize] 
 
 
 <PageTitle>Новый проект</PageTitle>
@@ -93,7 +93,7 @@
         {
             Snackbar.Add(ex.Message, Severity.Error);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
         }

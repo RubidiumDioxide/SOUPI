@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions;
+using SOUPIShared.Extensions;
 using SOUPIShared.Models;
 using SOUPIShared.Resources;
 
@@ -112,12 +113,7 @@ namespace SOUPICore.Services
                     throw new BadRequestException(_localizer["JobNotFound"]);
                 }
 
-                job.Title = updatedJobDto.Title;
-                job.Body = updatedJobDto.Body;
-                job.StartDateTime = updatedJobDto.StartDateTime;
-                job.EndDateTime = updatedJobDto.EndDateTime;
-                job.Progress = updatedJobDto.Progress;
-                job.Status = updatedJobDto.Status;
+                job.CopyContentProperties(updatedJobDto); 
 
                 await CheckIfValidJob(job); 
                 await _context.SaveChangesAsync();
