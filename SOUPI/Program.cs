@@ -88,12 +88,14 @@ builder.Services.AddScoped<IUserRequestHandler, UserRequestHandler>();
 builder.Services.AddScoped<IProjectRequestHandler, ProjectRequestHandler>();
 builder.Services.AddScoped<ITeamMemberRequestHandler, TeamMemberRequestHandler>();
 builder.Services.AddScoped<IJobRequestHandler, JobRequestHandler>(); 
+builder.Services.AddScoped<IJobSequenceRequestHandler, JobSequenceRequestHandler>(); 
 builder.Services.AddScoped<INotificationRequestHandler, NotificationRequestHandler>(); 
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITeamMemberService, TeamMemberService>(); 
 builder.Services.AddScoped<IJobService, JobService>(); 
+builder.Services.AddScoped<IJobSequenceService, JobSequenceService>(); 
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");

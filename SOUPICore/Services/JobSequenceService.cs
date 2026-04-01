@@ -24,6 +24,31 @@ namespace SOUPICore.Services
             _localizer = localizer;
         }
 
+        public async Task<IEnumerable<JobSequenceDto>> GetByProjectId(Guid projectId)
+        {
+            try
+            {
+                var project = await _context.Projects.FindAsync(projectId);
+
+                if (project == null)
+                {
+                    throw new BadRequestException(_localizer["ProjectNotFound"]);
+                }
+
+                var jobSequences = await _context.JobSequences
+                    .Where(js => js.FirstJob.ProjectId == projectId
+                            || js.SecondJob.ProjectId == projectId)
+                    .ToListAsync();
+
+                return jobSequences.Select(js => new JobSequenceDto(js));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
+        }
+
         public async Task<JobSequenceDto> Create(Guid firstJobId, Guid secondJobId)
         {
             try

@@ -1,19 +1,20 @@
 ﻿@inject IJSRuntime JS
 
-
-<MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4 mt-4">
-    <MudText Typo="Typo.h5">Задачи проекта</MudText>
+<MudContainer MaxWidth="MaxWidth.False" Gutters="false">
+    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4 mt-4">
+        <MudText Typo="Typo.h5">Задачи проекта</MudText>
     
-    <MudToggleGroup T="string" Value="currentViewMode" ValueChanged="ChangeScale" Delimiters="true" Color="Color.Primary">
-        <MudToggleItem Value="@("Day")">День</MudToggleItem>
-        <MudToggleItem Value="@("Week")">Неделя</MudToggleItem>
-        <MudToggleItem Value="@("Month")">Месяц</MudToggleItem>
-    </MudToggleGroup>
-</MudStack>
+        <MudToggleGroup T="string" Value="currentViewMode" ValueChanged="ChangeScale" Delimiters="true" Color="Color.Primary">
+            <MudToggleItem Value="@("Day")">День</MudToggleItem>
+            <MudToggleItem Value="@("Week")">Неделя</MudToggleItem>
+            <MudToggleItem Value="@("Month")">Месяц</MudToggleItem>
+        </MudToggleGroup>
+    </MudStack>
 
-<MudPaper Elevation="2" Class="pa-0 mb-6" Style="overflow-x: auto; overflow-y: hidden;">
-    <div id="react-gantt-root" style="display: block;"></div>
-</MudPaper>   
+    <MudPaper Elevation="2" Class="pa-0 mb-6" Style="overflow-x: auto; overflow-y: hidden;">
+        <div id="react-gantt-root" style="display: block;"></div>
+    </MudPaper>
+</MudContainer>
 
 
 @code {

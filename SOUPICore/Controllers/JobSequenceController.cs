@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using SOUPICore.Services;
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions;
@@ -21,6 +20,26 @@ namespace SOUPICore.Controllers
         {
             _logger = logger;
             _jobSequenceService = jobSequenceService;
+        }
+
+        [HttpGet("{projectId}")]
+        public async Task<ActionResult<IEnumerable<JobSequenceDto>>> GetByProjectId([FromRoute] Guid projectId)
+        {
+            try
+            {
+                var jobSequences = await _jobSequenceService.GetByProjectId(projectId); 
+
+                return Ok(jobSequences);
+            }
+            catch (BadRequestException)
+            {
+                return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
         }
 
         [HttpGet("{firstJobId}/{secondJobId}")]

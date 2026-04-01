@@ -4,95 +4,74 @@
 
 @if (Job != null)
 {
-    <MudCard Elevation="4" Class="border-t-4 mud-border-primary">
-        <MudCardHeader>
-            <CardHeaderContent>
-                <MudText Typo="Typo.h6">Редактирование задачи @Job.Title</MudText>
-            </CardHeaderContent>
-            <CardHeaderActions>
-                <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Default" />
-            </CardHeaderActions>
-        </MudCardHeader>
-        <MudCardContent>
-            <MudContainer Gutters="false" Style="display:flex; flex-direction:row; flex-wrap: nowrap" Class="ma-0 pa-2" MaxWidth="MaxWidth.False">
-                <MudContainer MaxWidth=MaxWidth.False Style="width: 50%">
-                    <EditForm Model=@Job OnValidSubmit="SaveJob">
-                        <DataAnnotationsValidator />
+    <MudContainer MaxWidth=MaxWidth.False Style="width: 50%" Gutters="false" Class="ma-1">
+        <MudText Typo="Typo.h6">Редактирование задачи @Job.Title</MudText>
 
-                        <MudTextField @bind-Value=@Job.Title
-                                      For="@(() => Job.Title)"
-                                      Label="Название задачи"
-                                      Variant="Variant.Outlined"
-                                      Margin="Margin.Normal" />
+        <EditForm Model=@Job OnValidSubmit="SaveJob">
+            <DataAnnotationsValidator />
 
-                        <MudTextField @bind-Value=@Job.Body
-                                      For="@(() => Job.Body)"
-                                      Label="Описание задачи"
-                                      Variant="Variant.Outlined"
-                                      Lines="3"
-                                      Margin="Margin.Normal" />
+            <MudTextField @bind-Value=@Job.Title
+            For="@(() => Job.Title)"
+            Label="Название задачи"
+            Variant="Variant.Outlined"
+            Margin="Margin.Normal" />
 
-                        <div class="d-flex gap-4">
-                            <MudDatePicker @bind-Date=@startDateTime
-                                           Label="Дата начала"
-                                           Variant="Variant.Outlined"
-                                           Editable="true" />
+            <MudTextField @bind-Value=@Job.Body
+            For="@(() => Job.Body)"
+            Label="Описание задачи"
+            Variant="Variant.Outlined"
+            Lines="3"
+            Margin="Margin.Normal" />
 
-                            <MudDatePicker @bind-Date=@endDateTime
-                                           Label="Дата завершения"
-                                           Variant="Variant.Outlined"
-                                           Editable="true" />
-                        </div>
+            <div class="d-flex gap-4">
+                <MudDatePicker @bind-Date=@startDateTime
+                Label="Дата начала"
+                Variant="Variant.Outlined"
+                Editable="true" />
 
-                        <MudSlider @bind-Value="Job.Progress"
-                                   Min="0" Max="100"
-                                   Color="Color.Primary"
-                                   ValueLabel="true">
-                            Прогресс (%)
-                        </MudSlider>
+                <MudDatePicker @bind-Date=@endDateTime
+                Label="Дата завершения"
+                Variant="Variant.Outlined"
+                Editable="true" />
+            </div>
 
-                        <MudSelect @bind-Value=@Job.Status
-                                   Label="Статус"
-                                   Variant="Variant.Outlined"
-                                   Margin="Margin.Normal">
-                            @foreach (JobStatus item in Enum.GetValues(typeof(JobStatus)))
-                            {
-                                <MudSelectItem Value="@item">@item.ToString()</MudSelectItem>
-                            }
-                        </MudSelect>
-             
-                        <MudButton ButtonType="ButtonType.Submit" 
-                                   Variant="Variant.Filled"
-                                   Color="Color.Primary">
-                                   Сохранить
-                        </MudButton> 
-                        <MudButton OnClick="ResetForm"
-                                   Variant="Variant.Filled"
-                                   Color="Color.Secondary">
-                            Отмена
-                        </MudButton>
-                    </EditForm>
-                </MudContainer>
-                <MudContainer MaxWidth=MaxWidth.False Style="width: 50%">
-                    <MudText>Поставить сюда кнопки связей </MudText>
-                </MudContainer>
-            </MudContainer>
-        </MudCardContent>
-    </MudCard>
-}
-else
-{
-    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" ContentAlignment="HorizontalAlignment.Center">
-        Нажмите на задачу на диаграмме Ганта, чтобы открыть ее в редакторе. 
-    </MudAlert>
+            <MudSlider @bind-Value="Job.Progress"
+            Min="0" Max="100"
+            Color="Color.Primary"
+            ValueLabel="true">
+                Прогресс (%)
+            </MudSlider>
+
+            <MudSelect @bind-Value=@Job.Status
+            Label="Статус"
+            Variant="Variant.Outlined"
+            Margin="Margin.Normal">
+                @foreach (JobStatus item in Enum.GetValues(typeof(JobStatus)))
+                {
+                    <MudSelectItem Value="@item">@item.ToString()</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudButton ButtonType="ButtonType.Submit"
+            Variant="Variant.Filled"
+            Color="Color.Primary">
+                Сохранить
+            </MudButton>
+            <MudButton OnClick="ResetForm"
+            Variant="Variant.Filled"
+            Color="Color.Secondary">
+                Отмена
+            </MudButton>
+        </EditForm>
+    </MudContainer>
 }
 
 
 @code {
     [Parameter, EditorRequired]
-    public JobDto? Job { get; set; } = new(); 
+    public JobDto? Job { get; set; } 
     [Parameter, EditorRequired] 
-    public ProjectDto? Project { get; set;} = new();  
+    public ProjectDto? Project { get; set;} 
     [Parameter, EditorRequired]
     public EventCallback<JobDto> JobChanged { get; set; }
     [Parameter, EditorRequired]

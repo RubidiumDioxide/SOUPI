@@ -1,0 +1,32 @@
+﻿<MudContainer MaxWidth=MaxWidth.False Style="width: 50%" Gutters="false" Class="ma-1">
+    <MudText>Поставить сюда кнопки связей </MudText>
+
+    <MudExpansionPanels>
+        <MudExpansionPanel Text="Panel One" MaxHeight="150" Expanded="true">
+            Panel One Content
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="Panel Two" MaxHeight="500">
+            Panel Two Content
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="Panel Three" MaxHeight="1000">
+            Panel Three Content
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="Panel Four">
+            Panel Four Content
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+</MudContainer>
+
+
+@code {
+    [Parameter, EditorRequired]
+    public JobDto? Job { get; set; } 
+    [Parameter, EditorRequired]
+    public ProjectDto? Project { get; set; } 
+    [Parameter, EditorRequired] 
+    public IEnumerable<JobSequenceDto> JobSequences { get; set; } 
+
+
+
+
+}

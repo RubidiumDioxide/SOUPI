@@ -5,6 +5,8 @@ namespace SOUPICore.Services.Interfaces
 {
     public interface IJobSequenceService
     {
+        public Task<IEnumerable<JobSequenceDto>> GetByProjectId(Guid projectId); 
+        
         public Task<JobSequenceDto> Create(Guid firstJobId, Guid secondJobId); 
 
         public Task Delete(Guid jobSequenceId);
