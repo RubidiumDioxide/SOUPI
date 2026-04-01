@@ -24,7 +24,7 @@ namespace SOUPICore.Services
             _localizer = localizer;
         }
 
-        public async Task<IEnumerable<JobSequenceDto>> GetByProjectId(Guid projectId)
+        public async Task<IEnumerable<JobSequenceDisplayDto>> GetByProjectId(Guid projectId)
         {
             try
             {
@@ -40,7 +40,7 @@ namespace SOUPICore.Services
                             || js.SecondJob.ProjectId == projectId)
                     .ToListAsync();
 
-                return jobSequences.Select(js => new JobSequenceDto(js));
+                return jobSequences.Select(js => new JobSequenceDisplayDto(js));
             }
             catch (Exception ex)
             {

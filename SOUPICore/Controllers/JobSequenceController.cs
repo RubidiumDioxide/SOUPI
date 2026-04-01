@@ -23,7 +23,7 @@ namespace SOUPICore.Controllers
         }
 
         [HttpGet("{projectId}")]
-        public async Task<ActionResult<IEnumerable<JobSequenceDto>>> GetByProjectId([FromRoute] Guid projectId)
+        public async Task<ActionResult<IEnumerable<JobSequenceDisplayDto>>> GetByProjectId([FromRoute] Guid projectId)
         {
             try
             {

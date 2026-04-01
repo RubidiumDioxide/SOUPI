@@ -4,9 +4,7 @@
 
 @if (Job != null)
 {
-    <MudContainer MaxWidth=MaxWidth.False Style="width: 50%" Gutters="false" Class="ma-1">
-        <MudText Typo="Typo.h6">Редактирование задачи @Job.Title</MudText>
-
+    <MudContainer MaxWidth=MaxWidth.False Gutters="false">
         <EditForm Model=@Job OnValidSubmit="SaveJob">
             <DataAnnotationsValidator />
 

@@ -16,17 +16,36 @@ export default function GanttChart(props: {
             const GanttConstructor = (Gantt as any).default || Gantt;
 
             ganttRef.current = new GanttConstructor(containerRef.current, props.jobs, {
-                view_mode: props.viewMode,
-                on_click: async (job: any) => {
-                    await (window as any).interop?.callCSharpMethod('SelectJobFromJS', job.id);
-                }
-            });
-        }
+                view_mode: props.viewMode 
+            }); 
 
-        return () => {
-            if (containerRef.current) containerRef.current.innerHTML = '';
-            ganttRef.current = null;
-        };
+            // right-click handler 
+            const handleRightClick = async (e: MouseEvent) => {
+                const taskBar = (e.target as HTMLElement).closest('.bar-wrapper');
+                if (taskBar) {
+                    e.preventDefault();
+                    const jobId = taskBar.getAttribute('data-id');
+
+                    if (jobId && (window as any).interop) {
+                        const coords = {
+                            clientX: e.clientX,
+                            clientY: e.clientY
+                        };
+
+                        await (window as any).interop.callCSharpMethod('RightClickJobFromJS', jobId, coords);
+                    }
+                }
+            };
+
+            const el = containerRef.current;
+            el.addEventListener('contextmenu', handleRightClick);
+
+            return () => {
+                el.removeEventListener('contextmenu', handleRightClick);
+                if (containerRef.current) containerRef.current.innerHTML = '';
+                ganttRef.current = null;
+            };
+        }
     }, []);
 
     useEffect(() => {

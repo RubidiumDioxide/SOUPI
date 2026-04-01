@@ -43,11 +43,11 @@
                 {    
                     <MudPaper Elevation="2" Class="ma-0 pa-0" Style="overflow:hidden; position:relative;">
                         <MudDrawerContainer>
-                            <MudDrawer @bind-Open=@isEditDrawerOpen Elevation="4" Variant=DrawerVariant.Persistent Width="50%">
+                            <MudDrawer @bind-Open=@isEditDrawerOpen Elevation="4" Variant=DrawerVariant.Persistent Width="700px">
                                 <MudContainer>
                                     @if (selectedJob == null)
                                     {
-                                        <MudAlert Severity="Severity.Info">
+                                        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
                                             Нажмите на задачу на диаграмме Ганта, чтобы открыть ее в редакторе.
                                         </MudAlert>
                                     }
@@ -61,17 +61,22 @@
                                                            Color="Color.Default"
                                                            OnClick="@(() => isEditDrawerOpen = false)" />
                                         </MudStack>
-                                        
-                                        <MudContainer Gutters="false" Style="display:flex; flex-direction:row; flex-wrap: nowrap" Class="ma-0 pa-2" MaxWidth="MaxWidth.False">
-                                            <EditJobForm @bind-Job=@selectedJob Project=@project SelectedJobUpdated="JobsUpdated" />
-                                            <JobSequencesEditor Job="selectedJob" Project="project" JobSequences="selectedJobSequences" />
-                                        </MudContainer>
+                                                         
+                                        <MudExpansionPanels>
+                                            <MudExpansionPanel Text="Редактирование свойств " Expanded="true">
+                                                <EditJobForm @bind-Job=@selectedJob Project=@project SelectedJobUpdated="JobsUpdated" />
+                                            </MudExpansionPanel>
+
+                                            <MudExpansionPanel Text="Редактирование связей " Expanded="false">
+                                                <JobSequencesEditor Job="selectedJob" Project="project" JobSequences="selectedJobSequences" />
+                                            </MudExpansionPanel>
+                                        </MudExpansionPanels>
                                     }
                                 </MudContainer>
                             </MudDrawer>
                                
-                            <div class="pa-2">
-                                <GanttChart @ref=ganttChart GanttJobs=@ganttJobs @bind-SelectedGanttJob="selectedGanttJob" @bind-SelectedGanttJob:after="SelectedGanttJobUpdated" />
+                            <div class="pa-2" @oncontextmenu:preventDefault @oncontextmenu:stopPropagation>
+                               <GanttChart @ref=ganttChart GanttJobs=@ganttJobs OnEditMenuTriggered="OnEditMenuTriggered"/>
                             </div>
                         </MudDrawerContainer>
                     </MudPaper>
@@ -80,6 +85,11 @@
         }
     }
 </MudContainer>
+
+<MudMenu @ref="jobMenu" Style=@jobMenuStyle>
+    <MudMenuItem OnClick="SelectJob">Редактировать</MudMenuItem>
+    <MudMenuItem>Удалить</MudMenuItem>
+</MudMenu>
 
 
     @code {
@@ -93,13 +103,15 @@
 
     private ProjectDto? project { get; set; } 
     private IEnumerable<JobDto>? jobs { get; set; } 
-    private IEnumerable<JobSequenceDto>? jobSequences { get; set; } 
+    private IEnumerable<JobSequenceDisplayDto>? jobSequences { get; set; } 
     private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; }  
     private IEnumerable<GanttJobDto>? ganttJobs { get; set; }
-    private GanttJobDto? selectedGanttJob { get; set; } 
+    private Guid? selectedJobId { get; set; }
     private JobDto? selectedJob { get; set; }
-    private IEnumerable<JobSequenceDto>? selectedJobSequences { get; set; }
+    private IEnumerable<JobSequenceDisplayDto>? selectedJobSequences { get; set; }
 
+    private MudMenu jobMenu { get; set; }
+    private string jobMenuStyle { get; set; }
     private GanttChart ganttChart { get; set; }
 
     private bool isEditDrawerOpen { get; set; } = false; 
@@ -161,16 +173,26 @@
         StateHasChanged();
     } 
 
-    private void SelectedGanttJobUpdated()
+    private async Task OnEditMenuTriggered((Guid jobId, MouseEventArgs e) data)
     {
-        if (jobs != null && selectedGanttJob != null && jobSequences != null)
+        jobMenuStyle = $"position: fixed; left: {data.e.ClientX}px; top: {data.e.ClientY}px;"; 
+
+        selectedJobId = data.jobId; 
+
+        await jobMenu.ToggleMenuAsync(data.e);
+    }
+
+    private async Task SelectJob()
+    {
+        if (jobs != null && selectedJobId != null && jobSequences != null)
         {
-            selectedJob = jobs.FirstOrDefault(j => j.Id.ToString() == selectedGanttJob.id); 
+            selectedJob = jobs.FirstOrDefault(j => j.Id == selectedJobId);
             selectedJobSequences = jobSequences
-                .Where(js => jobs.Select(j => j.Id).Contains(js.FirstJobId) 
-                        || jobs.Select(j => j.Id).Contains(js.SecondJobId)); 
-            isEditDrawerOpen = true; 
+                .Where(js => jobs.Select(j => j.Id).Contains(js.FirstJobId)
+                        || jobs.Select(j => j.Id).Contains(js.SecondJobId));
         }
+
+        isEditDrawerOpen = true; 
     }
 
     private async Task JobsUpdated()

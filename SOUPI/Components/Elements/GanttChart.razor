@@ -19,11 +19,10 @@
 
 @code {
     [Parameter, EditorRequired]
-    public GanttJobDto? SelectedGanttJob { get; set; } = null;
-    [Parameter, EditorRequired]
     public IEnumerable<GanttJobDto> GanttJobs { get; set; } = default!;
-    [Parameter, EditorRequired]
-    public EventCallback<GanttJobDto> SelectedGanttJobChanged { get; set; }
+    [Parameter, EditorRequired] 
+    public EventCallback<(Guid, MouseEventArgs)> OnEditMenuTriggered { get; set; }
+
 
     private IJSObjectReference? module;
     private DotNetObjectReference<GanttChart>? dotnetRef = null;
@@ -51,10 +50,9 @@
     }
 
     [JSInvokable]
-    public async Task SelectJobFromJS(string jobId)
+    public async Task RightClickJobFromJS(string jobId, MouseEventArgs coords)
     {
-        SelectedGanttJob = GanttJobs.FirstOrDefault(t => t.id == jobId);
-        await SelectedGanttJobChanged.InvokeAsync(SelectedGanttJob);
+        await OnEditMenuTriggered.InvokeAsync((Guid.Parse(jobId), coords)); 
     }
 
     protected override async Task OnParametersSetAsync()

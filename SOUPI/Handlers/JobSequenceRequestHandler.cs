@@ -20,7 +20,7 @@ namespace SOUPI.Handlers
             _httpClient = httpClient;
         }
 
-        public async Task<IEnumerable<JobSequenceDto>> GetByProjectId(Guid projectId)
+        public async Task<IEnumerable<JobSequenceDisplayDto>> GetByProjectId(Guid projectId)
         {
             try
             {
@@ -30,7 +30,7 @@ namespace SOUPI.Handlers
 
                 var newContent = await response.Content.ReadAsStringAsync();
 
-                var jobSequenceDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<JobSequenceDto>>(newContent, new JsonSerializerOptions
+                var jobSequenceDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<JobSequenceDisplayDto>>(newContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
