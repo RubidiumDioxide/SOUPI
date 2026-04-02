@@ -49,19 +49,19 @@
         }
     }
 
-    [JSInvokable]
-    public async Task RightClickJobFromJS(string jobId, MouseEventArgs coords)
-    {
-        await OnEditMenuTriggered.InvokeAsync((Guid.Parse(jobId), coords)); 
-    }
-
     protected override async Task OnParametersSetAsync()
     {
         if (module != null)
         {
             await module.InvokeVoidAsync("setJobs", GanttJobs);
         }
-    } 
+    }
+
+    [JSInvokable]
+    public async Task RightClickJobFromJS(string jobId, MouseEventArgs coords)
+    {
+        await OnEditMenuTriggered.InvokeAsync((Guid.Parse(jobId), coords)); 
+    }
 
     public async Task SetGanttJobs()
     {

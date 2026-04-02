@@ -151,6 +151,15 @@ namespace SOUPIShared.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Задача с таким названием уже существует в этом проекте .
+        /// </summary>
+        public static string JobTitleNotUnique {
+            get {
+                return ResourceManager.GetString("JobTitleNotUnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Родительская задача не существует в системе.
         /// </summary>
         public static string ParentNotFound {

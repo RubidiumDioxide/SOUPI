@@ -95,8 +95,9 @@ public partial class SoupiDbContext : DbContext
 
             entity.ToTable("JOB");
 
-            entity.HasIndex(j => j.Id).IsUnique(); 
-            
+            entity.HasIndex(j => j.Id).IsUnique();
+            entity.HasIndex(j => new { j.ProjectId, j.Title }).IsUnique(); 
+
             entity.HasOne(j => j.Project).WithMany(p => p.Jobs)
                 .HasForeignKey(j => j.ProjectId)
                 .OnDelete(DeleteBehavior.Restrict); 

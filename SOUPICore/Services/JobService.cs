@@ -15,13 +15,11 @@ namespace SOUPICore.Services
     {
         private readonly SoupiDbContext _context;
         private readonly ILogger<JobService> _logger;
-        private readonly IStringLocalizer<JobServiceErrorMessages> _localizer; 
 
-        public JobService(SoupiDbContext context, ILogger<JobService> logger, IStringLocalizer<JobServiceErrorMessages> localizer)
+        public JobService(SoupiDbContext context, ILogger<JobService> logger)
         {
             _context = context;
             _logger = logger;
-            _localizer = localizer; 
         }
 
         public async Task<IEnumerable<JobDto>> GetByProjectId(Guid projectId)
@@ -32,7 +30,7 @@ namespace SOUPICore.Services
 
                 if (project == null)
                 {
-                    throw new BadRequestException(_localizer["ProjectNotFound"]);
+                    throw new BadRequestException(JobServiceErrorMessages.ProjectNotFound);
                 }
 
                 var jobs = await _context.Jobs
@@ -56,7 +54,7 @@ namespace SOUPICore.Services
 
                 if (job == null)
                 {
-                    throw new NotFoundException(_localizer["JobNotFound"]);
+                    throw new NotFoundException(JobServiceErrorMessages.JobNotFound);
                 }
                 else
                 {
@@ -74,6 +72,13 @@ namespace SOUPICore.Services
         {
             try
             {
+                var existingJob = await _context.Jobs.FirstOrDefaultAsync(j => j.Title == newJobDto.Title); 
+
+                if(existingJob != null) 
+                {
+                    throw new BadRequestException(JobServiceErrorMessages.JobTitleNotUnique); 
+                }
+
                 var newJob = new Job()
                 {
                     ProjectId = newJobDto.ProjectId,
@@ -110,7 +115,7 @@ namespace SOUPICore.Services
 
                 if (job == null)
                 {
-                    throw new BadRequestException(_localizer["JobNotFound"]);
+                    throw new BadRequestException(JobServiceErrorMessages.JobNotFound);
                 }
 
                 job.CopyContentProperties(updatedJobDto); 
@@ -143,7 +148,7 @@ namespace SOUPICore.Services
 
                 if (job == null)
                 {
-                    throw new BadRequestException(_localizer["JobNotFound"]);
+                    throw new BadRequestException(JobServiceErrorMessages.JobNotFound);
                 }
 
                 if(job.ParentJobId == newParentId)
@@ -185,7 +190,7 @@ namespace SOUPICore.Services
 
                 if (job == null)
                 {
-                    throw new BadRequestException(_localizer["JobNotFound"]); 
+                    throw new BadRequestException(JobServiceErrorMessages.JobNotFound); 
                 }
 
                 var jobSequences = job.NextJobSequences.Concat(job.PreviousJobSequences);
@@ -247,28 +252,28 @@ namespace SOUPICore.Services
 
                 if (parentJob == null)
                 {
-                    throw new BadRequestException(_localizer["ParentNotFound"]);
+                    throw new BadRequestException(JobServiceErrorMessages.ParentNotFound);
                 }
             }
 
             if (project == null)
             {
-                throw new BadRequestException(_localizer["ProjectNotFound"]);
+                throw new BadRequestException(JobServiceErrorMessages.ProjectNotFound);
             }
 
             if (creator == null)
             {
-                throw new BadRequestException(_localizer["UserNotFound"]);
+                throw new BadRequestException(JobServiceErrorMessages.UserNotFound);
             }
 
             if (job.EndDateTime <= job.StartDateTime)
             {
-                throw new BadRequestException(_localizer["JobIncompatibleEndStartDates"]);
+                throw new BadRequestException(JobServiceErrorMessages.JobIncompatibleEndStartDates);
             }
 
             if (job.StartDateTime < project.StartDateTime)
             {
-                throw new BadRequestException(_localizer["JobIncompatibleStartProjectDates"]);
+                throw new BadRequestException(JobServiceErrorMessages.JobIncompatibleStartProjectDates);
             }
         }
 
@@ -291,7 +296,7 @@ namespace SOUPICore.Services
                 // If we reach the FirstJobId, a cycle is detected 
                 if (currentJobId == targetJobId)
                 {
-                    throw new BadRequestException(_localizer["JobCyclic"]);
+                    throw new BadRequestException(JobServiceErrorMessages.JobCyclic);
                 }
 
                 if (!visited.Contains(currentJobId))

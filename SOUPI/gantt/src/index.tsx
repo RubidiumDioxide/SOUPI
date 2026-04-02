@@ -23,17 +23,30 @@ function render() {
 } 
 
 export function init(
-    jobs: GanttJob[] = [], 
-    viewMode: string = 'Week' 
+    jobs: GanttJob[] = [],
+    viewMode: string = 'Week'
 ) {
-    currentJobs = [...jobs]; 
-    currentViewMode = viewMode; 
+    currentJobs = [...jobs];
+    currentViewMode = viewMode;
 
-    if (!root) {
-        root = createComponentRoot('react-gantt-root'); 
+    const container = document.getElementById('react-gantt-root');
+
+    if (!container) {
+        console.warn("Target container #react-gantt-root not found.");
+        return;
     }
 
-    render(); 
+    if (root) {
+        try {
+            root.unmount();
+        } catch (e) {
+            // Root might already be partially destroyed by Blazor
+        }
+        root = null;
+    }
+
+    root = createComponentRoot('react-gantt-root');
+    render();
 }
 
 export function setViewMode(viewMode: string) {

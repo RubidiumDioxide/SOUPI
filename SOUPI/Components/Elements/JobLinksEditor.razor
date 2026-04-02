@@ -1,0 +1,169 @@
+﻿@if (Job == null || JobSequences == null || Jobs == null)
+{
+    <LoadingPlaceholder />
+}
+else{
+    @* parent *@ 
+    <MudContainer Class="ma-0 pa-0 mb-4" MaxWidth="MaxWidth.False" Gutters="false">
+        <MudContainer Style="display:flex; flex-direction:row; flex-wrap: nowrap" MaxWidth="MaxWidth.False" Gutters="false">
+            <MudAutocomplete @bind-Value=@newParentTitle
+            SearchFunc="AutocompleteParentJobs"
+            Label="Название новой задачи - родителя"
+            Variant=Variant.Outlined
+            For="@(() => newParentTitle)"
+            Class="ma-1">
+                <NoItemsTemplate>
+                    <MudText Align="Align.Center" Class="px-4 py-1">
+                        Пользователи не найдены
+                    </MudText>
+                </NoItemsTemplate>
+            </MudAutocomplete>
+
+            <MudButton onclick="UpdateParentJob" ButtonType="ButtonType.Submit" Class="ma-1" Color="Color.Primary" Variant="Variant.Text">Изменить</MudButton>
+        </MudContainer>
+    </MudContainer>
+    
+    @* jobSequences *@ 
+    <MudContainer Style="display:flex; flex-direction:row; flex-wrap: nowrap" Class="ma-0 pa-0 mb-4" MaxWidth="MaxWidth.False" Gutters="false">
+        @if (preceedingJobSequences == null || subsequentJobSequences == null)
+        {
+            <LoadingPlaceholder />
+        }
+        else
+        {
+            <MudContainer Class="ma-1 pa-0" MaxWidth="MaxWidth.False" Style="width: 50%" Gutters="false">
+                <MudText Class="mb-2">Предыдущие задачи</MudText>
+
+                @if (preceedingJobSequences.Count() == 0)
+                {
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                        У этой задачи нет предыдущих задач
+                    </MudAlert>
+                }
+                else
+                {
+                    <MudTable Items="@preceedingJobSequences" Hover="true" Breakpoint="Breakpoint.None" Dense="true">
+                        <HeaderContent>
+                            <MudTh></MudTh>
+                            <MudTh></MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Task">@context.FirstJobTitle</MudTd>
+                            <MudTd DataLabel="Actions" Style="text-align: right;">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" Size="Size.Small" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteJobSequence(context.Id))" />
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Success"
+                           FullWidth="true"
+                           Class="mt-1"
+                           Style="border-style: dashed; border-width: 2px; height: 50px;"
+                           StartIcon="@Icons.Material.Filled.Add">
+                    Добавить
+                </MudButton>
+            </MudContainer>
+
+            <MudContainer Class="ma-1 pa-0" MaxWidth="MaxWidth.False" Style="width: 50%" Gutters="false">
+                <MudText Class="mb-2">Следующие задачи</MudText>
+
+                @if (preceedingJobSequences.Count() == 0)
+                {
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                        У этой задачи нет следующих задач
+                    </MudAlert>
+                }
+                else
+                {
+                    <MudTable Items="@subsequentJobSequences" Hover="true" Breakpoint="Breakpoint.None" Dense="true">
+                        <HeaderContent>
+                            <MudTh></MudTh>
+                            <MudTh></MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Task">@context.SecondJobTitle</MudTd>
+                            <MudTd DataLabel="Actions" Style="text-align: right;">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" Size="Size.Small" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteJobSequence(context.Id))" />
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Success"
+                           FullWidth="true"
+                           Class="mt-1"
+                           Style="border-style: dashed; border-width: 2px; height: 50px;"
+                           StartIcon="@Icons.Material.Filled.Add">
+                    Добавить
+                </MudButton>
+            </MudContainer>
+        }
+    </MudContainer>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public JobDto? Job { get; set; } 
+    [Parameter, EditorRequired]
+    public IEnumerable<JobDto>? Jobs { get; set; } 
+    [Parameter, EditorRequired]
+    public ProjectDto? Project { get; set; } 
+    [Parameter, EditorRequired] 
+    public IEnumerable<JobSequenceDisplayDto> JobSequences { get; set; } 
+
+    private IEnumerable<JobSequenceDisplayDto>? preceedingJobSequences { get; set; }
+    private IEnumerable<JobSequenceDisplayDto>? subsequentJobSequences { get; set; } 
+
+    private string? newParentTitle { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if(Job != null && JobSequences != null && Jobs != null)
+        {
+            preceedingJobSequences = JobSequences.Where(js => js.SecondJobId == Job.Id); 
+            subsequentJobSequences = JobSequences.Where(js => js.FirstJobId == Job.Id); 
+
+            if(Job.ParentJobId != null)
+            {
+                var parentJob = Jobs.FirstOrDefault(j => j.Id == Job.ParentJobId); 
+
+                if(parentJob != null)
+                {
+                    newParentTitle = parentJob.Title; 
+                }
+            }
+        }
+    }
+
+    private async Task DeleteJobSequence(Guid jobSequenceId)
+    {
+
+    }
+
+    private async Task UpdateParentJob()
+    {
+
+    }
+
+    private async Task<IEnumerable<string>> AutocompleteParentJobs(string query, CancellationToken cancellationToken)
+    {
+        @if(Jobs != null)
+        {
+            if (string.IsNullOrEmpty(query))
+            {
+                return Jobs.Select(j => j.Title);
+            }
+
+            return Jobs.Where(j => j.Title.Contains(query)).Select(j => j.Title);
+        }
+        else
+        {
+            return new List<string>();
+        }
+    }
+}

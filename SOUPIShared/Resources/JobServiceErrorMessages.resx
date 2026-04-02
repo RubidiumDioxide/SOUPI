@@ -159,4 +159,7 @@
   <data name="JobCyclic" xml:space="preserve">
     <value>Связь между задачами образует цикл</value>
   </data>
+  <data name="JobTitleNotUnique" xml:space="preserve">
+    <value>Задача с таким названием уже существует в этом проекте </value>
+  </data>
 </root>

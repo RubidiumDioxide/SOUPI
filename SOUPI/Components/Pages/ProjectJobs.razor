@@ -10,7 +10,7 @@
 
 <PageTitle>Задачи проекта</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.False" Class="mt-8" Gutters="false">
+<MudContainer MaxWidth="MaxWidth.False" Class="" Style="height:100%; " Gutters="false">
     @if(error != null)
     {
         <MudAlert Severity=severity>@error</MudAlert>
@@ -29,11 +29,11 @@
             }
             else
             {
-                <div class="d-flex justify-center ma-4">
+                /*<div class="d-flex justify-center ma-4">
                     <MudButton OnClick="OpenDialog" Variant="Variant.Filled" Color="Color.Primary">
                         Добавить задачу
                     </MudButton>
-                </div>
+                </div>*/
 
                 if(ganttJobs.Count() == 0)
                 {
@@ -41,8 +41,8 @@
                 }
                 else
                 {    
-                    <MudPaper Elevation="2" Class="ma-0 pa-0" Style="overflow:hidden; position:relative;">
-                        <MudDrawerContainer>
+                    <MudPaper Elevation="2" Class="ma-0 pa-0" Style="height:100%; overflow:hidden; position:relative;" >
+                        <MudDrawerContainer Style="height:100%;">
                             <MudDrawer @bind-Open=@isEditDrawerOpen Elevation="4" Variant=DrawerVariant.Persistent Width="700px">
                                 <MudContainer>
                                     @if (selectedJob == null)
@@ -68,7 +68,7 @@
                                             </MudExpansionPanel>
 
                                             <MudExpansionPanel Text="Редактирование связей " Expanded="false">
-                                                <JobSequencesEditor Job="selectedJob" Project="project" JobSequences="selectedJobSequences" />
+                                                <JobLinksEditor Job="selectedJob" Project="project" JobSequences="selectedJobSequences" Jobs="jobs" />
                                             </MudExpansionPanel>
                                         </MudExpansionPanels>
                                     }

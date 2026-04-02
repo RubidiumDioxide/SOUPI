@@ -31,18 +31,7 @@ namespace SOUPITests.Core.Services
             _context = new SoupiDbContext(options);
             _loggerMock = new Mock<ILogger<JobService>>();
 
-            var localizationOptions = Microsoft.Extensions.Options.Options.Create(new LocalizationOptions
-            {
-                ResourcesPath = ""
-            });  
-
-            var factory = new ResourceManagerStringLocalizerFactory(
-                localizationOptions,
-                Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance);
-
-            var localizer = new StringLocalizer<JobServiceErrorMessages>(factory);
-
-            _service = new JobService(_context, _loggerMock.Object, localizer);
+            _service = new JobService(_context, _loggerMock.Object);
         }
 
 
