@@ -62,9 +62,6 @@ const GanttChart = forwardRef((props: {
 
                         ganttRef.current.tasks = updatedTasks; 
                     },  
-                    is_weekend: (date: Date) => {
-                        return false; 
-                    }, 
                     popup_on: "hover", 
             });
 

@@ -59,7 +59,7 @@
                                                          
                                         <MudExpansionPanels>
                                             <MudExpansionPanel Text="Редактирование свойств " Expanded="true">
-                                                <EditJobForm @bind-Job=@selectedJob Project=@project SelectedJobUpdated="JobsUpdated" Jobs="jobs"/>
+                                                <EditJobForm Job=@selectedJob Project=@project SelectedJobUpdated="JobsUpdated" Jobs="jobs"/>
                                             </MudExpansionPanel>
 
                                             <MudExpansionPanel Text="Редактирование связей " Expanded="false">

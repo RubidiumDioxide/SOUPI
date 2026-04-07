@@ -73,8 +73,6 @@
     [Parameter, EditorRequired]
     public IEnumerable<JobDto>? Jobs { get; set; }
     [Parameter, EditorRequired]
-    public EventCallback<JobDto> JobChanged { get; set; }
-    [Parameter, EditorRequired]
     public EventCallback SelectedJobUpdated { get; set; }
 
     public JobDto? jobBackup { get; set; } = new(); 
@@ -114,7 +112,7 @@
                 throw new SoupiException("Дата конце задачи должна быть позже даты начала ");
             }
 
-            if (Jobs.Select(j => j.Title).Contains(Job.Title.Trim()))
+            if (Jobs.Where(j => j.Id != Job.Id).Select(j => j.Title).Contains(Job.Title.Trim()))
             {
                 throw new SoupiException("Задача с таким названием уже существует в рамках этого проекта ");
             }
