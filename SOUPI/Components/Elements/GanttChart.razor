@@ -11,8 +11,22 @@
         </MudToggleGroup>
     </MudStack>
 
-    <MudPaper Elevation="2" Class="pa-0 mb-6" Style="overflow-x: auto; overflow-y: hidden;">
-        <div id="react-gantt-root" style="display: block;"></div>
+    <MudPaper Elevation="2" Class="pa-0 mb-6" >
+        <div id="gantt-wrapper" style="position: relative;">
+            <div id="react-gantt-root"></div> 
+
+            <MudFab Color="Color.Success"
+                    OnClick=@(() => OnAddButtonClicked.InvokeAsync())
+                    StartIcon="@Icons.Material.Filled.Add" 
+                    Size="Size.Medium"
+                    Style="position: absolute; bottom: 24px; right: 24px; z-index: 999;" />
+
+            <MudFab Color="Color.Warning"
+                    OnClick="SaveButtonClicked")
+                    StartIcon="@Icons.Material.Filled.Save"
+                    Size="Size.Medium"
+                    Style="position: absolute; bottom: 24px; right: 82px; z-index: 999;" />
+        </div>
     </MudPaper>
 </MudContainer>
 
@@ -22,7 +36,10 @@
     public IEnumerable<GanttJobDto> GanttJobs { get; set; } = default!;
     [Parameter, EditorRequired] 
     public EventCallback<(Guid, MouseEventArgs)> OnEditMenuTriggered { get; set; }
-
+    [Parameter, EditorRequired]
+    public EventCallback OnAddButtonClicked { get; set; }
+    [Parameter, EditorRequired]
+    public EventCallback<IEnumerable<GanttJobDto>> OnSaveButtonClicked { get; set; }
 
     private IJSObjectReference? module;
     private DotNetObjectReference<GanttChart>? dotnetRef = null;
@@ -69,6 +86,16 @@
         {
             await module.InvokeVoidAsync("setJobs", GanttJobs);
         }
+    }
+
+    public async Task SaveButtonClicked()
+    {
+        if(module != null)
+        {
+            GanttJobs = await module.InvokeAsync<List<GanttJobDto>>("getJobs");
+        }
+
+        await OnSaveButtonClicked.InvokeAsync(GanttJobs); 
     }
 
     private async Task ChangeScale(string newViewMode)

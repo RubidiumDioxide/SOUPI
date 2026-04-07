@@ -31,7 +31,6 @@
                         <MudTextField @bind-Value=@newProject.Name For="@(() => newProject.Name)" Label="Название проекта" Variant=Variant.Outlined />
                         <MudTextField @bind-Value=@newProject.Description For="@(() => newProject.Description)" Label="Описание проекта" Variant=Variant.Outlined Lines="5" />
                         <MudTextField @bind-Value=@newProject.GithubRepository For="@(() => newProject.GithubRepository)" Label="Название репозитория на Github" Variant=Variant.Outlined /> 
-                        <MudDatePicker @bind-Value=@newProject.StartDateTime Label="Дата начала проекта" Variant=Variant.Outlined />
                     </MudCardContent>
                     <MudCardActions Class="mt-1 ma-auto">
                         <MudButton ButtonType=ButtonType.Submit Color="Color.Primary" Variant="Variant.Filled">Создать</MudButton>

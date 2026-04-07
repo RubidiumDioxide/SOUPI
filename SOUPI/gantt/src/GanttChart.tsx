@@ -1,23 +1,72 @@
-﻿import React, { useEffect, useRef } from 'react';
+﻿import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import Gantt from 'frappe-gantt';
 import '../../node_modules/frappe-gantt/dist/frappe-gantt.css';
 import GanttJob from './GanttJob'; 
 
 
-export default function GanttChart(props: {
+const GanttChart = forwardRef((props: {
     jobs: GanttJob[];
     viewMode: string;
-}) {
-    const containerRef = useRef<HTMLDivElement | null>(null); 
-    const ganttRef = useRef<any>(null);  
+}, ref) => {
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const ganttRef = useRef<any>(null);
+
+    useImperativeHandle(ref, () => ({
+        getInternalJobs: () => { 
+            const retrievedJobs: any[] = ganttRef.current ? ganttRef.current.tasks : [];
+
+            return retrievedJobs.map(job => ({
+                id: job.id,
+                name: job.name,
+                start: job.start,
+                end: job.end,
+                progress: job.progress,
+                dependencies: Array.isArray(job.dependencies)
+                    ? job.dependencies.join(',')
+                    : (job.dependencies || "")
+            }));
+        }
+    }));
 
     useEffect(() => {
         if (containerRef.current && !ganttRef.current) {
             const GanttConstructor = (Gantt as any).default || Gantt;
 
-            ganttRef.current = new GanttConstructor(containerRef.current, props.jobs, {
-                view_mode: props.viewMode 
-            }); 
+            ganttRef.current = new GanttConstructor(containerRef.current,
+                props.jobs as GanttJob[], {
+                    view_mode: props.viewMode,
+                    onprogress_change: function (task: GanttJob, progress: number) {
+                        const updatedTasks = ganttRef.current.tasks.map((job : GanttJob) => {
+                            if (job.id === task.id) {
+                                return {
+                                    ...job,
+                                    progress: progress
+                                };
+                            }
+                            return job;
+                        }); 
+
+                        ganttRef.current.tasks = updatedTasks; 
+                    },
+                    on_date_change: function (task: GanttJob, start: Date, end: Date) {
+                        const updatedTasks = ganttRef.current.tasks.map((job: GanttJob) => {
+                            if (job.id === task.id) {
+                                return {
+                                    ...job,
+                                    start: start, 
+                                    end: end 
+                                };
+                            }
+                            return job;
+                        });
+
+                        ganttRef.current.tasks = updatedTasks; 
+                    },  
+                    is_weekend: (date: Date) => {
+                        return false; 
+                    }, 
+                    popup_on: "hover", 
+            });
 
             // right-click handler 
             const handleRightClick = async (e: MouseEvent) => {
@@ -61,5 +110,6 @@ export default function GanttChart(props: {
     }, [props.viewMode]);
 
     return <div ref={containerRef} className="gantt-target"></div>;
-}
+}); 
 
+export default GanttChart; 

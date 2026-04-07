@@ -97,15 +97,6 @@ namespace SOUPIShared.Resources {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на Дата начала задачи не может быть раньше даты начала проекта.
-        /// </summary>
-        public static string JobIncompatibleStartProjectDates {
-            get {
-                return ResourceManager.GetString("JobIncompatibleStartProjectDates", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Ищет локализованную строку, похожую на Задача не существует в системе.
         /// </summary>
         public static string JobNotFound {

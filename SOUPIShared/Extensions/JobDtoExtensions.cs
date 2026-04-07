@@ -33,7 +33,24 @@ namespace SOUPIShared.Extensions
                 firstJobDto.Progress == secondJobDto.Progress &&
                 firstJobDto.CreationDateTime == secondJobDto.CreationDateTime &&
                 firstJobDto.Status == secondJobDto.Status &&
-                firstJobDto.ParentJobId == secondJobDto.ParentJobId;
+                firstJobDto.ParentJobId == secondJobDto.ParentJobId; 
+        }
+
+        public static bool IsEquivalent(this JobDto jobDto, GanttJobDto ganttJobDto)
+        {
+            try
+            {
+                return jobDto.Id == Guid.Parse(ganttJobDto.id) &&
+                       jobDto.Title == ganttJobDto.name &&
+                       jobDto.StartDateTime == ganttJobDto.start &&
+                       jobDto.EndDateTime == ganttJobDto.end &&
+                       jobDto.Progress == ganttJobDto.progress &&
+                       jobDto.Dependencies == ganttJobDto.dependencies; 
+            }
+            catch 
+            {
+                return false; 
+            }
         }
 
         public static bool AreNonKeyPropertiesEquivalent(this JobDto jobDto, Job job)

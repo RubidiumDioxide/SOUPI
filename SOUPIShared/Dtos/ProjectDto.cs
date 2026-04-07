@@ -19,8 +19,6 @@ namespace SOUPIShared.Dtos
         public Guid CreatorId { get; set; }
         [Required]
         public DateTime CreationDateTime { get; set; } 
-        [Required] 
-        public DateTime StartDateTime { get; set; } 
 
 
         public ProjectDto(Project project)
@@ -31,7 +29,6 @@ namespace SOUPIShared.Dtos
             GithubRepository = project.GithubRepository; 
             CreatorId = project.CreatorId; 
             CreationDateTime = project.CreationDateTime;  
-            StartDateTime = project.StartDateTime; 
         }
 
         public ProjectDto() { }

@@ -7,8 +7,8 @@ namespace SOUPIShared.Dtos
     {
         public string id { get; set; } = "";
         public string name { get; set; } = "";
-        public DateTime? start { get; set; }
-        public DateTime? end { get; set; }
+        public DateTime start { get; set; }
+        public DateTime end { get; set; }
         public int progress { get; set; }
         public string? dependencies { get; set; } 
 

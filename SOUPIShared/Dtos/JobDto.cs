@@ -64,6 +64,16 @@ namespace SOUPIShared.Dtos
             }
         }
 
+        public JobDto(GanttJobDto ganttJobDto)
+        {
+            Id = Guid.Parse(ganttJobDto.id); 
+            Title = ganttJobDto.name;
+            StartDateTime = ganttJobDto.start;
+            EndDateTime = ganttJobDto.end;
+            Progress = ganttJobDto.progress;
+            Dependencies = ganttJobDto.dependencies;
+        }
+
         public JobDto() { }
     }
 }

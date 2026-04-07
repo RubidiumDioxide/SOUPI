@@ -7,7 +7,7 @@
         <MudText Typo="Typo.h5">Новая задача</MudText>
     </TitleContent>
     <DialogContent>
-        @if (User == null || Project == null || newJob == null)
+        @if (User == null || Project == null || Jobs == null || newJob == null)
         {
             <MudText Align="Align.Center">Загрузка...</MudText>
         }
@@ -77,11 +77,13 @@
 
 @code {
     [CascadingParameter]
-    IMudDialogInstance MudDialog { get; set; } = default!;
+    IMudDialogInstance MudDialog { get; set; } = default!; 
     [Parameter, EditorRequired]
     public UserDto? User { get; set; } 
     [Parameter, EditorRequired]
     public ProjectDto? Project { get; set; }
+    [Parameter, EditorRequired]
+    public IEnumerable<JobDto>? Jobs { get; set; }
 
     private JobDto newJob = new JobDto();
     private DateTime? startDateTime = DateTime.Today; 
@@ -119,9 +121,9 @@
                 throw new SoupiException("Дата конце задачи должна быть позже даты начала "); 
             }
 
-            if (newJob.StartDateTime < Project!.StartDateTime)
+            if(Jobs.Select(j => j.Title).Contains(newJob.Title.Trim()))
             {
-                throw new SoupiException("Дата начала задачи не должна быть раньше даты начала проекта "); 
+                throw new SoupiException("Задача с таким названием уже существует в рамках этого проекта "); 
             }
 
             await jobRequestHandler.Create(newJob); 

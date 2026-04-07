@@ -32,7 +32,6 @@ namespace SOUPITests.Helpers
                 Name = "Test Project",
                 CreatorId = creatorId,
                 CreationDateTime = DateTime.UtcNow,
-                StartDateTime = DateTime.UtcNow
             };
             _context.Projects.Add(project);
             await _context.SaveChangesAsync();

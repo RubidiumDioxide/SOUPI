@@ -71,6 +71,8 @@
     [Parameter, EditorRequired] 
     public ProjectDto? Project { get; set;} 
     [Parameter, EditorRequired]
+    public IEnumerable<JobDto>? Jobs { get; set; }
+    [Parameter, EditorRequired]
     public EventCallback<JobDto> JobChanged { get; set; }
     [Parameter, EditorRequired]
     public EventCallback SelectedJobUpdated { get; set; }
@@ -112,9 +114,9 @@
                 throw new SoupiException("Дата конце задачи должна быть позже даты начала ");
             }
 
-            if (Job.StartDateTime < Project!.StartDateTime)
+            if (Jobs.Select(j => j.Title).Contains(Job.Title.Trim()))
             {
-                throw new SoupiException("Дата начала задачи не должна быть раньше даты начала проекта ");
+                throw new SoupiException("Задача с таким названием уже существует в рамках этого проекта ");
             }
 
             await jobRequestHandler.UpdateContent(Job);

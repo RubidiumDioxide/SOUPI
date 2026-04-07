@@ -8,6 +8,7 @@ import './customstyle.css';
 let root: ReturnType<typeof createComponentRoot> | null = null;
 let currentJobs: GanttJob[] = [];    
 let currentViewMode: string = 'Week'; 
+const ganttComponentRef = React.createRef<any>(); 
 
 function render() {
     if (!root) return;
@@ -15,8 +16,9 @@ function render() {
     root.render(
         <React.StrictMode>
             <GanttChart
+                ref={ganttComponentRef}
                 jobs={currentJobs}
-                viewMode={currentViewMode}
+                viewMode={currentViewMode} 
             />
         </React.StrictMode>
     )
@@ -59,6 +61,13 @@ export function setJobs(jobs: GanttJob []) {
     currentJobs = jobs; 
 
     render();
+}
+
+export function getJobs(): GanttJob[] {
+    if (ganttComponentRef.current) {
+        return ganttComponentRef.current.getInternalJobs();
+    }
+    return currentJobs; 
 }
 
 export function cleanup() {

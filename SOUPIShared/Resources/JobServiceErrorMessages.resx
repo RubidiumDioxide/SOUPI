@@ -132,9 +132,6 @@
   <data name="JobNotFound" xml:space="preserve">
     <value>Задача не существует в системе</value>
   </data>
-  <data name="JobIncompatibleStartProjectDates" xml:space="preserve">
-    <value>Дата начала задачи не может быть раньше даты начала проекта</value>
-  </data>
   <data name="ProjectNotFound" xml:space="preserve">
     <value>Проект не существует в системе</value>
   </data>

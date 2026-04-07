@@ -270,11 +270,6 @@ namespace SOUPICore.Services
             {
                 throw new BadRequestException(JobServiceErrorMessages.JobIncompatibleEndStartDates);
             }
-
-            if (job.StartDateTime < project.StartDateTime)
-            {
-                throw new BadRequestException(JobServiceErrorMessages.JobIncompatibleStartProjectDates);
-            }
         }
 
         private async Task CheckIfCyclic(Guid childJobId, Guid? parentJobId)

@@ -70,7 +70,6 @@ namespace SOUPICore.Services
                     Description = newProjectDto.Description,
                     GithubRepository = newProjectDto.GithubRepository,
                     CreatorId = newProjectDto.CreatorId, 
-                    StartDateTime = newProjectDto.StartDateTime, 
                 };
 
                 await _context.Projects.AddAsync(newProject);

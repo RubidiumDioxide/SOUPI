@@ -334,44 +334,6 @@ namespace SOUPITests.Core.Services
         }
 
         [Fact]
-        public async Task Create_ShouldLogErrorAndThrowBadRequestException_WhenStartDateEarlierThanProjectStartDate()
-        {
-            // Arrange
-            var user = await SeedUser(_context);
-            var project = await SeedProject(_context, user.Id);
-            var newJobDto = new JobDto
-            {
-                Id = Guid.NewGuid(),
-                ProjectId = project.Id,
-                CreatorId = user.Id,
-                Title = "Test Job",
-                StartDateTime = DateTime.UtcNow.AddDays(-10),
-                EndDateTime = DateTime.UtcNow,
-                Progress = 0,
-                CreationDateTime = DateTime.UtcNow,
-                Status = JobStatus.New
-            };
-
-            string expectedMessage = JobServiceErrorMessages.JobIncompatibleStartProjectDates;
-
-            // Act
-            Func<Task> act = async () => await _service.Create(newJobDto);
-
-            // Assert
-            await act.Should().ThrowAsync<BadRequestException>()
-                .WithMessage(expectedMessage);
-
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Error,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => true),
-                    It.IsAny<BadRequestException>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
-        }
-
-        [Fact]
         public async Task Create_ShouldLogErrorAndThrow_WhenExceptionOccurs()
         {
             // Arrange 
@@ -514,39 +476,6 @@ namespace SOUPITests.Core.Services
             updatedJobDto.Progress = 70;
             updatedJobDto.Status = JobStatus.Working;
             string expectedMessage = JobServiceErrorMessages.JobIncompatibleEndStartDates;
-
-            // Act
-            Func<Task> act = async () => await _service.UpdateContent(updatedJobDto);
-
-            // Assert
-            await act.Should().ThrowAsync<BadRequestException>()
-                .WithMessage(expectedMessage);
-
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Error,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => true),
-                    It.IsAny<BadRequestException>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
-        }
-
-        [Fact]
-        public async Task UpdateContent_ShouldLogErrorAndThrowBadRequestException_WhenStartDateEarlierThenProjectStartDate()
-        {
-            // Arrange
-            var user = await SeedUser(_context);
-            var project = await SeedProject(_context, user.Id);
-            var job = await SeedJob(_context, project.Id, user.Id);
-            var updatedJobDto = new JobDto(job);
-            updatedJobDto.Title = "newTitle";
-            updatedJobDto.Body = "newBody";
-            updatedJobDto.StartDateTime = DateTime.UtcNow.AddDays(-10);
-            updatedJobDto.EndDateTime = DateTime.UtcNow.AddDays(11);
-            updatedJobDto.Progress = 70;
-            updatedJobDto.Status = JobStatus.Working;
-            string expectedMessage = JobServiceErrorMessages.JobIncompatibleStartProjectDates; 
 
             // Act
             Func<Task> act = async () => await _service.UpdateContent(updatedJobDto);

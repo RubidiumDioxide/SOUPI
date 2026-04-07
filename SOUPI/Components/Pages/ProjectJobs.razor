@@ -6,6 +6,7 @@
 @inject ITeamMemberRequestHandler teamMemberRequestHandler
 @inject IGithubRequestHandler githubRequestHandler
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 
 <PageTitle>Задачи проекта</PageTitle>
@@ -29,12 +30,6 @@
             }
             else
             {
-                /*<div class="d-flex justify-center ma-4">
-                    <MudButton OnClick="OpenDialog" Variant="Variant.Filled" Color="Color.Primary">
-                        Добавить задачу
-                    </MudButton>
-                </div>*/
-
                 if(ganttJobs.Count() == 0)
                 {
                     <MudAlert Severity=Severity.Warning>Здесь пока ничего нет :(</MudAlert> 
@@ -64,7 +59,7 @@
                                                          
                                         <MudExpansionPanels>
                                             <MudExpansionPanel Text="Редактирование свойств " Expanded="true">
-                                                <EditJobForm @bind-Job=@selectedJob Project=@project SelectedJobUpdated="JobsUpdated" />
+                                                <EditJobForm @bind-Job=@selectedJob Project=@project SelectedJobUpdated="JobsUpdated" Jobs="jobs"/>
                                             </MudExpansionPanel>
 
                                             <MudExpansionPanel Text="Редактирование связей " Expanded="false">
@@ -76,8 +71,12 @@
                             </MudDrawer>
                                
                             <div class="pa-2" @oncontextmenu:preventDefault @oncontextmenu:stopPropagation>
-                               <GanttChart @ref=ganttChart GanttJobs=@ganttJobs OnEditMenuTriggered="OnEditMenuTriggered"/>
-                            </div>
+                                <GanttChart @ref=ganttChart 
+                                            GanttJobs=@ganttJobs 
+                                            OnEditMenuTriggered="OnEditMenuTriggered" 
+                                            OnAddButtonClicked="OpenAddDialog" 
+                                            OnSaveButtonClicked="SaveChangesToJobs"/>
+                           </div>
                         </MudDrawerContainer>
                     </MudPaper>
                 }
@@ -128,7 +127,7 @@
                 await LoadProject();
                 await LoadJobs(); 
                 await LoadJobSequences(); 
-                await LoadTeamMembers(); 
+                await LoadTeamMembers();  
             }
             catch (SoupiException ex)
             {
@@ -140,6 +139,8 @@
                 error = "Произошла непредвиденная ошибка ";
                 severity = Severity.Error;
             }
+
+            StateHasChanged();
         }
     }
 
@@ -155,22 +156,16 @@
         jobs = await jobRequestHandler.GetByProjectId(projectId);
 
         ganttJobs = jobs.Select(j => new GanttJobDto(j)); 
-
-        StateHasChanged();
     }
 
     private async Task LoadJobSequences()
     {
         jobSequences = await jobSequenceRequestHandler.GetByProjectId(projectId);
-
-        StateHasChanged();
     }
 
     private async Task LoadTeamMembers()
     {
         teamMembers = await teamMemberRequestHandler.GetByProjectId(projectId);
-
-        StateHasChanged();
     } 
 
     private async Task OnEditMenuTriggered((Guid jobId, MouseEventArgs e) data)
@@ -198,9 +193,10 @@
     private async Task JobsUpdated()
     {
         await LoadJobs(); 
+        StateHasChanged();
     }
 
-    private async Task OpenDialog()
+    private async Task OpenAddDialog()
     {
         var parameters = new DialogParameters<NewJobForm>
         {
@@ -217,5 +213,39 @@
         {
             await JobsUpdated(); 
         }
+    }
+
+    private async Task SaveChangesToJobs(IEnumerable<GanttJobDto> ganttJobDtos)
+    {
+        foreach(var gj in ganttJobDtos)
+        {
+            try
+            {
+                var existingJob = jobs.FirstOrDefault(j => j.Id == Guid.Parse(gj.id));
+
+                if (existingJob == null)
+                {
+                    throw new Exception();
+                }
+
+                if (!existingJob.IsEquivalent(gj))
+                {
+                    existingJob.StartDateTime = gj.start; 
+                    existingJob.EndDateTime = gj.end; 
+                    existingJob.Progress = gj.progress; 
+                
+                    await jobRequestHandler.UpdateContent(existingJob); 
+                }
+            }
+            catch 
+            {
+                Snackbar.Add("При сохранении задачи произошла непредвиденная ошибка ", Severity.Error);
+            }
+        }
+
+        await LoadJobs(); 
+        StateHasChanged();
+        
+        Snackbar.Add("Задачи были успешно сохранены ", Severity.Success); 
     }
 }
