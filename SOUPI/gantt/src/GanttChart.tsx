@@ -32,6 +32,12 @@ const GanttChart = forwardRef((props: {
         if (containerRef.current && !ganttRef.current) {
             const GanttConstructor = (Gantt as any).default || Gantt;
 
+            const custom_bar_height = 30; 
+            const custom_padding = 10; 
+            const custom_upper_header_height = 45; 
+            const calculated_container_height = (props.jobs.length * (custom_bar_height + custom_padding)) + custom_upper_header_height + 200; 
+            const custom_container_height = (calculated_container_height > 600) ? "auto" : calculated_container_height;
+
             ganttRef.current = new GanttConstructor(containerRef.current,
                 props.jobs as GanttJob[], {
                     view_mode: props.viewMode,
@@ -63,8 +69,12 @@ const GanttChart = forwardRef((props: {
                         ganttRef.current.tasks = updatedTasks; 
                     },  
                     popup_on: "hover", 
+                    bar_height: custom_bar_height, 
+                    padding: custom_padding, 
+                    upper_header_height: custom_upper_header_height, 
+                    container_height: custom_container_height 
             });
-
+             
             // right-click handler 
             const handleRightClick = async (e: MouseEvent) => {
                 const taskBar = (e.target as HTMLElement).closest('.bar-wrapper');
