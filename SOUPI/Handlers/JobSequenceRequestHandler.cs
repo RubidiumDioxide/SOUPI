@@ -72,7 +72,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.DeleteAsync($"{deleteUrl}{jobSequenceId}");
+                var response = await _httpClient.GetAsync($"{deleteUrl}{jobSequenceId}");
 
                 response.EnsureSuccessStatusCode();
             }

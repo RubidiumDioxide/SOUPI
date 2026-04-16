@@ -3,11 +3,11 @@
 
 
 <MudDialog>
-    <TitleContent>
-        <MudText Typo="Typo.h5">Новая задача</MudText>
+    <TitleContent> 
+            <MudText Typo="Typo.h5">@($"Новая {((!IsChildJob)? ("задача ") : ("подзадача "))}")</MudText>           
     </TitleContent>
     <DialogContent>
-        @if (User == null || Project == null || Jobs == null || newJob == null)
+        @if (User == null || Project == null || ProjectJobs == null || newJob == null)
         {
             <MudText Align="Align.Center">Загрузка...</MudText>
         }
@@ -83,14 +83,29 @@
     [Parameter, EditorRequired]
     public ProjectDto? Project { get; set; }
     [Parameter, EditorRequired]
-    public IEnumerable<JobDto>? Jobs { get; set; }
+    public IEnumerable<JobDto>? ProjectJobs { get; set; } 
+    [Parameter, EditorRequired]
+    public JobDto? ParentJob { get; set; } 
+    [Parameter, EditorRequired]
+    public bool IsChildJob { get; set; }
 
     private JobDto newJob = new JobDto();
-    private DateTime? startDateTime = DateTime.Today; 
-    private DateTime? endDateTime = DateTime.Today.AddDays(10); 
+    private DateTime? startDateTime { get; set; }
+    private DateTime? endDateTime { get; set; }
 
     protected override void OnParametersSet()
     {
+        if (IsChildJob && ParentJob != null)
+        {
+            startDateTime = ParentJob.StartDateTime; 
+            endDateTime = startDateTime.Value.AddDays(10); 
+        }
+        else
+        {
+            startDateTime = DateTime.Today;
+            endDateTime = DateTime.Today.AddDays(10);
+        }
+
         if(User != null && Project != null)
         {
             ResetForm();       
@@ -103,6 +118,11 @@
 
         newJob.ProjectId = Project!.Id;
         newJob.CreatorId = User!.Id; 
+
+        if (IsChildJob && ParentJob != null)
+        {
+            newJob.ParentJobId = ParentJob.Id;
+        }
 
         StateHasChanged();
     }
@@ -121,7 +141,7 @@
                 throw new SoupiException("Дата конце задачи должна быть позже даты начала "); 
             }
 
-            if(Jobs.Select(j => j.Title).Contains(newJob.Title.Trim()))
+            if(ProjectJobs.Select(j => j.Title).Contains(newJob.Title.Trim()))
             {
                 throw new SoupiException("Задача с таким названием уже существует в рамках этого проекта "); 
             }

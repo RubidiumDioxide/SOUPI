@@ -38,8 +38,9 @@ namespace SOUPIShared.Dtos
 
         public Guid? ParentJobId { get; set; }
 
-        public string? Dependencies { get; set; } = default!; 
+        public string? Dependencies { get; set; } = default!;
 
+        public bool HasChildren { get; set; } = default!; 
 
         public JobDto(Job job)
         {
@@ -62,6 +63,8 @@ namespace SOUPIShared.Dtos
                    string.Join(", ", job.PreviousJobSequences
                        .Select(js => js.FirstJobId.ToString()));
             }
+
+            HasChildren = job.ChildJobs != null && job.ChildJobs.Count != 0; 
         }
 
         public JobDto(GanttJobDto ganttJobDto)

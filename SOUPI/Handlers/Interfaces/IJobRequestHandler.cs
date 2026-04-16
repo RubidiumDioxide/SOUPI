@@ -1,19 +1,22 @@
-﻿using SOUPIShared.Dtos;
+﻿using SOUPIShared.Dtos; 
 
-namespace SOUPI.Handlers.Interfaces
+
+namespace SOUPI.Handlers.Interfaces 
 {
     public interface IJobRequestHandler
     {
         public Task<JobDto> GetById(Guid jobId); 
-        
+
         public Task<IEnumerable<JobDto>> GetByProjectId(Guid projectId); 
+        
+        public Task<IEnumerable<JobDto>> GetByProjectIdParentId(Guid projectId, Guid? parentJobId); 
         
         public Task<JobDto> Create(JobDto newJobDto); 
         
         public Task<JobDto> UpdateContent(JobDto updatedJobDto); 
         
-        public Task<JobDto> UpdateParent(JobDto updatedJobDto); 
+        public Task<JobDto> UpdateParent(Guid jobId, Guid? newParentJobId); 
         
-        public Task Delete(Guid jobId); 
+        public Task Delete(Guid jobId, bool preserveChildren); 
     }
 }

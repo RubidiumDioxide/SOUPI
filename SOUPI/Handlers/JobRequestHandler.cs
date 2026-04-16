@@ -12,6 +12,7 @@ namespace SOUPI.Handlers
 
         private const string getByIdUrl = "/api/job/getbyid/";
         private const string getByProjectIdUrl = "/api/job/getbyprojectid/";
+        private const string getByProjectIdParentIdUrl = "/api/job/getbyprojectidparentid/";
         private const string createUrl = "/api/job/create/";
         private const string updateContentUrl = "/api/job/updatecontent/";
         private const string updateParentUrl = "/api/job/updateparent/";
@@ -71,6 +72,31 @@ namespace SOUPI.Handlers
             }
         }
 
+
+        public async Task<IEnumerable<JobDto>> GetByProjectIdParentId(Guid projectId, Guid? parentJobId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{getByProjectIdParentIdUrl}{projectId}/{parentJobId}"); 
+
+                response.EnsureSuccessStatusCode();
+
+                var newContent = await response.Content.ReadAsStringAsync();
+
+                var jobDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<JobDto>>(newContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                return jobDtos!; 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Не удалось загрузить задачи {ex.Message}");
+                throw new SoupiException("Не удалось загрузить задачи. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
+        }
+
         public async Task<JobDto> Create(JobDto jobDto)
         {
             try
@@ -121,13 +147,12 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<JobDto> UpdateParent(JobDto updatedJobDto)
+        public async Task<JobDto> UpdateParent(Guid jobId, Guid? newParentJobId)
         {
             try
             {
-                var content = JsonContent.Create(updatedJobDto);
-
-                var response = await _httpClient.PostAsync(updateParentUrl, content);
+                var response = await _httpClient.GetAsync(
+                    ((newParentJobId == null) ? $"{updateParentUrl}{jobId}" : $"{updateParentUrl}{jobId}/{newParentJobId}"));
 
                 response.EnsureSuccessStatusCode();
 
@@ -147,11 +172,11 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task Delete(Guid jobId)
+        public async Task Delete(Guid jobId, bool preserveChildren)
         {
             try
             {
-                var response = await _httpClient.DeleteAsync($"{deleteUrl}{jobId}");
+                var response = await _httpClient.GetAsync($"{deleteUrl}{jobId}/{preserveChildren}");
 
                 response.EnsureSuccessStatusCode();
             }

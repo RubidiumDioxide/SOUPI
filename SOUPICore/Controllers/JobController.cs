@@ -43,19 +43,18 @@ namespace SOUPICore.Controllers
             }
         }
 
-
         [HttpGet("{projectId}")]
         public async Task<ActionResult<IEnumerable<JobDto>>> GetByProjectId([FromRoute] Guid projectId)
         {
             try
             {
-                var jobs = await _jobService.GetByProjectId(projectId);    
+                var jobs = await _jobService.GetByProjectId(projectId);
 
-                return Ok(jobs); 
+                return Ok(jobs);
             }
             catch (BadRequestException)
             {
-                return BadRequest(); 
+                return BadRequest();
             }
             catch (Exception ex)
             {
@@ -64,6 +63,25 @@ namespace SOUPICore.Controllers
             }
         }
 
+        [HttpGet("{projectId}/{parentJobId?}")]
+        public async Task<ActionResult<IEnumerable<JobDto>>> GetByProjectIdParentId([FromRoute] Guid projectId, [FromRoute] Guid? parentJobId)
+        {
+            try
+            {
+                var jobs = await _jobService.GetByProjectIdParentId(projectId, parentJobId);
+
+                return Ok(jobs);
+            }
+            catch (BadRequestException)
+            {
+                return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
+        }
 
         [HttpPost]
         public async Task<ActionResult<JobDto>> Create([FromBody] JobDto newJobDto)
@@ -105,12 +123,12 @@ namespace SOUPICore.Controllers
             }
         }
 
-        [HttpPost("{jobId}/{newParentId}")]
-        public async Task<ActionResult<JobDto>> UpdateParent([FromRoute] Guid jobId, [FromRoute] Guid? newParentId)
+        [HttpGet("{jobId}/{newParentJobId?}")]
+        public async Task<ActionResult<JobDto>> UpdateParent([FromRoute] Guid jobId, [FromRoute] Guid? newParentJobId)
         {
             try
             {
-                var job = await _jobService.UpdateParent(jobId, newParentId);
+                var job = await _jobService.UpdateParent(jobId, newParentJobId);
 
                 return Ok(job);
             }

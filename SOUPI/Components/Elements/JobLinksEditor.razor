@@ -1,4 +1,9 @@
-﻿@if (Job == null || JobSequences == null || Jobs == null)
+﻿@inject IJobSequenceRequestHandler jobSequenceRequestHandler;
+@inject IJobRequestHandler jobRequestHandler;
+@inject ISnackbar Snackbar
+
+
+@if (Job == null || jobSequences == null || ProjectJobs == null || CurrentLevelJobs == null)
 {
     <LoadingPlaceholder />
 }
@@ -6,20 +11,22 @@ else{
     @* parent *@ 
     <MudContainer Class="ma-0 pa-0 mb-4" MaxWidth="MaxWidth.False" Gutters="false">
         <MudContainer Style="display:flex; flex-direction:row; flex-wrap: nowrap" MaxWidth="MaxWidth.False" Gutters="false">
-            <MudAutocomplete @bind-Value=@newParentTitle
-            SearchFunc="AutocompleteParentJobs"
-            Label="Название новой задачи - родителя"
-            Variant=Variant.Outlined
-            For="@(() => newParentTitle)"
-            Class="ma-1">
+            <MudAutocomplete T="string" 
+                             Clearable="true"
+                             @bind-Value=@newParentJobTitle
+                             SearchFunc="AutocompleteParentJobs"
+                             Label="Название новой задачи - родителя"
+                             Variant=Variant.Outlined
+                             For="@(() => newParentJobTitle)"
+                             Class="ma-1">
                 <NoItemsTemplate>
                     <MudText Align="Align.Center" Class="px-4 py-1">
-                        Пользователи не найдены
+                        Подходящие задачи не найдены 
                     </MudText>
                 </NoItemsTemplate>
             </MudAutocomplete>
 
-            <MudButton onclick="UpdateParentJob" ButtonType="ButtonType.Submit" Class="ma-1" Color="Color.Primary" Variant="Variant.Text">Изменить</MudButton>
+            <MudButton OnClick="UpdateParentJob" ButtonType="ButtonType.Submit" Class="ma-1" Color="Color.Primary" Variant="Variant.Text">Изменить</MudButton>
         </MudContainer>
     </MudContainer>
     
@@ -48,29 +55,40 @@ else{
                             <MudTh></MudTh>
                         </HeaderContent>
                         <RowTemplate>
-                            <MudTd DataLabel="Task">@context.FirstJobTitle</MudTd>
-                            <MudTd DataLabel="Actions" Style="text-align: right;">
-                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" Size="Size.Small" />
+                            <MudTd>@context.FirstJobTitle</MudTd>
+                            <MudTd Style="text-align: right;">
                                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteJobSequence(context.Id))" />
                             </MudTd>
                         </RowTemplate>
                     </MudTable>
                 }
 
-                <MudButton Variant="Variant.Outlined"
-                           Color="Color.Success"
-                           FullWidth="true"
-                           Class="mt-1"
-                           Style="border-style: dashed; border-width: 2px; height: 50px;"
-                           StartIcon="@Icons.Material.Filled.Add">
-                    Добавить
-                </MudButton>
+                <MudContainer Class="mt-2" Style="display:flex; flex-direction:row; flex-wrap: nowrap" MaxWidth="MaxWidth.False" Gutters="false">
+                    <MudAutocomplete @bind-Value=@newPreceedingJobTitle
+                                     SearchFunc="AutocompletePreceedingJobs"
+                                     Label="Название предыдущей задачи "
+                                     Variant=Variant.Outlined
+                                     For="@(() => newPreceedingJobTitle)"
+                                     Class="ma-1">
+                        <NoItemsTemplate>
+                            <MudText Align="Align.Center" Class="px-4 py-1">
+                                Подходящие задачи не найдены 
+                            </MudText>
+                        </NoItemsTemplate>
+                    </MudAutocomplete>
+
+                    <MudIconButton OnClick="AddPreceedingJob"
+                                   Variant="Variant.Text"
+                                   Color="Color.Success"
+                                   Class="ma-1"  
+                                   Icon="@Icons.Material.Filled.Add" /> 
+                </MudContainer>
             </MudContainer>
 
             <MudContainer Class="ma-1 pa-0" MaxWidth="MaxWidth.False" Style="width: 50%" Gutters="false">
                 <MudText Class="mb-2">Следующие задачи</MudText>
 
-                @if (preceedingJobSequences.Count() == 0)
+                @if (subsequentJobSequences.Count() == 0)
                 {
                     <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
                         У этой задачи нет следующих задач
@@ -84,23 +102,34 @@ else{
                             <MudTh></MudTh>
                         </HeaderContent>
                         <RowTemplate>
-                            <MudTd DataLabel="Task">@context.SecondJobTitle</MudTd>
-                            <MudTd DataLabel="Actions" Style="text-align: right;">
-                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" Size="Size.Small" />
+                            <MudTd>@context.SecondJobTitle</MudTd>
+                            <MudTd Style="text-align: right;">
                                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteJobSequence(context.Id))" />
                             </MudTd>
                         </RowTemplate>
                     </MudTable>
                 }
 
-                <MudButton Variant="Variant.Outlined"
-                           Color="Color.Success"
-                           FullWidth="true"
-                           Class="mt-1"
-                           Style="border-style: dashed; border-width: 2px; height: 50px;"
-                           StartIcon="@Icons.Material.Filled.Add">
-                    Добавить
-                </MudButton>
+                <MudContainer Class="mt-2" Style="display:flex; flex-direction:row; flex-wrap: nowrap" MaxWidth="MaxWidth.False" Gutters="false">
+                    <MudAutocomplete @bind-Value=@newSubsequentJobTitle
+                                     SearchFunc="AutocompleteSubsequentJobs"
+                                     Label="Название следующей задачи "
+                                     Variant=Variant.Outlined
+                                     For="@(() => newSubsequentJobTitle)"
+                                     Class="ma-1">
+                        <NoItemsTemplate>
+                            <MudText Align="Align.Center" Class="px-4 py-1">
+                                Подходящие задачи не найдены 
+                            </MudText>
+                        </NoItemsTemplate>
+                    </MudAutocomplete>
+
+                    <MudIconButton OnClick="AddSubsequentJob"
+                                   Variant="Variant.Text"
+                                   Color="Color.Success"
+                                   Class="ma-1"
+                                   Icon="@Icons.Material.Filled.Add" />
+                </MudContainer>
             </MudContainer>
         }
     </MudContainer>
@@ -110,56 +139,248 @@ else{
     [Parameter, EditorRequired]
     public JobDto? Job { get; set; } 
     [Parameter, EditorRequired]
-    public IEnumerable<JobDto>? Jobs { get; set; } 
+    public IEnumerable<JobDto>? ProjectJobs { get; set; } 
+    [Parameter, EditorRequired] 
+    public IEnumerable<JobDto>? CurrentLevelJobs { get; set; }
     [Parameter, EditorRequired]
     public ProjectDto? Project { get; set; } 
-    [Parameter, EditorRequired] 
-    public IEnumerable<JobSequenceDisplayDto> JobSequences { get; set; } 
+    [Parameter, EditorRequired]
+    public EventCallback SelectedJobUpdated { get; set; }
 
+    public IEnumerable<JobSequenceDisplayDto>? jobSequences { get; set; } 
     private IEnumerable<JobSequenceDisplayDto>? preceedingJobSequences { get; set; }
     private IEnumerable<JobSequenceDisplayDto>? subsequentJobSequences { get; set; } 
 
-    private string? newParentTitle { get; set; }
+    private IEnumerable<JobDto>? availiblePreceedingJobs { get; set; } 
+    private IEnumerable<JobDto>? availibleSubsequentJobs { get; set; } 
+
+    private string? newParentJobTitle { get; set; }
+    private string? newPreceedingJobTitle { get; set; }
+    private string? newSubsequentJobTitle { get; set; } 
 
     protected override async Task OnParametersSetAsync()
     {
-        if(Job != null && JobSequences != null && Jobs != null)
+        if (Job != null && ProjectJobs != null && Project != null && CurrentLevelJobs != null)
         {
-            preceedingJobSequences = JobSequences.Where(js => js.SecondJobId == Job.Id); 
-            subsequentJobSequences = JobSequences.Where(js => js.FirstJobId == Job.Id); 
-
-            if(Job.ParentJobId != null)
+            try
             {
-                var parentJob = Jobs.FirstOrDefault(j => j.Id == Job.ParentJobId); 
+                await LoadJobSequences(); 
 
-                if(parentJob != null)
+                preceedingJobSequences = jobSequences.Where(js => js.SecondJobId == Job.Id);
+                subsequentJobSequences = jobSequences.Where(js => js.FirstJobId == Job.Id);
+
+                availiblePreceedingJobs = CurrentLevelJobs.Where(j => j.Id != Job.Id)
+                                              .Where(j => !jobSequences.Any(js => js.SecondJobId == Job.Id && js.FirstJobId == j.Id));
+                availibleSubsequentJobs = CurrentLevelJobs.Where(j => j.Id != Job.Id)
+                                              .Where(j => !jobSequences.Any(js => js.FirstJobId == Job.Id && js.SecondJobId == j.Id));
+
+                if (Job.ParentJobId != null)
                 {
-                    newParentTitle = parentJob.Title; 
+                    var parentJob = ProjectJobs.FirstOrDefault(j => j.Id == Job.ParentJobId);
+
+                    if (parentJob != null)
+                    {
+                        newParentJobTitle = parentJob.Title;
+                    }
                 }
+
+                newParentJobTitle = null;
+                newPreceedingJobTitle = null;
+                newSubsequentJobTitle = null;
+            }
+            catch (SoupiException ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error);
+            }
+            catch (Exception)
+            {
+                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
             }
         }
+
+        StateHasChanged();
+    }
+
+    private async Task LoadJobSequences()
+    {
+        jobSequences = await jobSequenceRequestHandler.GetByProjectId(Project.Id);
     }
 
     private async Task DeleteJobSequence(Guid jobSequenceId)
     {
+        try
+        {
+            await jobSequenceRequestHandler.Delete(jobSequenceId);
 
+            await SelectedJobUpdated.InvokeAsync();
+
+            Snackbar.Add($"Связь между задачами успешно удалена", Severity.Success);
+
+            StateHasChanged();
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
     }
 
     private async Task UpdateParentJob()
     {
+        try
+        {
+            var newParentJob = ProjectJobs.FirstOrDefault(j => j.Title == newParentJobTitle);
 
+            if (newParentJob == null)
+            {
+                throw new SoupiException("Указано некорректное название родительской задачи ");
+            }
+
+            await jobRequestHandler.UpdateParent(Job.Id, newParentJob.Id);
+
+            await SelectedJobUpdated.InvokeAsync(); 
+
+            Snackbar.Add($"Родитель задачи {Job.Title} изменен на {newParentJob.Title} ", Severity.Success); 
+
+            StateHasChanged(); 
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+
+    private async Task AddPreceedingJob()
+    {
+        try
+        {
+            var preceedingJob = CurrentLevelJobs.FirstOrDefault(j => j.Title == newPreceedingJobTitle);
+
+            if (preceedingJob == null)
+            {
+                throw new SoupiException("Указано некорректное название предыдущей задачи "); 
+            }
+
+            var newJobSequence = new JobSequenceDto()
+            {
+                FirstJobId = preceedingJob.Id, 
+                SecondJobId = Job.Id, 
+            };
+
+            if (newJobSequence.CheckIfCyclic(jobSequences))
+            {
+                throw new SoupiException($"Связь между задачами {preceedingJob.Title} и {Job.Title} недопустима, т.к. приводит к циклу ");
+            }
+
+            await jobSequenceRequestHandler.Create(preceedingJob.Id, Job.Id);  
+            
+            await SelectedJobUpdated.InvokeAsync(); 
+
+            Snackbar.Add($"Связь между задачами {preceedingJob.Title} и {Job.Title} успешно создана", Severity.Success);
+
+            StateHasChanged();
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+
+    private async Task AddSubsequentJob()
+    {
+        try
+        {
+            var subsequentJob = CurrentLevelJobs.FirstOrDefault(j => j.Title == newSubsequentJobTitle);
+
+            if (subsequentJob == null)
+            {
+                throw new SoupiException("Указано некорректное название следующей задачи ");
+            }
+
+            var newJobSequence = new JobSequenceDto()
+            {
+                FirstJobId = Job.Id, 
+                SecondJobId = subsequentJob.Id,
+            };
+
+            if (newJobSequence.CheckIfCyclic(jobSequences))
+            {
+                throw new SoupiException($"Связь между задачами {Job.Title} и {subsequentJob.Title} недопустима, т.к. приводит к циклу ");
+            }
+
+            await jobSequenceRequestHandler.Create(Job.Id, subsequentJob.Id); 
+            
+            await SelectedJobUpdated.InvokeAsync();
+
+            Snackbar.Add($"Связь между задачами {Job.Title} и {subsequentJob.Title} успешно создана", Severity.Success); 
+
+            StateHasChanged(); 
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
     }
 
     private async Task<IEnumerable<string>> AutocompleteParentJobs(string query, CancellationToken cancellationToken)
     {
-        @if(Jobs != null)
+        @if(ProjectJobs != null)
         {
             if (string.IsNullOrEmpty(query))
             {
-                return Jobs.Select(j => j.Title);
+                return ProjectJobs.Where(j => j.Id != Job.Id).Select(j => j.Title);
             }
 
-            return Jobs.Where(j => j.Title.Contains(query)).Select(j => j.Title);
+            return ProjectJobs.Where(j => j.Title.Contains(query) && j.Id != Job.Id).Select(j => j.Title);
+        }
+        else
+        {
+            return new List<string>();
+        }
+    }
+
+    private async Task<IEnumerable<string>> AutocompletePreceedingJobs(string query, CancellationToken cancellationToken)
+    {
+        @if (availiblePreceedingJobs != null)
+        {
+            if (string.IsNullOrEmpty(query))
+            {
+                return availiblePreceedingJobs.Select(j => j.Title); 
+            }
+
+            return availiblePreceedingJobs.Where(j => j.Title.Contains(query)).Select(j => j.Title);
+        }
+        else
+        {
+            return new List<string>();
+        }
+    }
+
+    private async Task<IEnumerable<string>> AutocompleteSubsequentJobs(string query, CancellationToken cancellationToken)
+    {
+        @if (availibleSubsequentJobs != null)
+        {
+            if (string.IsNullOrEmpty(query))
+            {
+                return availibleSubsequentJobs.Select(j => j.Title);
+            }
+
+            return availibleSubsequentJobs.Where(j => j.Title.Contains(query)).Select(j => j.Title);
         }
         else
         {

@@ -7,6 +7,7 @@ using SOUPIShared.Models;
 using SOUPIShared.Resources;
 using Microsoft.EntityFrameworkCore;
 using static SOUPIShared.Extensions.JobExtensions; 
+using static SOUPIShared.Extensions.JobSequenceExtensions;
 
 
 namespace SOUPICore.Services
@@ -36,8 +37,7 @@ namespace SOUPICore.Services
                 }
 
                 var jobSequences = await _context.JobSequences
-                    .Where(js => js.FirstJob.ProjectId == projectId
-                            || js.SecondJob.ProjectId == projectId)
+                    .Where(js => js.FirstJob.ProjectId == projectId)
                     .ToListAsync();
 
                 return jobSequences.Select(js => new JobSequenceDisplayDto(js));
@@ -60,7 +60,16 @@ namespace SOUPICore.Services
                 };
 
                 await CheckIfValidJobSequence(newJobSequence);
-                await CheckIfCyclic(newJobSequence.FirstJobId, newJobSequence.SecondJobId);
+
+                var firstJob = await _context.Jobs.FindAsync(firstJobId);
+                var existingJobSequences = await _context.JobSequences
+                    .Where(js => js.FirstJob.ProjectId == firstJob.ProjectId)
+                    .ToListAsync(); 
+
+                if(newJobSequence.CheckIfCyclic(existingJobSequences))
+                {
+                    throw new BadRequestException(_localizer["JobSequenceCyclic"]);
+                }
 
                 await _context.JobSequences.AddAsync(newJobSequence); 
                 await _context.SaveChangesAsync(); 
@@ -117,47 +126,5 @@ namespace SOUPICore.Services
                 throw new BadRequestException(_localizer["JobSequenceAlreadyExists"]);
             }
         }
-
-        private async Task CheckIfCyclic(Guid firstJobId, Guid secondJobId)
-        {
-            var startJobId = secondJobId;
-            var targetJobId = firstJobId;
-
-            var queue = new Queue<Guid>();
-            var visited = new HashSet<Guid>();
-
-            queue.Enqueue(startJobId);
-
-            while (queue.Count > 0)
-            {
-                var currentJobId = queue.Dequeue();
-
-                // If we reach the FirstJobId, a cycle is detected 
-                if (currentJobId == targetJobId)
-                {
-                    throw new BadRequestException(_localizer["JobSequenceCyclic"]);
-                }
-
-                if (!visited.Contains(currentJobId))
-                {
-                    visited.Add(currentJobId);
-
-                    // Fetch all sequences where the current job is the 'predecessor' (FirstJob)
-                    var nextJobIds = await _context.JobSequences
-                        .Where(js => js.FirstJobId == currentJobId)
-                        .Select(js => js.SecondJobId)
-                        .ToListAsync();
-
-                    foreach (var nextId in nextJobIds)
-                    {
-                        if (!visited.Contains(nextId))
-                        {
-                            queue.Enqueue(nextId);
-                        }
-                    }
-                }
-            }
-        }
-
     }
 }

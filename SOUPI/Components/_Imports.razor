@@ -36,8 +36,10 @@
 // possibly separate later  
 @using SOUPIShared.Dtos 
 @using SOUPIShared.Exceptions;
-@using SOUPIShared.Extensions;
-@using SOUPIShared.Misc; 
+@using static SOUPIShared.Extensions.JobDtoExtensions;
+@using static SOUPIShared.Extensions.JobSequenceDtoExtensions;
+@using static SOUPIShared.Extensions.TeamMemberDtoExtensions;
+@using SOUPIShared.Misc;  
 @using Octokit
 @using GithubUser = Octokit.User
 

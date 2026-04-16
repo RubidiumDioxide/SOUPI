@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Localization;
+﻿using Microsoft.EntityFrameworkCore; 
 using Microsoft.Extensions.Logging; 
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos;
@@ -37,7 +36,57 @@ namespace SOUPICore.Services
                     .Where(j => j.ProjectId == projectId)
                     .ToListAsync();
 
-                return jobs.Select(p => new JobDto(p));
+                return jobs.Select(j => new JobDto(j)); 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Возврашает задачи нулевого уровня (без родителя), если parentJobId == null 
+        /// Возвращает задачи, являющиеся напрямую дочерними по отношению к задаче с parentJobId (если != null)
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <param name="parentJobId"></param>
+        /// <returns></returns>
+        /// <exception cref="BadRequestException"></exception>
+        public async Task<IEnumerable<JobDto>> GetByProjectIdParentId(Guid projectId, Guid? parentJobId)
+        {
+            try
+            {
+                var project = await _context.Projects.FindAsync(projectId);
+                
+                if (project == null)
+                {
+                    throw new BadRequestException(JobServiceErrorMessages.ProjectNotFound);
+                }
+
+                var parentJob = await _context.Jobs.FindAsync(parentJobId);
+
+                if ((parentJobId != null && parentJob == null) || (parentJob != null && parentJob.ProjectId != projectId))
+                {
+                    throw new BadRequestException(JobServiceErrorMessages.JobNotFound);
+                }
+
+                var jobs = new List<Job>(); 
+
+                if (parentJob != null)
+                {
+                    jobs = await _context.Jobs
+                        .Where(j => j.ProjectId == projectId && j.ParentJobId == parentJob.Id)
+                        .ToListAsync();
+                }
+                else
+                {
+                    jobs = await _context.Jobs
+                         .Where(j => j.ProjectId == projectId && j.ParentJobId == null)
+                         .ToListAsync();
+                }
+               
+                return jobs.Select(j => new JobDto(j));
             }
             catch (Exception ex)
             {
@@ -140,25 +189,25 @@ namespace SOUPICore.Services
         /// <param name="newParentId"></param>
         /// <returns></returns>
         /// <exception cref="BadRequestException"></exception>
-        public async Task<JobDto> UpdateParent(Guid jobId, Guid? newParentId)
+        public async Task<JobDto> UpdateParent(Guid jobId, Guid? newParentJobId)
         {
             try
             {
                 var job = await _context.Jobs.FindAsync(jobId);
-
+                
                 if (job == null)
                 {
-                    throw new BadRequestException(JobServiceErrorMessages.JobNotFound);
+                    throw new BadRequestException(JobServiceErrorMessages.JobNotFound); 
                 }
 
-                if(job.ParentJobId == newParentId)
+                if(job.ParentJobId == newParentJobId)
                 {
-                    return new JobDto(job);  
+                    return new JobDto(job); 
                 }
 
                 _context.JobSequences.RemoveRange(job.PreviousJobSequences);
                 _context.JobSequences.RemoveRange(job.NextJobSequences); 
-                job.ParentJobId = newParentId; 
+                job.ParentJobId = newParentJobId; 
                 
                 await CheckIfValidJob(job);
                 await CheckIfCyclic(job.Id, job.ParentJobId);

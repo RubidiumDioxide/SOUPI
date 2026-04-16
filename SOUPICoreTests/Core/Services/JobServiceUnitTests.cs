@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Moq;
 using SOUPICore;
@@ -8,7 +7,6 @@ using SOUPICore.Services;
 using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions;
 using SOUPIShared.Misc;
-using SOUPIShared.Models;
 using SOUPIShared.Resources;
 using static SOUPIShared.Extensions.JobDtoExtensions;
 using static SOUPITests.Helpers.Helpers; 
@@ -38,7 +36,7 @@ namespace SOUPITests.Core.Services
         // --- TESTS ---
         // --- GetByProjectId ---
         [Fact]
-        public async Task GetByProjectId_ShouldReturnJobs_WhenProjectHasJobs()
+        public async Task GetByProjectIdParentId_ShouldReturnJobs_WhenProjectHasJobs()
         {
             // Arrange
             var user = await SeedUser(_context);
@@ -53,7 +51,7 @@ namespace SOUPITests.Core.Services
             await SeedJob(_context, otherProject.Id, user.Id);
 
             // Act
-            var result = await _service.GetByProjectId(project.Id);
+            var result = await _service.GetByProjectIdParentId(project.Id, null);
 
             // Assert
             result.Should().NotBeNull();
@@ -62,7 +60,7 @@ namespace SOUPITests.Core.Services
         }
 
         [Fact]
-        public async Task GetByProjectId_ShouldReturnEmpty_WhenProjectHasNoJobs()
+        public async Task GetByProjectIdParentId_ShouldReturnEmpty_WhenProjectHasNoJobs()
         {
             // Arrange
             var user = await SeedUser(_context);
@@ -71,7 +69,7 @@ namespace SOUPITests.Core.Services
             // Seed no jobs 
 
             // Act
-            var result = await _service.GetByProjectId(project.Id);
+            var result = await _service.GetByProjectIdParentId(project.Id, null);
 
             // Assert
             result.Should().NotBeNull();
@@ -79,14 +77,14 @@ namespace SOUPITests.Core.Services
         }
 
         [Fact]
-        public async Task GetByProjectId_ShouldLogErrorAndThrowBadRequestException_WhenNoSuchProjectExists()
+        public async Task GetByProjectIdParentId_ShouldLogErrorAndThrowBadRequestException_WhenNoSuchProjectExists()
         {
             // Arrange
             var projectId = Guid.NewGuid();
             string expectedMessage = JobServiceErrorMessages.ProjectNotFound;
 
             // Act
-            Func<Task> act = async () => await _service.GetByProjectId(projectId);
+            Func<Task> act = async () => await _service.GetByProjectIdParentId(projectId, null);
 
             // Assert
             await act.Should().ThrowAsync<BadRequestException>()
@@ -102,14 +100,14 @@ namespace SOUPITests.Core.Services
         }
 
         [Fact]
-        public async Task GetByProjectId_ShouldLogErrorAndThrow_WhenExceptionOccurs()
+        public async Task GetByProjectIdParentId_ShouldLogErrorAndThrow_WhenExceptionOccurs()
         {
             // Arrange
             // force an exception by disposing the context before the call
             _context.Dispose();
 
             // Act
-            Func<Task> act = async () => await _service.GetByProjectId(Guid.NewGuid());
+            Func<Task> act = async () => await _service.GetByProjectIdParentId(Guid.NewGuid(), null);
 
             // Assert
             await act.Should().ThrowAsync<Exception>();

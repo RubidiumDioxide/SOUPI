@@ -1,0 +1,325 @@
+﻿@page "/projectjobs/{projectId:guid}" 
+@page "/jobviewer/{projectId:guid}/{parentJobId:guid?}"
+@rendermode InteractiveServer 
+@inject IProjectRequestHandler projectRequestHandler
+@inject IJobRequestHandler jobRequestHandler
+@inject IJobSequenceRequestHandler jobSequenceRequestHandler
+@inject ITeamMemberRequestHandler teamMemberRequestHandler
+@inject IGithubRequestHandler githubRequestHandler
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager 
+
+
+<PageTitle>Задачи проекта</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.False" Class="" Style="height:100%; " Gutters="false">
+    @if(error != null)
+    {
+        <MudAlert Severity=severity>@error</MudAlert>
+    }
+    else
+    {
+        @if (User == null || GithubUser == null || project == null || projectJobs == null || currentLevelJobs == null || ganttJobs == null || teamMembers == null || (parentJobId != null && parentJob == null))
+        {
+            <MudText Align="Align.Center">Loading... </MudText>
+        }
+        else
+        {
+            @if (!teamMembers.Select(tm => tm.UserId).Contains(User.Id))
+            {
+                <UnauthorizedPlaceholder />
+            }
+            else
+            {
+                <MudPaper Elevation="2" Class="ma-0 pa-0" Style="height:100%; overflow:hidden; position:relative;">
+                    <MudDrawerContainer Style="height:100%;">
+                        <MudDrawer @bind-Open=@isEditDrawerOpen Elevation="4" Variant=DrawerVariant.Persistent Width="600px">
+                            <MudContainer>
+                                @if (selectedJob == null)
+                                {
+                                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                                        Нажмите на задачу на диаграмме Ганта, чтобы открыть ее в редакторе.
+                                    </MudAlert>
+                                }
+                                else
+                                {
+                                    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4 mt-4">
+                                      
+                                        <MudText Typo="Typo.h6">Задача @selectedJob.Title</MudText>
+                             
+                                        <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                                       Color="Color.Default"
+                                                       OnClick="@(() => isEditDrawerOpen = false)" />
+                                    </MudStack>
+                                                         
+                                    <MudExpansionPanels>
+                                        <MudExpansionPanel Text="Редактирование свойств " Expanded="true">
+                                            <EditJobForm Job=@selectedJob Project=@project SelectedJobUpdated="JobsUpdated" ProjectJobs="projectJobs" />
+                                        </MudExpansionPanel>
+
+                                        <MudExpansionPanel Text="Редактирование связей " Expanded="false">
+                                            <JobLinksEditor Job="selectedJob" Project="project" ProjectJobs="projectJobs" CurrentLevelJobs="currentLevelJobs" SelectedJobUpdated="JobsUpdated" />
+                                        </MudExpansionPanel>
+                                    </MudExpansionPanels>
+                                }
+                            </MudContainer>
+                        </MudDrawer>
+                               
+                        <div class="pa-2" @oncontextmenu:preventDefault @oncontextmenu:stopPropagation>
+                            <GanttChart @ref=ganttChart
+                                        GanttJobs=@ganttJobs
+                                        OnEditMenuTriggered="OnEditMenuTriggered"
+                                        OnAddButtonClicked="@(() => OpenAddDialog(null))"
+                                        OnSaveButtonClicked="SaveChangesToJobs" 
+                                        OnGoOneLevelUpButtonClicked="GoOneLevelUp"
+                                        OnGoToLevelZeroButtonClicked="GoToLevelZero" />
+                        </div>
+                    </MudDrawerContainer>
+                </MudPaper>
+            }
+        }
+    }
+</MudContainer>
+
+<MudMenu @ref="jobMenu" Style=@jobMenuStyle>
+    <MudMenuItem OnClick="SelectJob">Редактировать</MudMenuItem> 
+    <MudMenuItem OnClick="DeleteJob">Удалить</MudMenuItem> 
+
+    @if (selectedJob!= null && selectedJob.HasChildren)
+    {
+        <MudMenuItem OnClick="GoToChildren">Перейти к подзадачам</MudMenuItem>
+    }
+    else
+    {
+        <MudMenuItem OnClick="@(() => OpenAddDialog(selectedJob))">Создать новую подзадачу</MudMenuItem>
+    }
+</MudMenu>
+
+
+    @code {
+    [CascadingParameter]
+    private UserDto? User { get; set; }
+    [CascadingParameter]
+    private GithubUser? GithubUser { get; set; }
+
+    [Parameter]
+    public Guid projectId { get; set; }
+    [Parameter]
+    public Guid? parentJobId { get; set; }
+
+    private ProjectDto? project { get; set; } 
+    private IEnumerable<JobDto>? projectJobs { get; set; } 
+    private IEnumerable<JobDto>? currentLevelJobs { get; set; } 
+    private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; }  
+    private IEnumerable<GanttJobDto>? ganttJobs { get; set; }
+    private Guid? selectedJobId { get; set; }
+    private JobDto? parentJob { get; set; } 
+    private JobDto? selectedJob { get; set; }
+
+    private MudMenu jobMenu { get; set; }
+    private string jobMenuStyle { get; set; }
+    private GanttChart ganttChart { get; set; }
+
+    private bool isEditDrawerOpen { get; set; } = false; 
+
+    private string? error { get; set; } = null;
+    private Severity severity { get; set; } = Severity.Warning;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (User != null && GithubUser != null)
+        {
+            try
+            {
+                await LoadProject();
+                await LoadJobs();  
+                await LoadTeamMembers();  
+            }
+            catch (SoupiException ex)
+            {
+                error = ex.Message;
+                severity = Severity.Error;
+            }
+            catch (Exception ex)
+            {
+                error = "Произошла непредвиденная ошибка ";
+                severity = Severity.Error;
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadProject()
+    {
+        project = await projectRequestHandler.GetById(projectId);
+    }
+
+    private async Task LoadJobs()
+    {
+        projectJobs = await jobRequestHandler.GetByProjectId(projectId);
+        currentLevelJobs = await jobRequestHandler.GetByProjectIdParentId(projectId, parentJobId); 
+
+        if(currentLevelJobs.Count() != 0)
+        {
+            selectedJob = currentLevelJobs.First(); 
+        }
+        else
+        {
+            selectedJob = null; 
+        }
+        if(parentJobId != null)
+        {
+            parentJob = projectJobs.FirstOrDefault(j => j.Id == parentJobId.Value); 
+        }
+        else
+        {
+            parentJob = null; 
+        }
+        ganttJobs = currentLevelJobs.Select(j => new GanttJobDto(j)); 
+    }
+
+    private async Task LoadTeamMembers()
+    {
+        teamMembers = await teamMemberRequestHandler.GetByProjectId(projectId);
+    } 
+
+    private async Task OnEditMenuTriggered((Guid jobId, MouseEventArgs e) data)
+    {
+        jobMenuStyle = $"position: fixed; left: {data.e.ClientX}px; top: {data.e.ClientY}px;"; 
+
+        selectedJobId = data.jobId; 
+
+        if (projectJobs != null && selectedJobId != null)
+        {
+            selectedJob = projectJobs.FirstOrDefault(j => j.Id == selectedJobId);
+        }
+
+        await jobMenu.ToggleMenuAsync(data.e);
+    }
+
+    private async Task SelectJob()
+    {
+        isEditDrawerOpen = true; 
+    }
+
+    private async Task DeleteJob()
+    {
+        if (projectJobs != null && selectedJobId != null)
+        {
+            selectedJob = projectJobs.FirstOrDefault(j => j.Id == selectedJobId);
+
+            if (selectedJob != null)
+            {
+                try
+                {
+                    await jobRequestHandler.Delete(selectedJobId.Value, true);
+
+                    await LoadJobs(); 
+
+                    if(currentLevelJobs.Count() == 0 && parentJob != null)
+                    {
+                        await GoOneLevelUp(); 
+                    }
+
+                    Snackbar.Add("Задача успешно удалена", Severity.Success);
+                }
+                catch (SoupiException ex)
+                {
+                    Snackbar.Add(ex.Message, Severity.Error);
+                }
+                catch (Exception)
+                {
+                    Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+                }
+            } 
+        }
+    }
+
+    public async Task GoToChildren()
+    {
+        if(project != null && selectedJobId != null && selectedJobId != parentJobId)
+        {
+            NavigationManager.NavigateTo($"jobviewer/{project.Id}/{selectedJobId}");
+        }
+    }
+
+    public async Task GoOneLevelUp()
+    {
+        if (project != null && parentJob != null)
+        {
+            NavigationManager.NavigateTo($"jobviewer/{project.Id}/{parentJob.ParentJobId}");
+        }
+    }
+
+    public async Task GoToLevelZero()
+    {
+        if (project != null && parentJobId != null)
+        {
+            NavigationManager.NavigateTo($"jobviewer/{project.Id}");
+        }
+    }
+
+    private async Task JobsUpdated()
+    {
+        await LoadJobs(); 
+        StateHasChanged();
+    }
+
+    private async Task OpenAddDialog(JobDto? parentJobForNew)
+    {
+        var parameters = new DialogParameters<NewJobForm>
+        {
+            { x => x.User, User }, 
+            { x => x.Project, project }, 
+            { x => x.ProjectJobs, projectJobs }, 
+            { x => x.ParentJob, parentJobForNew }, 
+            { x => x.IsChildJob, (parentJobForNew == null)? false : true }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, FullWidth = true, MaxWidth = MaxWidth.Small };
+
+        var dialog = await DialogService.ShowAsync<NewJobForm>("Новая задача", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await JobsUpdated(); 
+        }
+    }
+
+    private async Task SaveChangesToJobs(IEnumerable<GanttJobDto> ganttJobDtos)
+    {
+        foreach(var gj in ganttJobDtos)
+        {
+            try
+            {
+                var existingJob = projectJobs.FirstOrDefault(j => j.Id == Guid.Parse(gj.id));
+
+                if (existingJob == null)
+                {
+                    throw new Exception();
+                }
+
+                if (!existingJob.IsEquivalent(gj))
+                {
+                    existingJob.StartDateTime = gj.start; 
+                    existingJob.EndDateTime = gj.end; 
+                    existingJob.Progress = gj.progress; 
+                
+                    await jobRequestHandler.UpdateContent(existingJob); 
+                }
+            }
+            catch 
+            {
+                Snackbar.Add("При сохранении задачи произошла непредвиденная ошибка ", Severity.Error);
+            }
+        }
+
+        await LoadJobs(); 
+        StateHasChanged();
+        
+        Snackbar.Add("Задачи были успешно сохранены ", Severity.Success); 
+    }
+}

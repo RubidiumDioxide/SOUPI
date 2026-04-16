@@ -1,13 +1,13 @@
 ﻿using SOUPIShared.Dtos;
-using SOUPIShared.Models;
 
 
 namespace SOUPICore.Services.Interfaces
 {
     public interface IJobService
     {
-        // --- JOB ---
         public Task<IEnumerable<JobDto>> GetByProjectId(Guid projectId);
+        
+        public Task<IEnumerable<JobDto>> GetByProjectIdParentId(Guid projectId, Guid? parentJobId);
 
         public Task<JobDto> GetById(Guid jobId); 
 
@@ -15,13 +15,8 @@ namespace SOUPICore.Services.Interfaces
 
         public Task<JobDto> UpdateContent(JobDto updatedJob); 
         
-        public Task<JobDto> UpdateParent(Guid jobId, Guid? newParentId);
+        public Task<JobDto> UpdateParent(Guid jobId, Guid? newParentJobId);
 
         public Task Delete (Guid jobId, bool preserveChildren);
-
-
-        // --- JOBSEQUENCE --- 
-
-        // --- ASSIGNMENT --- 
     }
 }
