@@ -160,7 +160,7 @@ namespace SOUPICore.Services
         {
             try
             {
-                var job = _context.Jobs.Find(updatedJobDto.Id);
+                var job = await _context.Jobs.FindAsync(updatedJobDto.Id);
 
                 if (job == null)
                 {

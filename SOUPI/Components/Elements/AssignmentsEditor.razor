@@ -1,0 +1,183 @@
+﻿@inject IAssignmentRequestHandler assignmentRequestHandler 
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+
+@if (Job == null || Project == null || TeamMembers == null || TeamMemberGithubUsers == null || assignments == null)
+{
+    <LoadingPlaceholder />
+}
+else {
+    <MudContainer Class="ma-1 pa-0" MaxWidth="MaxWidth.False" Gutters="false">
+        @if (assignments.Count() == 0)
+        {
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                У этой задачи нет исполнителей 
+            </MudAlert>
+        }
+        else
+        {
+            <MudStack Spacing="3">
+                @foreach (var context in assignments)
+                {
+                    <MudPaper Class="pa-2" Elevation="2">
+                        <MudStack Row="true"
+                                  AlignItems="AlignItems.Center"
+                                  Justify="Justify.SpaceBetween">
+                            @* Left Side: Avatar and Name/Comment *@
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                                <MudAvatar Color="Color.Primary" Variant="Variant.Filled">
+                                    <MudImage Src="@TeamMemberGithubUsers[context.TeamMemberLogin].AvatarUrl" Alt=@context.TeamMemberLogin />
+                                </MudAvatar>
+                        
+                                <MudStack Spacing="0">
+                                    <MudText Typo="Typo.subtitle1">@context.TeamMemberLogin</MudText>
+                                    <MudText Typo="Typo.body2">@context.Comment</MudText>
+                                </MudStack>
+                            </MudStack>
+
+                            @* Right Side: Delete Button *@
+                            <MudStack Row="true" Spacing="1">
+                                    <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" 
+                                                   Color="Color.Success" 
+                                                   OnClick=@(() => GoToAssignment(context.Id)) 
+                                                   Size="Size.Medium" />
+
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                   Color="Color.Info"
+                                                   OnClick=@(() => OpenEditDialog(context))
+                                                   Size="Size.Medium" />
+
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                   Color="Color.Error"
+                                                   OnClick="@(async () => await DeleteAssignment(context.Id))"
+                                                   Size="Size.Medium" />
+                            </MudStack>
+                        </MudStack>
+                    </MudPaper>
+                }
+            </MudStack>
+        }
+
+        <MudButton Variant="Variant.Outlined"
+                   FullWidth="true"
+                   Color="Color.Success"
+                   EndIcon="@Icons.Material.Filled.Add"
+                   Style="border-style: dashed; border-width: 2px; text-transform: none;" 
+                   Class="mt-2"
+                   OnClick="OpenAddDialog">
+            Добавить 
+        </MudButton>
+    </MudContainer>
+}
+
+
+@code {
+    [Parameter, EditorRequired]
+    public JobDto? Job { get; set; } 
+    [Parameter, EditorRequired]
+    public ProjectDto? Project { get; set; } 
+    [Parameter, EditorRequired]
+    public IEnumerable<TeamMemberDisplayDto>? TeamMembers { get; set; } 
+    [Parameter, EditorRequired]
+    public IDictionary<string, GithubUser> TeamMemberGithubUsers { get; set; }
+
+    public IEnumerable<AssignmentDisplayDto>? assignments { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Job != null && Project != null && TeamMembers != null)
+        {
+            try
+            {
+                await LoadAssignments(); 
+            }
+            catch (SoupiException ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error);
+            }
+            catch (Exception)
+            {
+                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task LoadAssignments()
+    {
+        assignments = await assignmentRequestHandler.GetByJobId(Job!.Id);  
+    }
+
+    private async Task OpenAddDialog()
+    {
+        var parameters = new DialogParameters<NewAssignmentForm>
+        {
+            { x => x.Job, Job },
+            { x => x.Assignments, assignments }, 
+            { x => x.TeamMembers, TeamMembers }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, FullWidth = true, MaxWidth = MaxWidth.Small };
+
+        var dialog = await DialogService.ShowAsync<NewAssignmentForm>("Новый исполнитель", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadAssignments(); 
+
+            StateHasChanged(); 
+        }
+    }
+
+    private async Task OpenEditDialog(AssignmentDisplayDto updatedAssignment)
+    {
+        var parameters = new DialogParameters<EditAssignmentForm>
+        {
+            { x => x.Job, Job },
+            { x => x.Assignment, updatedAssignment }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, FullWidth = true, MaxWidth = MaxWidth.Small };
+
+        var dialog = await DialogService.ShowAsync<EditAssignmentForm>("Редактирование назначения ", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadAssignments();
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteAssignment(Guid assignmentId)
+    {
+        try
+        {
+            await assignmentRequestHandler.Delete(assignmentId);
+
+            await LoadAssignments();
+
+            Snackbar.Add($"Исполнитель успешно удален ", Severity.Success);
+
+            StateHasChanged();
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    } 
+
+    // TO-DO: assignment page
+    private void GoToAssignment(Guid assignmentId)
+    {
+        
+    }
+}

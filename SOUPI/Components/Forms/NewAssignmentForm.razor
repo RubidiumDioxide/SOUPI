@@ -1,0 +1,145 @@
+﻿@inject IAssignmentRequestHandler assignmentRequestHandler 
+@inject ISnackbar Snackbar
+
+
+<MudDialog>
+    <TitleContent> 
+        <MudText Typo="Typo.h5">Назначение нового исполнителя </MudText>           
+    </TitleContent>
+    <DialogContent>
+        @if (Job == null || Assignments == null || TeamMembers == null || availibleAssignees == null || newAssignment == null)
+        {
+            <LoadingPlaceholder/>
+        }
+        else
+        {
+            <EditForm Model=@newAssignment OnValidSubmit="CreateNewAssignment">
+                <DataAnnotationsValidator />
+
+                <MudAutocomplete T="string"
+                                 Clearable="true"
+                                 @bind-Value=@newAssigneeLogin
+                                 SearchFunc="AutocompleteAssignees"
+                                 Label="Логин нового исполнителя "
+                                 Variant=Variant.Outlined
+                                 For="@(() => newAssigneeLogin)"
+                                 Class="ma-1">
+                    <NoItemsTemplate>
+                        <MudText Align="Align.Center" Class="px-4 py-1">
+                            Подходящие участники команды не найдены
+                        </MudText>
+                    </NoItemsTemplate>
+                </MudAutocomplete>
+
+                <MudTextField @bind-Value=@newAssignment.Comment
+                              For="@(() => newAssignment.Comment)"
+                              Label="Комментарий"
+                              Variant="Variant.Outlined"
+                              Lines="3"
+                              Margin="Margin.Normal" />
+
+                <div class="d-flex justify-end mt-4">
+                    <MudButton OnClick="Cancel" Class="mr-2">Отмена</MudButton>
+                    <MudButton OnClick="ResetForm" Color="Color.Secondary" Variant="Variant.Filled" Class="mr-2">Сбросить</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled">Создать</MudButton>
+                </div>
+            </EditForm>
+        }
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = default!; 
+    [Parameter, EditorRequired]
+    public JobDto? Job { get; set; }
+    [Parameter, EditorRequired]
+    public IEnumerable<AssignmentDisplayDto>? Assignments { get; set; }
+    [Parameter, EditorRequired]
+    public IEnumerable<TeamMemberDisplayDto>? TeamMembers { get; set; }
+    [Parameter, EditorRequired]
+    public IEnumerable<TeamMemberDisplayDto>? availibleAssignees { get; set; }
+
+    private AssignmentDto newAssignment = new AssignmentDto(); 
+    private string? newAssigneeLogin { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if(Job != null && Assignments != null && TeamMembers != null)
+        {
+            ResetForm();            
+            
+            availibleAssignees = TeamMembers.Where(tm => !Assignments.Select(a => a.TeamMemberId)
+                                                                      .Contains(tm.Id)); 
+        }
+    }
+
+    private void ResetForm()
+    {
+        newAssignment = new AssignmentDto();
+
+        newAssignment.JobId = Job!.Id; 
+
+        newAssigneeLogin = null; 
+
+        StateHasChanged();
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task CreateNewAssignment()
+    {
+        try
+        {
+            var assignee = TeamMembers!.FirstOrDefault(tm => tm.UserLogin == newAssigneeLogin); 
+
+            if(assignee == null)
+            {
+                throw new SoupiException("Указан некорректный логин исполнителя ");
+            }
+
+            newAssignment.TeamMemberId = assignee.Id; 
+
+            if(Assignments!.Select(a => a.TeamMemberId).Contains(newAssignment.TeamMemberId))
+            {
+                throw new SoupiException("Исполнители не должны дублироваться в рамках одной задачи "); 
+            }
+
+            await assignmentRequestHandler.Create(newAssignment); 
+
+            ResetForm(); 
+
+            Snackbar.Add("Исполнитель успешно добавлен ", Severity.Success);
+
+            MudDialog.Close(DialogResult.Ok(newAssignment));
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch(Exception)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);    
+        }
+    }
+
+    // TO-DO 
+    // modify so that it only returns subordinates 
+    // service-level, probably (fetch only subordinates)
+    private async Task<IEnumerable<string>> AutocompleteAssignees(string query, CancellationToken cancellationToken)
+    {
+        @if (TeamMembers != null)
+        {
+            if (string.IsNullOrEmpty(query))
+            {
+                return availibleAssignees.Select(tm => tm.UserLogin);
+            }
+
+            return availibleAssignees.Where(tm => tm.UserLogin.Contains(query)).Select(tm => tm.UserLogin);
+        }
+        else
+        {
+            return new List<string>();
+        }
+    }
+}

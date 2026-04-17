@@ -23,11 +23,11 @@ namespace SOUPICore.Controllers
         }
 
         [HttpGet("{jobId}")]
-        public async Task<ActionResult<JobDto>> GetById([FromRoute] Guid jobId)
+        public async Task<ActionResult<IEnumerable<AssignmentDisplayDto>>> GetByJobId([FromRoute] Guid jobId)
         {
             try
             {
-                var assignment = await _assignmentService.GetByJobId(jobId);
+                var assignment = await _assignmentService.GetByJobId(jobId); 
 
                 return Ok(assignment);
             }
@@ -50,6 +50,26 @@ namespace SOUPICore.Controllers
             catch (BadRequestException)
             {
                 return BadRequest(); 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<AssignmentDto>> UpdateContent([FromBody] AssignmentDto updatedAssignmentDto)
+        {
+            try
+            {
+                var assignment = await _assignmentService.UpdateContent(updatedAssignmentDto);
+
+                return Ok(assignment); 
+            }
+            catch (BadRequestException)
+            {
+                return BadRequest();
             }
             catch (Exception ex)
             {

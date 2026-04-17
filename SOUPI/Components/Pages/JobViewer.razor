@@ -20,7 +20,7 @@
     }
     else
     {
-        @if (User == null || GithubUser == null || project == null || projectJobs == null || currentLevelJobs == null || ganttJobs == null || teamMembers == null || (parentJobId != null && parentJob == null))
+        @if (User == null || GithubUser == null || project == null || projectJobs == null || currentLevelJobs == null || ganttJobs == null || teamMembers == null || teamMemberGithubUsers == null || (parentJobId != null && parentJob == null))
         {
             <MudText Align="Align.Center">Loading... </MudText>
         }
@@ -54,13 +54,27 @@
                                     </MudStack>
                                                          
                                     <MudExpansionPanels>
-                                        <MudExpansionPanel Text="Редактирование свойств " Expanded="true">
-                                            <EditJobForm Job=@selectedJob Project=@project SelectedJobUpdated="JobsUpdated" ProjectJobs="projectJobs" />
+                                        <MudExpansionPanel Text="Общее " Expanded="true">
+                                            <EditJobForm Job=@selectedJob 
+                                                         Project=@project 
+                                                         SelectedJobUpdated="JobsUpdated" 
+                                                         ProjectJobs="projectJobs" />
                                         </MudExpansionPanel>
 
-                                        <MudExpansionPanel Text="Редактирование связей " Expanded="false">
-                                            <JobLinksEditor Job="selectedJob" Project="project" ProjectJobs="projectJobs" CurrentLevelJobs="currentLevelJobs" SelectedJobUpdated="JobsUpdated" />
+                                        <MudExpansionPanel Text="Связи " Expanded="false">
+                                            <JobLinksEditor Job="selectedJob" 
+                                                            Project="project" 
+                                                            ProjectJobs="projectJobs" 
+                                                            CurrentLevelJobs="currentLevelJobs" 
+                                                            SelectedJobUpdated="JobsUpdated" />
                                         </MudExpansionPanel>
+
+                                        <MudExpansionPanel Text="Исполнители " Expanded="false">
+                                            <AssignmentsEditor Job="selectedJob" 
+                                                               Project="project" 
+                                                               TeamMembers="teamMembers" 
+                                                               TeamMemberGithubUsers="teamMemberGithubUsers"/>
+                                        </MudExpansionPanel> 
                                     </MudExpansionPanels>
                                 }
                             </MudContainer>
@@ -97,7 +111,7 @@
 </MudMenu>
 
 
-    @code {
+@code {
     [CascadingParameter]
     private UserDto? User { get; set; }
     [CascadingParameter]
@@ -111,7 +125,8 @@
     private ProjectDto? project { get; set; } 
     private IEnumerable<JobDto>? projectJobs { get; set; } 
     private IEnumerable<JobDto>? currentLevelJobs { get; set; } 
-    private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; }  
+    private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; } 
+    private IDictionary<string, GithubUser>? teamMemberGithubUsers { get; set; }
     private IEnumerable<GanttJobDto>? ganttJobs { get; set; }
     private Guid? selectedJobId { get; set; }
     private JobDto? parentJob { get; set; } 
@@ -134,7 +149,8 @@
             {
                 await LoadProject();
                 await LoadJobs();  
-                await LoadTeamMembers();  
+                await LoadTeamMembers();               
+                await LoadTeamMemberGithubUsers();
             }
             catch (SoupiException ex)
             {
@@ -184,6 +200,13 @@
     {
         teamMembers = await teamMemberRequestHandler.GetByProjectId(projectId);
     } 
+
+    private async Task LoadTeamMemberGithubUsers()
+    {
+        var githubUsers = await githubRequestHandler.GetUsersByLogins(teamMembers.Select(tm => tm.UserLogin));
+
+        teamMemberGithubUsers = githubUsers.ToDictionary(gu => gu.Login);
+    }
 
     private async Task OnEditMenuTriggered((Guid jobId, MouseEventArgs e) data)
     {

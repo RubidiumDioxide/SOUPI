@@ -4,7 +4,7 @@ using SOUPIShared.Models;
 
 namespace SOUPIShared.Dtos
 {
-    public class AssignmentDto
+    public class AssignmentDisplayDto
     {
         public Guid Id { get; set; }
 
@@ -12,28 +12,28 @@ namespace SOUPIShared.Dtos
         public Guid TeamMemberId { get; set; } = default!;
 
         [Required]
+        public string TeamMemberLogin { get; set; } = default!; 
+
+        [Required]
         public Guid JobId { get; set; } = default!;
+
+        [Required]
+        public string JobTitle { get; set; } = default!;
 
         [MaxLength(255, ErrorMessage = "Комментарий слишком длинный (максимум 255 символов)")]
         public string? Comment { get; set; }
 
 
-        public AssignmentDto(Assignment assignment)
+        public AssignmentDisplayDto(Assignment assignment)
         {
             Id = assignment.Id; 
-            TeamMemberId = assignment.TeamMemberId; 
-            JobId = assignment.JobId; 
+            TeamMemberId = assignment.TeamMemberId;
+            TeamMemberLogin = assignment.TeamMember.User.Login; 
+            JobId = assignment.JobId;
+            JobTitle = assignment.Job.Title; 
             Comment = assignment.Comment; 
         }
 
-        public AssignmentDto(AssignmentDisplayDto assignmentDisplayDto)
-        {
-            Id = assignmentDisplayDto.Id;
-            TeamMemberId = assignmentDisplayDto.TeamMemberId;
-            JobId = assignmentDisplayDto.JobId;
-            Comment = assignmentDisplayDto.Comment;
-        }
-
-        public AssignmentDto() { } 
+        public AssignmentDisplayDto() { } 
     }
 }

@@ -1,0 +1,93 @@
+﻿@inject IAssignmentRequestHandler assignmentRequestHandler 
+@inject ISnackbar Snackbar
+
+
+<MudDialog>
+    <TitleContent> 
+        <MudText Typo="Typo.h5">Редактирование назначения исполнителя </MudText>           
+    </TitleContent>
+    <DialogContent>
+        @if (Job == null || Assignment == null || assignmentBackup == null)
+        {
+            <LoadingPlaceholder/>
+        }
+        else
+        {
+            <EditForm Model=@Assignment OnValidSubmit="UpdateAssignment">
+                <DataAnnotationsValidator />
+
+                <MudTextField @bind-Value=@Assignment.TeamMemberLogin
+                              Variant="Variant.Outlined" 
+                              Disabled="true" />
+               
+                <MudTextField @bind-Value=@Assignment.Comment
+                              For="@(() => Assignment.Comment)"
+                              Label="Комментарий"
+                              Variant="Variant.Outlined"
+                              Lines="3"
+                              Margin="Margin.Normal" />
+
+                <div class="d-flex justify-end mt-4">
+                    <MudButton OnClick="Cancel" Class="mr-2">Отмена</MudButton>
+                    <MudButton OnClick="ResetForm" Color="Color.Secondary" Variant="Variant.Filled" Class="mr-2">Сбросить</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled">Создать</MudButton>
+                </div>
+            </EditForm>
+        }
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = default!; 
+    [Parameter, EditorRequired]
+    public JobDto? Job { get; set; }
+    [Parameter, EditorRequired]
+    public AssignmentDisplayDto? Assignment { get; set; } 
+
+    public AssignmentDto? assignmentBackup { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if(Job != null && Assignment != null)
+        {
+            ResetForm();            
+        }
+    }
+
+    private void ResetForm()
+    {
+        if(assignmentBackup != null)
+        {
+            Assignment!.Comment = assignmentBackup.Comment;     
+        }
+
+        assignmentBackup = new AssignmentDto(Assignment!); 
+
+        StateHasChanged();
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task UpdateAssignment()
+    {
+        try
+        {
+            await assignmentRequestHandler.UpdateContent(new AssignmentDto(Assignment!)); 
+
+            ResetForm(); 
+
+            Snackbar.Add("Назначение успешно изменено ", Severity.Success);
+
+            MudDialog.Close(DialogResult.Ok(Assignment));
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch(Exception)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);    
+        }
+    }
+}

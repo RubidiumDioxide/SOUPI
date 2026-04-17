@@ -1,14 +1,15 @@
-﻿
+﻿using SOUPIShared.Dtos;
 
-using SOUPIShared.Dtos;
 
 namespace SOUPICore.Services.Interfaces
 {
     public interface IAssignmentService
     {
-        public Task<IEnumerable<AssignmentDto>> GetByJobId(Guid jobId); 
+        public Task<IEnumerable<AssignmentDisplayDto>> GetByJobId(Guid jobId); 
 
-        public Task<AssignmentDto> Create(AssignmentDto newAssignmentDto);
+        public Task<AssignmentDto> Create(AssignmentDto newAssignmentDto); 
+
+        public Task<AssignmentDto> UpdateContent(AssignmentDto updatedAssignmentDto);
 
         public Task Delete(Guid assignmentId);
     }

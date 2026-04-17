@@ -6,6 +6,7 @@ using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions;
 using SOUPIShared.Models;
 using SOUPIShared.Resources;
+using SOUPIShared.Extensions; 
 
 
 namespace SOUPICore.Services
@@ -23,11 +24,13 @@ namespace SOUPICore.Services
             _localizer = localizer;
         }
 
-        public async Task<IEnumerable<AssignmentDto>> GetByJobId(Guid jobId)
+        public async Task<IEnumerable<AssignmentDisplayDto>> GetByJobId(Guid jobId)
         {
             try
             {
-                return _context.Assignments.Where(a => a.JobId == jobId).Select(a => new AssignmentDto(a)); 
+                var assignments = await _context.Assignments.Where(a => a.JobId == jobId).ToListAsync();
+
+                return assignments.Select(a => new AssignmentDisplayDto(a)); 
             }
             catch (Exception ex)
             {
@@ -53,6 +56,30 @@ namespace SOUPICore.Services
                 await _context.SaveChangesAsync();
 
                 return new AssignmentDto(newAssignment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
+        }
+
+        public async Task<AssignmentDto> UpdateContent(AssignmentDto updatedAssignmentDto)
+        {
+            try
+            {
+                var assignment = await _context.Assignments.FindAsync(updatedAssignmentDto.Id);
+
+                if (assignment == null)
+                {
+                    throw new BadRequestException(AssignmentServiceErrorMessages.AssignmentNotFound);
+                }
+
+                assignment.CopyContentProperties(updatedAssignmentDto);
+
+                await _context.SaveChangesAsync();
+
+                return new AssignmentDto(assignment);
             }
             catch (Exception ex)
             {
