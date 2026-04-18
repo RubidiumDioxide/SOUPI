@@ -29,7 +29,7 @@ namespace SOUPICore.Services
 
                 if (project == null)
                 {
-                    throw new BadRequestException(JobServiceErrorMessages.ProjectNotFound);
+                    throw new BadRequestException(ServiceErrorMessages.ProjectNotFound);
                 }
 
                 var jobs = await _context.Jobs
@@ -61,14 +61,14 @@ namespace SOUPICore.Services
                 
                 if (project == null)
                 {
-                    throw new BadRequestException(JobServiceErrorMessages.ProjectNotFound);
+                    throw new BadRequestException(ServiceErrorMessages.ProjectNotFound);
                 }
 
                 var parentJob = await _context.Jobs.FindAsync(parentJobId);
 
                 if ((parentJobId != null && parentJob == null) || (parentJob != null && parentJob.ProjectId != projectId))
                 {
-                    throw new BadRequestException(JobServiceErrorMessages.JobNotFound);
+                    throw new BadRequestException(ServiceErrorMessages.JobNotFound);
                 }
 
                 var jobs = new List<Job>(); 
@@ -103,7 +103,7 @@ namespace SOUPICore.Services
 
                 if (job == null)
                 {
-                    throw new NotFoundException(JobServiceErrorMessages.JobNotFound);
+                    throw new NotFoundException(ServiceErrorMessages.JobNotFound);
                 }
                 else
                 {
@@ -125,7 +125,7 @@ namespace SOUPICore.Services
 
                 if(existingJob != null) 
                 {
-                    throw new BadRequestException(JobServiceErrorMessages.JobTitleNotUnique); 
+                    throw new BadRequestException(ServiceErrorMessages.JobTitleNotUnique); 
                 }
 
                 var newJob = new Job()
@@ -164,7 +164,7 @@ namespace SOUPICore.Services
 
                 if (job == null)
                 {
-                    throw new BadRequestException(JobServiceErrorMessages.JobNotFound);
+                    throw new BadRequestException(ServiceErrorMessages.JobNotFound);
                 }
 
                 job.CopyContentProperties(updatedJobDto); 
@@ -197,7 +197,7 @@ namespace SOUPICore.Services
                 
                 if (job == null)
                 {
-                    throw new BadRequestException(JobServiceErrorMessages.JobNotFound); 
+                    throw new BadRequestException(ServiceErrorMessages.JobNotFound); 
                 }
 
                 if(job.ParentJobId == newParentJobId)
@@ -239,7 +239,7 @@ namespace SOUPICore.Services
 
                 if (job == null)
                 {
-                    throw new BadRequestException(JobServiceErrorMessages.JobNotFound); 
+                    throw new BadRequestException(ServiceErrorMessages.JobNotFound); 
                 }
 
                 var jobSequences = job.NextJobSequences.Concat(job.PreviousJobSequences);
@@ -301,23 +301,23 @@ namespace SOUPICore.Services
 
                 if (parentJob == null)
                 {
-                    throw new BadRequestException(JobServiceErrorMessages.ParentNotFound);
+                    throw new BadRequestException(ServiceErrorMessages.ParentJobNotFound);
                 }
             }
 
             if (project == null)
             {
-                throw new BadRequestException(JobServiceErrorMessages.ProjectNotFound);
+                throw new BadRequestException(ServiceErrorMessages.ProjectNotFound);
             }
 
             if (creator == null)
             {
-                throw new BadRequestException(JobServiceErrorMessages.UserNotFound);
+                throw new BadRequestException(ServiceErrorMessages.UserNotFound);
             }
 
             if (job.EndDateTime <= job.StartDateTime)
             {
-                throw new BadRequestException(JobServiceErrorMessages.JobIncompatibleEndStartDates);
+                throw new BadRequestException(ServiceErrorMessages.JobIncompatibleEndStartDates);
             }
         }
 
@@ -340,7 +340,7 @@ namespace SOUPICore.Services
                 // If we reach the FirstJobId, a cycle is detected 
                 if (currentJobId == targetJobId)
                 {
-                    throw new BadRequestException(JobServiceErrorMessages.JobCyclic);
+                    throw new BadRequestException(ServiceErrorMessages.JobCyclic);
                 }
 
                 if (!visited.Contains(currentJobId))

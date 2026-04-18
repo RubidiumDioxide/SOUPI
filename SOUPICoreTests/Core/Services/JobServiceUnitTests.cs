@@ -81,7 +81,7 @@ namespace SOUPITests.Core.Services
         {
             // Arrange
             var projectId = Guid.NewGuid();
-            string expectedMessage = JobServiceErrorMessages.ProjectNotFound;
+            string expectedMessage = ServiceErrorMessages.ProjectNotFound;
 
             // Act
             Func<Task> act = async () => await _service.GetByProjectIdParentId(projectId, null);
@@ -145,7 +145,7 @@ namespace SOUPITests.Core.Services
         {
             // Arrange
             var jobId = Guid.NewGuid();
-            string expectedMessage = JobServiceErrorMessages.JobNotFound;
+            string expectedMessage = ServiceErrorMessages.JobNotFound;
 
             // Act
             Func<Task> act = async () => await _service.GetById(jobId);
@@ -221,7 +221,7 @@ namespace SOUPITests.Core.Services
             var user = await SeedUser(_context);
             var projectId = Guid.NewGuid(); 
             var newJobDto = SeedJobDto(projectId, user.Id);
-            string expectedMessage = JobServiceErrorMessages.ProjectNotFound;
+            string expectedMessage = ServiceErrorMessages.ProjectNotFound;
 
             // Act
             Func<Task> act = async () => await _service.Create(newJobDto);
@@ -247,7 +247,7 @@ namespace SOUPITests.Core.Services
             var userId = Guid.NewGuid(); 
             var project = await SeedProject(_context, userId); 
             var newJobDto = SeedJobDto(project.Id, userId);
-            string expectedMessage = JobServiceErrorMessages.UserNotFound;
+            string expectedMessage = ServiceErrorMessages.UserNotFound;
 
             // Act
             Func<Task> act = async () => await _service.Create(newJobDto);
@@ -274,7 +274,7 @@ namespace SOUPITests.Core.Services
             var project = await SeedProject(_context, user.Id);
             var parentJobId = Guid.NewGuid();  
             var newJobDto = SeedJobDto(project.Id, user.Id, parentJobId);
-            string expectedMessage = JobServiceErrorMessages.ParentNotFound;
+            string expectedMessage = ServiceErrorMessages.ParentJobNotFound;
 
             // Act
             Func<Task> act = async () => await _service.Create(newJobDto);
@@ -312,7 +312,7 @@ namespace SOUPITests.Core.Services
                 Status = JobStatus.New
             };
 
-            string expectedMessage = JobServiceErrorMessages.JobIncompatibleEndStartDates;
+            string expectedMessage = ServiceErrorMessages.JobIncompatibleEndStartDates;
 
             // Act
             Func<Task> act = async () => await _service.Create(newJobDto);
@@ -407,7 +407,7 @@ namespace SOUPITests.Core.Services
             updatedJobDto.EndDateTime = DateTime.UtcNow.AddDays(11);
             updatedJobDto.Progress = 70;
             updatedJobDto.Status = JobStatus.Working;
-            string expectedMessage = JobServiceErrorMessages.ProjectNotFound;
+            string expectedMessage = ServiceErrorMessages.ProjectNotFound;
 
             // Act
             Func<Task> act = async () => await _service.UpdateContent(updatedJobDto);
@@ -440,7 +440,7 @@ namespace SOUPITests.Core.Services
             updatedJobDto.EndDateTime = DateTime.UtcNow.AddDays(11);
             updatedJobDto.Progress = 70;
             updatedJobDto.Status = JobStatus.Working;
-            string expectedMessage = JobServiceErrorMessages.UserNotFound;
+            string expectedMessage = ServiceErrorMessages.UserNotFound;
 
             // Act
             Func<Task> act = async () => await _service.UpdateContent(updatedJobDto);
@@ -473,7 +473,7 @@ namespace SOUPITests.Core.Services
             updatedJobDto.EndDateTime = DateTime.UtcNow.AddDays(10);
             updatedJobDto.Progress = 70;
             updatedJobDto.Status = JobStatus.Working;
-            string expectedMessage = JobServiceErrorMessages.JobIncompatibleEndStartDates;
+            string expectedMessage = ServiceErrorMessages.JobIncompatibleEndStartDates;
 
             // Act
             Func<Task> act = async () => await _service.UpdateContent(updatedJobDto);
@@ -559,7 +559,7 @@ namespace SOUPITests.Core.Services
             var project = await SeedProject(_context, user.Id);
             var firstJob = await SeedJob(_context, project.Id, user.Id);
             var secondJobId = Guid.NewGuid();
-            string expectedMessage = JobServiceErrorMessages.JobNotFound; 
+            string expectedMessage = ServiceErrorMessages.JobNotFound; 
 
             // Act
             Func<Task> act = async () => await _service.UpdateParent(secondJobId, firstJob.Id); 
@@ -585,7 +585,7 @@ namespace SOUPITests.Core.Services
             var user = await SeedUser(_context);
             var project = await SeedProject(_context, user.Id);
             var firstJob = await SeedJob(_context, project.Id, user.Id);
-            string expectedMessage = JobServiceErrorMessages.ParentNotFound;
+            string expectedMessage = ServiceErrorMessages.ParentJobNotFound;
 
             // Act
             Func<Task> act = async () => await _service.UpdateParent(firstJob.Id, Guid.NewGuid());
@@ -615,7 +615,7 @@ namespace SOUPITests.Core.Services
             var thirdJob = await SeedJob(_context, project.Id, user.Id, secondJob.Id);
             var fourthJob = await SeedJob(_context, project.Id, user.Id, secondJob.Id);
 
-            string expectedMessage = JobServiceErrorMessages.JobCyclic;
+            string expectedMessage = ServiceErrorMessages.JobCyclic;
 
             // Act
             Func<Task> act = async () => await _service.UpdateParent(firstJob.Id, fourthJob.Id);
@@ -742,7 +742,7 @@ namespace SOUPITests.Core.Services
             // Arrange
             var user = await SeedUser(_context);
             var project = await SeedProject(_context, user.Id); 
-            string expectedMessage = JobServiceErrorMessages.JobNotFound;
+            string expectedMessage = ServiceErrorMessages.JobNotFound;
 
             // Act
             Func<Task> act = async () => await _service.Delete(Guid.NewGuid(), true); 

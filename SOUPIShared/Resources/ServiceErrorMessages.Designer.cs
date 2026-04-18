@@ -22,14 +22,14 @@ namespace SOUPIShared.Resources {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class AssignmentServiceErrorMessages {
+    public class ServiceErrorMessages {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal AssignmentServiceErrorMessages() {
+        internal ServiceErrorMessages() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace SOUPIShared.Resources {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SOUPIShared.Resources.AssignmentServiceErrorMessages", typeof(AssignmentServiceErrorMessages).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SOUPIShared.Resources.ServiceErrorMessages", typeof(ServiceErrorMessages).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -79,11 +79,101 @@ namespace SOUPIShared.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Связь между задачами образует цикл .
+        /// </summary>
+        public static string JobCyclic {
+            get {
+                return ResourceManager.GetString("JobCyclic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Дата окончания задачи не может быть раньше или равна дате начала задачи .
+        /// </summary>
+        public static string JobIncompatibleEndStartDates {
+            get {
+                return ResourceManager.GetString("JobIncompatibleEndStartDates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Задача не найдена .
         /// </summary>
         public static string JobNotFound {
             get {
                 return ResourceManager.GetString("JobNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Задачи находятся на разных уровнях .
+        /// </summary>
+        public static string JobsDifferentLevels {
+            get {
+                return ResourceManager.GetString("JobsDifferentLevels", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Связь между задачами уже существует.
+        /// </summary>
+        public static string JobSequenceAlreadyExists {
+            get {
+                return ResourceManager.GetString("JobSequenceAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Связь между задачами образует цикл .
+        /// </summary>
+        public static string JobSequenceCyclic {
+            get {
+                return ResourceManager.GetString("JobSequenceCyclic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Связь между задачами не найдена .
+        /// </summary>
+        public static string JobSequenceNotFound {
+            get {
+                return ResourceManager.GetString("JobSequenceNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Связь между задачами не существует в системе .
+        /// </summary>
+        public static string JobTitleNotUnique {
+            get {
+                return ResourceManager.GetString("JobTitleNotUnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Родительская задача не найдена .
+        /// </summary>
+        public static string ParentJobNotFound {
+            get {
+                return ResourceManager.GetString("ParentJobNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Проект не найден .
+        /// </summary>
+        public static string ProjectNotFound {
+            get {
+                return ResourceManager.GetString("ProjectNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Участник команды не найден .
+        /// </summary>
+        public static string TeamMemberNotFound {
+            get {
+                return ResourceManager.GetString("TeamMemberNotFound", resourceCulture);
             }
         }
         

@@ -117,16 +117,46 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="JobSequenceCyclic" xml:space="preserve">
-    <value>Связь образует цикл</value>
+  <data name="AssignmentAlreadyExists" xml:space="preserve">
+    <value>Назначение этого участника команды на эту задачу уже существует</value>
+  </data>
+  <data name="AssignmentNotFound" xml:space="preserve">
+    <value>Назначение не найдено  </value>
   </data>
   <data name="JobNotFound" xml:space="preserve">
-    <value>Задача не существует в системе</value>
+    <value>Задача не найдена </value>
+  </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>Пользователь не найден </value>
   </data>
   <data name="JobsDifferentLevels" xml:space="preserve">
     <value>Задачи находятся на разных уровнях </value>
   </data>
   <data name="JobSequenceAlreadyExists" xml:space="preserve">
     <value>Связь между задачами уже существует</value>
+  </data>
+  <data name="JobSequenceCyclic" xml:space="preserve">
+    <value>Связь между задачами образует цикл </value>
+  </data>
+  <data name="JobCyclic" xml:space="preserve">
+    <value>Связь между задачами образует цикл </value>
+  </data>
+  <data name="JobIncompatibleEndStartDates" xml:space="preserve">
+    <value>Дата окончания задачи не может быть раньше или равна дате начала задачи </value>
+  </data>
+  <data name="JobSequenceNotFound" xml:space="preserve">
+    <value>Связь между задачами не найдена </value>
+  </data>
+  <data name="JobTitleNotUnique" xml:space="preserve">
+    <value>Связь между задачами не существует в системе </value>
+  </data>
+  <data name="ParentJobNotFound" xml:space="preserve">
+    <value>Родительская задача не найдена </value>
+  </data>
+  <data name="ProjectNotFound" xml:space="preserve">
+    <value>Проект не найден </value>
+  </data>
+  <data name="TeamMemberNotFound" xml:space="preserve">
+    <value>Участник команды не найден </value>
   </data>
 </root>

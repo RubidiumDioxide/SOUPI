@@ -16,13 +16,11 @@ namespace SOUPICore.Services
     {
         private readonly SoupiDbContext _context;
         private readonly ILogger<JobSequenceService> _logger;
-        private readonly IStringLocalizer<JobSequenceServiceErrorMessages> _localizer;
 
-        public JobSequenceService(SoupiDbContext context, ILogger<JobSequenceService> logger, IStringLocalizer<JobSequenceServiceErrorMessages> localizer)
+        public JobSequenceService(SoupiDbContext context, ILogger<JobSequenceService> logger)
         {
             _context = context;
-            _logger = logger;
-            _localizer = localizer;
+            _logger = logger; 
         }
 
         public async Task<IEnumerable<JobSequenceDisplayDto>> GetByProjectId(Guid projectId)
@@ -33,7 +31,7 @@ namespace SOUPICore.Services
 
                 if (project == null)
                 {
-                    throw new BadRequestException(_localizer["ProjectNotFound"]);
+                    throw new BadRequestException(ServiceErrorMessages.ProjectNotFound);
                 }
 
                 var jobSequences = await _context.JobSequences
@@ -68,7 +66,7 @@ namespace SOUPICore.Services
 
                 if(newJobSequence.CheckIfCyclic(existingJobSequences))
                 {
-                    throw new BadRequestException(_localizer["JobSequenceCyclic"]);
+                    throw new BadRequestException(ServiceErrorMessages.JobSequenceCyclic);
                 }
 
                 await _context.JobSequences.AddAsync(newJobSequence); 
@@ -91,7 +89,7 @@ namespace SOUPICore.Services
 
                 if (jobSequence == null)
                 {
-                    throw new BadRequestException(_localizer["JobSequenceNotFound"]);
+                    throw new BadRequestException(ServiceErrorMessages.JobSequenceNotFound);
                 }
 
                 _context.JobSequences.Remove(jobSequence);
@@ -111,19 +109,19 @@ namespace SOUPICore.Services
 
             if (firstJob == null || secondJob == null)
             {
-                throw new BadRequestException(_localizer["JobNotFound"]);
+                throw new BadRequestException(ServiceErrorMessages.JobNotFound);
             }
 
             if (!firstJob.IsSameLevel(secondJob))
             {
-                throw new BadRequestException(_localizer["JobsDifferentLevels"]);
+                throw new BadRequestException(ServiceErrorMessages.JobsDifferentLevels);
             }
 
             var existingJobSequence = await _context.JobSequences.FirstOrDefaultAsync(js => js.FirstJobId == firstJob.Id && js.SecondJobId == secondJob.Id);
 
             if (existingJobSequence != null)
             {
-                throw new BadRequestException(_localizer["JobSequenceAlreadyExists"]);
+                throw new BadRequestException(ServiceErrorMessages.JobSequenceAlreadyExists);
             }
         }
     }

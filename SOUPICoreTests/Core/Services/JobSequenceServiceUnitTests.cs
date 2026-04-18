@@ -1,15 +1,11 @@
 ﻿using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Localization;
+using Microsoft.EntityFrameworkCore; 
 using Microsoft.Extensions.Logging;
 using Moq;
 using SOUPICore;
-using SOUPICore.Services;
-using SOUPIShared.Dtos;
+using SOUPICore.Services; 
 using SOUPIShared.Exceptions;
-using SOUPIShared.Extensions;
-using SOUPIShared.Misc;
-using SOUPIShared.Models;
+using SOUPIShared.Extensions; 
 using SOUPIShared.Resources;
 using static SOUPITests.Helpers.Helpers; 
 
@@ -31,18 +27,7 @@ namespace SOUPITests.Core.Services
             _context = new SoupiDbContext(options);
             _loggerMock = new Mock<ILogger<JobSequenceService>>();
 
-            var localizationOptions = Microsoft.Extensions.Options.Options.Create(new LocalizationOptions
-            {
-                ResourcesPath = ""
-            });
-
-            var factory = new ResourceManagerStringLocalizerFactory(
-                localizationOptions,
-                Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance);
-
-            var localizer = new StringLocalizer<JobSequenceServiceErrorMessages>(factory);
-
-            _service = new JobSequenceService(_context, _loggerMock.Object, localizer);
+            _service = new JobSequenceService(_context, _loggerMock.Object);
         }
 
 
@@ -77,7 +62,7 @@ namespace SOUPITests.Core.Services
             var project = await SeedProject(_context, user.Id);
             var firstJobId = Guid.NewGuid(); 
             var secondJob = await SeedJob(_context, project.Id, user.Id);
-            string expectedMessage = JobSequenceServiceErrorMessages.JobNotFound;
+            string expectedMessage = ServiceErrorMessages.JobNotFound;
 
             // Act
             Func<Task> act = async () => await _service.Create(firstJobId, secondJob.Id);
@@ -104,7 +89,7 @@ namespace SOUPITests.Core.Services
             var project = await SeedProject(_context, user.Id);
             var firstJob = await SeedJob(_context, project.Id, user.Id);
             var secondJobId = Guid.NewGuid();
-            string expectedMessage = JobSequenceServiceErrorMessages.JobNotFound;
+            string expectedMessage = ServiceErrorMessages.JobNotFound;
 
             // Act
             Func<Task> act = async () => await _service.Create(firstJob.Id, secondJobId);
@@ -131,7 +116,7 @@ namespace SOUPITests.Core.Services
             var project = await SeedProject(_context, user.Id);
             var firstJob = await SeedJob(_context, project.Id, user.Id);
             var secondJob = await SeedJob(_context, project.Id, user.Id, firstJob.Id);
-            string expectedMessage = JobSequenceServiceErrorMessages.JobsDifferentLevels; 
+            string expectedMessage = ServiceErrorMessages.JobsDifferentLevels; 
 
             // Act
             Func<Task> act = async () => await _service.Create(firstJob.Id, secondJob.Id);
@@ -160,7 +145,7 @@ namespace SOUPITests.Core.Services
             var firstJob = await SeedJob(_context, project.Id, user.Id);
             var secondJob = await SeedJob(_context, project.Id, user.Id);
             var jobSequence = await SeedJobSequence(_context, firstJob.Id, secondJob.Id); 
-            string expectedMessage = JobSequenceServiceErrorMessages.JobSequenceAlreadyExists;
+            string expectedMessage = ServiceErrorMessages.JobSequenceAlreadyExists;
 
             // Act
             Func<Task> act = async () => await _service.Create(firstJob.Id, secondJob.Id);
@@ -188,7 +173,7 @@ namespace SOUPITests.Core.Services
             var firstJob = await SeedJob(_context, project.Id, user.Id);
             var secondJob = await SeedJob(_context, project.Id, user.Id);
             var jobSequence = await SeedJobSequence(_context, firstJob.Id, secondJob.Id); 
-            string expectedMessage = JobSequenceServiceErrorMessages.JobSequenceCyclic;
+            string expectedMessage = ServiceErrorMessages.JobSequenceCyclic;
 
             // Act
             Func<Task> act = async () => await _service.Create(secondJob.Id, firstJob.Id);

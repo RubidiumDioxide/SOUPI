@@ -15,13 +15,11 @@ namespace SOUPICore.Services
     {
         private readonly SoupiDbContext _context;
         private readonly ILogger<AssignmentService> _logger;
-        private readonly IStringLocalizer<JobServiceErrorMessages> _localizer;
 
-        public AssignmentService(SoupiDbContext context, ILogger<AssignmentService> logger, IStringLocalizer<JobServiceErrorMessages> localizer)
+        public AssignmentService(SoupiDbContext context, ILogger<AssignmentService> logger)
         {
-            _context = context;
-            _logger = logger;
-            _localizer = localizer;
+            _context = context; 
+            _logger = logger; 
         }
 
         public async Task<IEnumerable<AssignmentDisplayDto>> GetByJobId(Guid jobId)
@@ -32,7 +30,7 @@ namespace SOUPICore.Services
 
                 if(job == null)
                 {
-                    throw new BadRequestException(AssignmentServiceErrorMessages.JobNotFound); 
+                    throw new BadRequestException(ServiceErrorMessages.JobNotFound); 
                 }
 
                 var assignments = await _context.Assignments.Where(a => a.JobId == jobId).ToListAsync();
@@ -54,7 +52,7 @@ namespace SOUPICore.Services
 
                 if (user == null)
                 {
-                    throw new BadRequestException(AssignmentServiceErrorMessages.UserNotFound);
+                    throw new BadRequestException(ServiceErrorMessages.UserNotFound);
                 }
 
                 var assignments = await _context.Assignments.Where(a => a.TeamMember.UserId == userId).ToListAsync();
@@ -101,7 +99,7 @@ namespace SOUPICore.Services
 
                 if (assignment == null)
                 {
-                    throw new BadRequestException(AssignmentServiceErrorMessages.AssignmentNotFound);
+                    throw new BadRequestException(ServiceErrorMessages.AssignmentNotFound);
                 }
 
                 assignment.CopyContentProperties(updatedAssignmentDto);
@@ -125,7 +123,7 @@ namespace SOUPICore.Services
 
                 if (assignment == null)
                 {
-                    throw new BadRequestException(_localizer["AssignmentNotFound"]);
+                    throw new BadRequestException(ServiceErrorMessages.AssignmentNotFound);
                 }
 
                 _context.Assignments.Remove(assignment);
@@ -145,18 +143,18 @@ namespace SOUPICore.Services
 
             if (job == null)
             {
-                throw new BadRequestException(_localizer["JobNotFound"]);
+                throw new BadRequestException(ServiceErrorMessages.JobNotFound);
             }
             if (teamMember == null)
             {
-                throw new BadRequestException(_localizer["TeamMemberNotFound"]);
+                throw new BadRequestException(ServiceErrorMessages.TeamMemberNotFound);
             }
 
             var existingAssignment = await _context.Assignments.FirstOrDefaultAsync(a => a.JobId == job.Id && a.TeamMemberId == teamMember.Id);
 
             if (existingAssignment != null)
             {
-                throw new BadRequestException(_localizer["AssignmentAlreadyExists"]);
+                throw new BadRequestException(ServiceErrorMessages.AssignmentAlreadyExists);
             }
         }
     }
