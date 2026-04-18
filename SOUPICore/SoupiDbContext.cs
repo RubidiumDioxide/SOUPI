@@ -33,7 +33,7 @@ public partial class SoupiDbContext : DbContext
             entity.ToTable("PROJECT");
 
             entity.HasIndex(p => p.Id).IsUnique();
-            entity.HasIndex(p => new { p.CreatorId, p.Name }).IsUnique();
+            entity.HasIndex(p => new { p.CreatorId, p.Title }).IsUnique();
 
             entity.HasOne(p => p.Creator).WithMany(u => u.Projects)
                 .HasForeignKey(p => p.CreatorId)

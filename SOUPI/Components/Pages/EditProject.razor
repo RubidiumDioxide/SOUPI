@@ -25,10 +25,10 @@
                 <DataAnnotationsValidator />
                 <MudCard Style="max-width: 700px" Class="ma-auto">
                     <MudCardHeader>
-                        <MudText Typo="Typo.h5" Class="mb-1 ma-auto">Редактирование проекта @project.Name</MudText>
+                        <MudText Typo="Typo.h5" Class="mb-1 ma-auto">Редактирование проекта @project.Title</MudText>
                     </MudCardHeader>
                     <MudCardContent>
-                        <MudTextField @bind-Value=@project.Name For="@(() => project.Name)" Label="Название проекта" Variant=Variant.Outlined />
+                        <MudTextField @bind-Value=@project.Title For="@(() => project.Title)" Label="Название проекта" Variant=Variant.Outlined />
                         <MudTextField @bind-Value=@project.Description For="@(() => project.Description)" Label="Описание проекта" Variant=Variant.Outlined Lines="5" />
                         @if (project.GithubRepository == null)
                         {
@@ -112,7 +112,7 @@
             }
 
             var projects = await projectRequestHandler.GetByUserId(User.Id);
-            if (projects.Where(p => p.Id != project.Id).Select(p => p.Name).Contains(project.Name))
+            if (projects.Where(p => p.Id != project.Id).Select(p => p.Title).Contains(project.Title))
             {
                 throw new SoupiException("Вы уже создавали проект с таким названием. Названия проектов должны быть уникальными ");
             }

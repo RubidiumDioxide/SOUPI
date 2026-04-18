@@ -38,7 +38,7 @@ namespace SOUPIShared.Dtos
             JobId = assignment.JobId;
             JobTitle = assignment.Job.Title;
             ProjectId = assignment.Job.Project.Id;
-            ProjectTitle = assignment.Job.Project.Name; 
+            ProjectTitle = assignment.Job.Project.Title; 
             Comment = assignment.Comment; 
         }
 

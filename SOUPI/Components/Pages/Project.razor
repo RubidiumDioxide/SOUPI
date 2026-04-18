@@ -8,7 +8,7 @@
 @attribute [Authorize]
 
 
-<PageTitle>Проект @((project != null)? project.Name : string.Empty)</PageTitle>
+<PageTitle>Проект @((project != null)? project.Title : string.Empty)</PageTitle>
 
 <MudContainer Gutters="false" Class="pt-14">
     @if (error != null) 

@@ -34,7 +34,7 @@ namespace SOUPIShared.Dtos
             UserId = teamMember.UserId;
             UserLogin = teamMember.User.Login; 
             ProjectId = teamMember.ProjectId; 
-            ProjectName = teamMember.Project.Name; 
+            ProjectName = teamMember.Project.Title; 
             Role = teamMember.Role; 
             SupervisorId = teamMember.SupervisorId;
             SupervisorLogin = teamMember.Supervisor?.User.Login; 

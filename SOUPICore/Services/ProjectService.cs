@@ -66,7 +66,7 @@ namespace SOUPICore.Services
             {
                 var newProject = new Project()
                 {
-                    Name = newProjectDto.Name,
+                    Title = newProjectDto.Title,
                     Description = newProjectDto.Description,
                     GithubRepository = newProjectDto.GithubRepository,
                     CreatorId = newProjectDto.CreatorId, 
@@ -105,7 +105,7 @@ namespace SOUPICore.Services
                     throw new NotFoundException(); 
                 }
 
-                project.Name = updatedProjectDto.Name;
+                project.Title = updatedProjectDto.Title;
                 project.Description = updatedProjectDto.Description; 
 
                 await _context.SaveChangesAsync();

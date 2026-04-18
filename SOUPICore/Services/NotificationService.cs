@@ -92,14 +92,14 @@ namespace SOUPICore.Services
 
                 if (existingTeamMember != null)
                 {
-                    throw new BadRequestException($"Невозмжоно добавить в команду проекта {project.Name} пользователя {user.Login}, т.к. этот пользователь уже есть в команде ");
+                    throw new BadRequestException($"Невозмжоно добавить в команду проекта {project.Title} пользователя {user.Login}, т.к. этот пользователь уже есть в команде ");
                 }
 
                 var supervisor = project.TeamMembers.FirstOrDefault(tm => tm.UserId == project.CreatorId);
                 
                 if (supervisor == null)
                 {
-                    throw new BadRequestException($"Ошибка при вычислении руководителя в команде проекта {project.Name} для пользователя {user.Login} ");
+                    throw new BadRequestException($"Ошибка при вычислении руководителя в команде проекта {project.Title} для пользователя {user.Login} ");
                 }
 
                 var newTeamMember = new TeamMember()

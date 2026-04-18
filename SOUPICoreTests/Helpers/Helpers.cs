@@ -29,7 +29,7 @@ namespace SOUPITests.Helpers
             var project = new Project
             {
                 Id = Guid.NewGuid(),
-                Name = "Test Project",
+                Title = "Test Project",
                 CreatorId = creatorId,
                 CreationDateTime = DateTime.UtcNow,
             };

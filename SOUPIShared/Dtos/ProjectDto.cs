@@ -11,7 +11,7 @@ namespace SOUPIShared.Dtos
         [Required(ErrorMessage = "Поле названия обязательное")]
         [MaxLength(100, ErrorMessage = "Название слишком длинное (максимум 50 символов)")]
         [MinLength(1, ErrorMessage = "Название слишком короткое (минимум 1 символ)")]
-        public string Name { get; set; } = null!;
+        public string Title { get; set; } = null!;
         [MaxLength(255, ErrorMessage = "Описание слишком длинное (максимум 100 символов)")]
         public string? Description { get; set; }
         public string? GithubRepository { get; set; }
@@ -24,7 +24,7 @@ namespace SOUPIShared.Dtos
         public ProjectDto(Project project)
         {
             Id = project.Id; 
-            Name = project.Name; 
+            Title = project.Title; 
             Description = project.Description; 
             GithubRepository = project.GithubRepository; 
             CreatorId = project.CreatorId; 

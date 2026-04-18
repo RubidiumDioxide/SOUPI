@@ -50,7 +50,7 @@ namespace SOUPIShared.Dtos
             ReceiverId = notification.ReceiverId; 
             ReceiverLogin = notification.Receiver.Login; 
             ProjectId = notification.ProjectId;
-            ProjectName = notification.Project.Name; 
+            ProjectName = notification.Project.Title; 
             NotificationType = notification.NotificationType; 
             Role = notification.Role; 
             HasBeenViewed = notification.HasBeenViewed; 

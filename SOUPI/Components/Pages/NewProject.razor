@@ -28,7 +28,7 @@
                         <MudText Typo="Typo.h5" Class="mb-1 ma-auto">Создание нового проекта</MudText>
                     </MudCardHeader>
                     <MudCardContent>
-                        <MudTextField @bind-Value=@newProject.Name For="@(() => newProject.Name)" Label="Название проекта" Variant=Variant.Outlined />
+                        <MudTextField @bind-Value=@newProject.Title For="@(() => newProject.Title)" Label="Название проекта" Variant=Variant.Outlined />
                         <MudTextField @bind-Value=@newProject.Description For="@(() => newProject.Description)" Label="Описание проекта" Variant=Variant.Outlined Lines="5" />
                         <MudTextField @bind-Value=@newProject.GithubRepository For="@(() => newProject.GithubRepository)" Label="Название репозитория на Github" Variant=Variant.Outlined /> 
                     </MudCardContent>
@@ -77,7 +77,7 @@
             }
 
             var projects = await projectRequestHandler.GetByUserId(User.Id); 
-            if(projects.Select(p => p.Name).Contains(newProject.Name))
+            if(projects.Select(p => p.Title).Contains(newProject.Title))
             {
                 throw new SoupiException("Вы уже создавали проект с таким названием. Названия проектов должны быть уникальными "); 
             }
