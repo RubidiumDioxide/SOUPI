@@ -71,8 +71,6 @@ builder.Services.AddDbContext<SoupiDbContext>(
         .UseLazyLoadingProxies()
     );
 
-builder.Services.AddHostedService<InitializationService>();
-
 builder.Services.AddSingleton<AuthHttpClientFactory>();
 builder.Services.AddScoped<HttpClient>(sp =>
 {

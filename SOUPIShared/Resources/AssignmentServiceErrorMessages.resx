@@ -123,4 +123,10 @@
   <data name="AssignmentNotFound" xml:space="preserve">
     <value>Назначение не найдено  </value>
   </data>
+  <data name="JobNotFound" xml:space="preserve">
+    <value>Задача не найдена </value>
+  </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>Пользователь не найден </value>
+  </data>
 </root>

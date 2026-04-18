@@ -1,0 +1,100 @@
+﻿@page "/myassignments"
+@inject IAssignmentRequestHandler assignmentRequestHandler
+@inject IProjectRequestHandler projectRequestHandler
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+
+@if (User == null || GithubUser == null || assignments == null)
+{
+    <LoadingPlaceholder />
+}
+else
+{
+    <MudContainer Class="pt-14" MaxWidth=MaxWidth.False>
+        @if (assignments.Count() == 0)
+        {
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                Вам пока не назначили выполнение задач. Отдыхайте :) 
+            </MudAlert>
+        }
+        else
+        {
+            <MudStack Spacing="3">
+                @foreach (var context in assignments)
+                {
+                    <MudPaper Class="pa-2" Elevation="2">
+                        <MudStack Row="true"
+                                  AlignItems="AlignItems.Center"
+                                  Justify="Justify.SpaceBetween">
+                            @* Left Side: Avatar and Name/Comment *@
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3"> 
+                                <MudStack Spacing="0">
+                                    <MudText Typo="Typo.body1">
+                                        Проект 
+                                        <MudLink Href=@($"projects/{@context.ProjectId}")>   
+                                            @context.ProjectTitle             
+                                        </MudLink>
+                                    </MudText> 
+
+                                 
+                                    <MudText Typo="Typo.body2">@context.Comment</MudText>
+                                </MudStack>
+                            </MudStack>
+
+                            @* Right Side: Delete Button *@
+                            <MudStack Row="true" Spacing="1">
+                                <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
+                                               Color="Color.Success"
+                                               OnClick=@(() => GoToAssignment(context.Id))
+                                               Size="Size.Medium" />
+                            </MudStack>
+                        </MudStack>
+                    </MudPaper>
+                }
+            </MudStack>
+        }
+    </MudContainer>
+}
+
+
+@code {
+    [CascadingParameter]
+    private UserDto? User { get; set; }
+    [CascadingParameter]
+    private GithubUser? GithubUser { get; set; }
+   
+    public IEnumerable<AssignmentDisplayDto>? assignments { get; set; } 
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (User != null && GithubUser != null)
+        {
+            try
+            {
+                await LoadAssignments();
+            }
+            catch (SoupiException ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error);
+            }
+            catch (Exception)
+            {
+                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task LoadAssignments()
+    {
+        assignments = await assignmentRequestHandler.GetByUserId(User!.Id);
+    }
+
+    // TO-DO: assignment page
+    private void GoToAssignment(Guid assignmentId)
+    {
+        
+    }
+}

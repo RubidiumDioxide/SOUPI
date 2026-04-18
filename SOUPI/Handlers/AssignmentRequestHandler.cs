@@ -12,6 +12,7 @@ namespace SOUPI.Handlers
         private readonly HttpClient _httpClient;
 
         private const string getByJobIdUrl = "/api/assignment/getbyjobid/";
+        private const string getByUserIdUrl = "/api/assignment/getbyuserid/";
         private const string createUrl = "/api/assignment/create/";
         private const string updateContentUrl = "/api/assignment/updateContent/";
         private const string deleteUrl = "/api/assignment/delete/";
@@ -27,6 +28,30 @@ namespace SOUPI.Handlers
             try
             {
                 var response = await _httpClient.GetAsync($"{getByJobIdUrl}{jobId}");
+
+                response.EnsureSuccessStatusCode();
+
+                var newContent = await response.Content.ReadAsStringAsync();
+
+                var assignmentDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<AssignmentDisplayDto>>(newContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                return assignmentDtos!;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Не удалось загрузить исполнителей {ex.Message}");
+                throw new SoupiException("Не удалось загрузить исполнителей. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
+        }
+
+        public async Task<IEnumerable<AssignmentDisplayDto>> GetByUserId(Guid userId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{getByUserIdUrl}{userId}");
 
                 response.EnsureSuccessStatusCode();
 

@@ -38,6 +38,22 @@ namespace SOUPICore.Controllers
             }
         }
 
+        [HttpGet("{userId}")]
+        public async Task<ActionResult<IEnumerable<AssignmentDisplayDto>>> GetByUserId([FromRoute] Guid userId)
+        {
+            try
+            {
+                var assignment = await _assignmentService.GetByUserId(userId);
+
+                return Ok(assignment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
+        }
+
         [HttpPost]
         public async Task<ActionResult<AssignmentDto>> Create([FromBody] AssignmentDto newAssignmentDto)
         {

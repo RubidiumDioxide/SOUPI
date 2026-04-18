@@ -3,7 +3,7 @@
 @inject IDialogService DialogService
 
 
-@if (Job == null || Project == null || TeamMembers == null || TeamMemberGithubUsers == null || assignments == null)
+@if (Job == null || TeamMembers == null || TeamMemberGithubUsers == null || assignments == null)
 {
     <LoadingPlaceholder />
 }
@@ -76,8 +76,6 @@ else {
     [Parameter, EditorRequired]
     public JobDto? Job { get; set; } 
     [Parameter, EditorRequired]
-    public ProjectDto? Project { get; set; } 
-    [Parameter, EditorRequired]
     public IEnumerable<TeamMemberDisplayDto>? TeamMembers { get; set; } 
     [Parameter, EditorRequired]
     public IDictionary<string, GithubUser> TeamMemberGithubUsers { get; set; }
@@ -86,7 +84,7 @@ else {
 
     protected override async Task OnParametersSetAsync()
     {
-        if (Job != null && Project != null && TeamMembers != null)
+        if (Job != null && TeamMembers != null)
         {
             try
             {

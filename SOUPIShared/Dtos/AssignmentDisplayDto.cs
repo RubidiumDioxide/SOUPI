@@ -20,6 +20,12 @@ namespace SOUPIShared.Dtos
         [Required]
         public string JobTitle { get; set; } = default!;
 
+        [Required]
+        public Guid ProjectId { get; set; } = default!;
+
+        [Required]
+        public string ProjectTitle { get; set; } = default!;
+
         [MaxLength(255, ErrorMessage = "Комментарий слишком длинный (максимум 255 символов)")]
         public string? Comment { get; set; }
 
@@ -30,7 +36,9 @@ namespace SOUPIShared.Dtos
             TeamMemberId = assignment.TeamMemberId;
             TeamMemberLogin = assignment.TeamMember.User.Login; 
             JobId = assignment.JobId;
-            JobTitle = assignment.Job.Title; 
+            JobTitle = assignment.Job.Title;
+            ProjectId = assignment.Job.Project.Id;
+            ProjectTitle = assignment.Job.Project.Name; 
             Comment = assignment.Comment; 
         }
 

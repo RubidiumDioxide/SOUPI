@@ -28,9 +28,38 @@ namespace SOUPICore.Services
         {
             try
             {
+                var job = await _context.Jobs.FindAsync(jobId); 
+
+                if(job == null)
+                {
+                    throw new BadRequestException(AssignmentServiceErrorMessages.JobNotFound); 
+                }
+
                 var assignments = await _context.Assignments.Where(a => a.JobId == jobId).ToListAsync();
 
                 return assignments.Select(a => new AssignmentDisplayDto(a)); 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<AssignmentDisplayDto>> GetByUserId(Guid userId)
+        {
+            try
+            {
+                var user = await _context.Users.FindAsync(userId);
+
+                if (user == null)
+                {
+                    throw new BadRequestException(AssignmentServiceErrorMessages.UserNotFound);
+                }
+
+                var assignments = await _context.Assignments.Where(a => a.TeamMember.UserId == userId).ToListAsync();
+
+                return assignments.Select(a => new AssignmentDisplayDto(a));
             }
             catch (Exception ex)
             {

@@ -77,5 +77,23 @@ namespace SOUPIShared.Resources {
                 return ResourceManager.GetString("AssignmentNotFound", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Задача не найдена .
+        /// </summary>
+        public static string JobNotFound {
+            get {
+                return ResourceManager.GetString("JobNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Пользователь не найден .
+        /// </summary>
+        public static string UserNotFound {
+            get {
+                return ResourceManager.GetString("UserNotFound", resourceCulture);
+            }
+        }
     }
 }
