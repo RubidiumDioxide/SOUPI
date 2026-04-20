@@ -22,14 +22,30 @@ namespace SOUPICore.Controllers
             _assignmentService = assignmentService;
         }
 
+        [HttpGet("{projectId}")]
+        public async Task<ActionResult<IEnumerable<AssignmentDisplayDto>>> GetByProjectId([FromRoute] Guid projectId)
+        {
+            try
+            {
+                var assignments = await _assignmentService.GetByProjectId(projectId);
+
+                return Ok(assignments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
+        }
+
         [HttpGet("{jobId}")]
         public async Task<ActionResult<IEnumerable<AssignmentDisplayDto>>> GetByJobId([FromRoute] Guid jobId)
         {
             try
             {
-                var assignment = await _assignmentService.GetByJobId(jobId); 
+                var assignments = await _assignmentService.GetByJobId(jobId); 
 
-                return Ok(assignment);
+                return Ok(assignments);
             }
             catch (Exception ex)
             {
@@ -43,9 +59,9 @@ namespace SOUPICore.Controllers
         {
             try
             {
-                var assignment = await _assignmentService.GetByUserId(userId);
+                var assignments = await _assignmentService.GetByUserId(userId);
 
-                return Ok(assignment);
+                return Ok(assignments);
             }
             catch (Exception ex)
             {

@@ -1,7 +1,6 @@
 ﻿@page "/projects/{projectId:guid}"
 @inject NavigationManager NavigationManager
 @inject IGithubRequestHandler githubRequestHandler
-@inject NavigationManager NavigationManager  
 @inject IProjectRequestHandler projectRequestHandler
 @inject ITeamMemberRequestHandler teamMemberRequestHandler
 @inject ISnackbar Snackbar 
@@ -19,7 +18,7 @@
     {
         @if (User == null || GithubUser == null || project == null || teamMembers == null)
         {
-            <MudText Align="Align.Center">Loading... </MudText>
+            <LoadingPlaceholder />
         }
         else
         {
@@ -32,6 +31,7 @@
                 <ProjectTeam Project="project"/>
 
                 <MudButton OnClick=@(() => NavigationManager.NavigateTo($"jobviewer/{project.Id}"))>Перейти к задачам проекта </MudButton>
+                <MudButton OnClick=@(() => NavigationManager.NavigateTo($"statistics/{project.Id}"))>Перейти к статистике проекта </MudButton>
             }
         }
     }

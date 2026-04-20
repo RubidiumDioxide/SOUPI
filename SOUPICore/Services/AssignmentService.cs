@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Localization;
+﻿using Microsoft.EntityFrameworkCore; 
 using Microsoft.Extensions.Logging;
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos;
@@ -20,6 +19,28 @@ namespace SOUPICore.Services
         {
             _context = context; 
             _logger = logger; 
+        }
+
+        public async Task<IEnumerable<AssignmentDisplayDto>> GetByProjectId(Guid projectId)
+        {
+            try
+            {
+                var project = await _context.Projects.FindAsync(projectId);
+
+                if (project == null)
+                {
+                    throw new BadRequestException(ServiceErrorMessages.ProjectNotFound);
+                }
+
+                var assignments = await _context.Assignments.Where(a => a.Job.ProjectId == projectId).ToListAsync();
+
+                return assignments.Select(a => new AssignmentDisplayDto(a));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
 
         public async Task<IEnumerable<AssignmentDisplayDto>> GetByJobId(Guid jobId)

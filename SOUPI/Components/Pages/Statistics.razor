@@ -1,0 +1,184 @@
+﻿@page "/statistics/{projectId:guid}"
+@inject NavigationManager NavigationManager
+@inject IGithubRequestHandler githubRequestHandler
+@inject IProjectRequestHandler projectRequestHandler
+@inject IJobRequestHandler jobRequestHandler
+@inject IAssignmentRequestHandler assignmentRequestHandler
+@inject ITeamMemberRequestHandler teamMemberRequestHandler
+@inject ISnackbar Snackbar 
+@attribute [Authorize]
+
+
+<PageTitle>Статистика по проекту @((project != null)? project.Title : string.Empty)</PageTitle>
+
+<MudContainer Gutters="false" Class="pt-14">
+    @if (error != null) 
+    {
+        <MudAlert Severity=severity>@error</MudAlert>
+    }
+    else
+    {
+        @if (User == null || GithubUser == null || project == null || teamMembers == null || assignmentJobs == null || teamMemberAssignments == null || teamMemberGithubUsers == null)
+        {
+            <LoadingPlaceholder /> 
+        }
+        else
+        {
+            @if (!teamMembers.Select(tm => tm.UserId).Contains(User.Id))
+            {
+                <UnauthorizedPlaceholder/>
+            }
+            else
+            {
+                <MudPaper Class="doc-section-component-container mx-8">
+                    <MudToolBar>
+                        <MudMenu Modal="false" Variant="Variant.Outlined" EndIcon="@_menuIcons[chartType]" IconColor="Color.Primary" Label="Chart Type">
+                            <MudMenuItem Icon="@_menuIcons[ChartType.Bar]" Label="Bar" OnClick="() => chartType = ChartType.Bar" Disabled="@(chartType == ChartType.Bar)" />
+                            <MudMenuItem Icon="@_menuIcons[ChartType.StackedBar]" Label="Stacked Bar" OnClick="() => chartType = ChartType.StackedBar" Disabled="@(chartType == ChartType.StackedBar)" />
+                            <MudMenuItem Icon="@_menuIcons[ChartType.Line]" Label="Line" OnClick="() => chartType = ChartType.Line" Disabled="@(chartType == ChartType.Line)" />
+                            <MudMenuItem Icon="@_menuIcons[ChartType.Pie]" Label="Pie" OnClick="() => chartType = ChartType.Pie" Disabled="@(chartType == ChartType.Pie)" />
+                            <MudMenuItem Icon="@_menuIcons[ChartType.Donut]" Label="Donut" OnClick="() => chartType = ChartType.Donut" Disabled="@(chartType == ChartType.Donut)" />
+                            <MudMenuItem Icon="@_menuIcons[ChartType.Rose]" Label="Rose" OnClick="() => chartType = ChartType.Rose" Disabled="@(chartType == ChartType.Rose)" />
+                            <MudMenuItem Icon="@_menuIcons[ChartType.Radar]" Label="Radar" OnClick="() => chartType = ChartType.Radar" Disabled="@(chartType == ChartType.Radar)" />
+                        </MudMenu>
+                    </MudToolBar>
+
+                    @if (teamMemberLabels == null || assignedToCompletedJobsPerTeamMemberDataSet == null)
+                    {
+                        <LoadingPlaceholder />
+                    }
+                    else
+                    {
+                        <MudChart ChartType="chartType"
+                                  ChartSeries="@assignedToCompletedJobsPerTeamMemberDataSet"
+                                  ChartLabels="@teamMemberLabels"
+                                  Width="100%" Height="400px" CanHideSeries MatchBoundsToSize />
+                    }
+                </MudPaper>
+            }
+        }
+    }
+</MudContainer>
+
+
+@code {
+    [CascadingParameter]
+    private UserDto? User { get; set; }
+    [CascadingParameter]
+    private GithubUser? GithubUser { get; set; }
+
+    [Parameter]
+    public Guid projectId { get; set; }
+
+    private ProjectDto? project { get; set; } 
+    private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; } 
+    private IDictionary<Guid, JobDto>? assignmentJobs { get; set; }
+    private IDictionary<Guid, IEnumerable<AssignmentDisplayDto>>? teamMemberAssignments { get; set; }
+    private IDictionary<string, GithubUser>? teamMemberGithubUsers { get; set; }
+
+    private string? error { get; set; } = null;
+    private Severity severity { get; set; } = Severity.Warning; 
+
+    private Dictionary<ChartType, string> _menuIcons = new()
+    {
+        { ChartType.Bar, Icons.Material.Filled.BarChart },
+        { ChartType.StackedBar, Icons.Material.Filled.StackedBarChart },
+        { ChartType.Line, Icons.Material.Filled.ShowChart },
+        { ChartType.Pie, Icons.Material.Filled.PieChart },
+        { ChartType.Donut, Icons.Material.Filled.DonutLarge },
+        { ChartType.Rose, Icons.Material.Filled.DonutSmall },
+        { ChartType.Radar, Icons.Material.Filled.Hub },
+    };
+
+    private ChartType chartType = ChartType.StackedBar;
+
+    private string[]? teamMemberLabels { get; set; } 
+    private List<ChartSeries<int>>? assignedToCompletedJobsPerTeamMemberDataSet { get; set; } 
+
+    //private List<ChartSeries<int>>? completedJobsPerMonthDataSet { get; set; }
+    //private List<ChartSeries<int>>? completedJobsPerWeekDataSet { get; set; }
+
+    protected override async Task OnParametersSetAsync() 
+    {
+        if (User != null && GithubUser != null)
+        {
+            try
+            {
+                await LoadProject();
+                await LoadTeamMembers(); 
+                await LoadAssignmentJobs(); 
+                await LoadTeamMemberAssignments();  
+                await LoadTeamMemberGithubUsers();
+
+                teamMemberLabels = teamMemberGithubUsers!.Keys.ToArray(); 
+
+                assignedToCompletedJobsPerTeamMemberDataSet = 
+                [
+                    new() { 
+                        Name = "Назначенные ", 
+                        Data = new(teamMemberAssignments!.Select(tm => tm.Value.Count()).ToList()) 
+                    }, 
+                    new() { 
+                        Name = "Выполненные ", 
+                        Data = new(teamMemberAssignments!.Select(tm => tm.Value
+                                                         .Where(a => assignmentJobs![a.Id].Status == JobStatus.Completed) 
+                                                         .Count()).ToList()) },
+            ]; 
+            }
+            catch (SoupiException ex)
+            {
+                error = ex.Message;
+                severity = Severity.Error;
+            }
+            catch (Exception ex)
+            {
+                error = "Произошла непредвиденная ошибка ";
+                severity = Severity.Error;
+            }
+        }
+    }
+
+    private async Task LoadProject()
+    {
+        project = await projectRequestHandler.GetById(projectId); 
+    } 
+
+    private async Task LoadAssignmentJobs()
+    {
+        var jobs = await jobRequestHandler.GetByProjectId(projectId);  
+        var assignments = await assignmentRequestHandler.GetByProjectId(projectId); 
+
+        assignmentJobs = assignments.Join(jobs,
+                                        assignment => assignment.JobId, // Outer key selector
+                                        job => job.Id,                  // Inner key selector
+                                        (assignment, job) => new { assignment.Id, job } // Result projection
+                                    )
+                                    .ToDictionary(
+                                        x => x.Id, 
+                                        x => x.job
+                                    ); 
+    }
+
+    private async Task LoadTeamMembers()
+    {
+        teamMembers = await teamMemberRequestHandler.GetByProjectId(projectId); 
+    }
+
+    private async Task LoadTeamMemberAssignments()
+    {
+        var assignments = await assignmentRequestHandler.GetByProjectId(projectId); 
+        var assignmentsByTeamMember = assignments.GroupBy(a => a.TeamMemberId);
+
+        teamMemberAssignments = assignmentsByTeamMember.ToDictionary(
+                                                            a => a.Key,          
+                                                            a => a.AsEnumerable() 
+                                                        );
+    }
+
+    private async Task LoadTeamMemberGithubUsers()
+    {
+        var githubUsers = await githubRequestHandler.GetUsersByLogins(teamMembers!.Select(tm => tm.UserLogin));
+
+        teamMemberGithubUsers = githubUsers.ToDictionary(gu => gu.Login); 
+    } 
+}
