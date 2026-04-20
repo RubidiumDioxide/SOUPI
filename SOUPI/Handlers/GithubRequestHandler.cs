@@ -4,7 +4,6 @@ using SOUPIShared.Exceptions;
 using Microsoft.AspNetCore.Authentication;
 using Octokit.Internal;
 using SOUPI.Handlers.Interfaces;
-using Microsoft.EntityFrameworkCore; 
 
 
 namespace SOUPI.Handlers 
@@ -17,7 +16,31 @@ namespace SOUPI.Handlers
         public GithubRequestHandler(ILogger<GithubRequestHandler> logger, IHttpContextAccessor httpContextAccessor)
         {
             _logger = logger;
-            _httpContextAccessor = httpContextAccessor;
+            _httpContextAccessor = httpContextAccessor; 
+        }
+
+        public async Task<bool> IsAppInstalled()
+        {
+            try
+            {
+                var httpContext = _httpContextAccessor.HttpContext;
+
+                var accessToken = await httpContext!.GetTokenAsync("access_token");
+
+                var github = new GitHubClient(
+                    new ProductHeaderValue("AspNetCoreGitHubAuth"),
+                    new InMemoryCredentialStore(new Credentials(accessToken))
+                );
+
+                var installations = await github.GitHubApps.GetAllInstallationsForCurrentUser(); 
+
+                return installations.Installations.Any(); 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Не удалось перейти на страницу установки GithubApp. {ex.Message}");
+                throw new SoupiException("Не удалось перейти на страницу установки GithubApp. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
         }
 
         public async Task<GithubUser> GetCurrentUser()

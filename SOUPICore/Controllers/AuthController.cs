@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Authorization;
 
 
 namespace SOUPICore.Controllers

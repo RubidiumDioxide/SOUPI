@@ -6,6 +6,8 @@ namespace SOUPI.Handlers.Interfaces
 {
     public interface IGithubRequestHandler
     {
+        public Task<bool> IsAppInstalled(); 
+
         public Task<GithubUser> GetCurrentUser();
 
         public Task<GithubUser> GetUserByLogin(string login);

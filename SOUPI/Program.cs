@@ -1,20 +1,18 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OAuth; 
+using Microsoft.AspNetCore.Components; 
+using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
-using SOUPI.Components;
-using SOUPICore.Services;
 using SOUPI;
-using SOUPICore;
-using System.Net.Http.Headers;
-using System.Security.Claims; 
-using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
-using SOUPI.Handlers.Interfaces; 
+using SOUPI.Components;
 using SOUPI.Handlers;
-using SOUPICore.Services.Interfaces;
-using Microsoft.AspNetCore.Components; 
+using SOUPI.Handlers.Interfaces; 
+using SOUPICore;
+using SOUPICore.Services;
+using SOUPICore.Services.Interfaces; 
+using System.Security.Claims; 
+using Microsoft.AspNetCore.HttpOverrides;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,8 +36,7 @@ builder.Services.AddAuthentication(options =>
     {
         options.ClientId = builder.Configuration["Github:ClientId"];
         options.ClientSecret = builder.Configuration["Github:ClientSecret"];
-        options.Scope.Add("repo");
-        options.CallbackPath = new PathString("/signin-github");
+        options.CallbackPath = new PathString("/signin-github"); 
         options.AuthorizationEndpoint = "https://github.com/login/oauth/authorize";
         options.TokenEndpoint = "https://github.com/login/oauth/access_token";
         options.UserInformationEndpoint = "https://api.github.com/user";
@@ -49,20 +46,16 @@ builder.Services.AddAuthentication(options =>
         options.ClaimActions.MapJsonKey("urn:github:login", "login");
         options.ClaimActions.MapJsonKey("urn:github:url", "html_url");
         options.ClaimActions.MapJsonKey("urn:github:avatar", "avatar_url");
-        options.Events = new OAuthEvents
-        {
-            OnCreatingTicket = async context =>
+
+        options.Events.OnCreatingTicket = context => {
+            if (context.TokenResponse.Response.RootElement.TryGetProperty("installation_id", out var id))
             {
-                var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
-                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
-                var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
-                response.EnsureSuccessStatusCode();
-                var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-                context.RunClaimActions(json.RootElement);
+                context.Identity?.AddClaim(new Claim("github_installation_id", id.ToString()));
             }
-        };
+            return Task.CompletedTask;
+        }; 
     });
+
 builder.Services.AddAuthorization();
 
 builder.Services.AddDbContext<SoupiDbContext>(
@@ -122,13 +115,20 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+var options = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor 
+                     | ForwardedHeaders.XForwardedProto 
+                     | ForwardedHeaders.XForwardedHost 
+};
+
+app.UseForwardedHeaders(options);
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
-app.UseAuthentication(); 
-
 app.UseRouting();
 
+app.UseAuthentication(); 
 app.UseAuthorization();
 
 app.UseAntiforgery();
