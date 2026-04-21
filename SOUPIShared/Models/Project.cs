@@ -26,7 +26,7 @@ namespace SOUPIShared.Models
 
         public virtual User Creator { get; set; } = default!;
         public virtual List<TeamMember> TeamMembers { get; set; } = default!; 
-        public virtual List<Notification> Notifications { get; set; } = default!;
+        public virtual List<Notification> Notifications { get; set; } = default!; 
         public virtual List<Job> Jobs { get; set; } = default!; 
     }
 }

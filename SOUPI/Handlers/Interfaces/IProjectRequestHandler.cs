@@ -7,7 +7,7 @@ namespace SOUPI.Handlers.Interfaces
     {
         public Task<IEnumerable<ProjectDto>> GetByUserId(Guid userId); 
         
-        public Task<ProjectDto> GetById(Guid id);
+        public Task<ProjectDto?> GetById(Guid id);
         
         public Task<ProjectDto> Create(ProjectDto projectDto);
         

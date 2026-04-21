@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components; 
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
@@ -12,7 +13,6 @@ using SOUPICore;
 using SOUPICore.Services;
 using SOUPICore.Services.Interfaces; 
 using System.Security.Claims; 
-using Microsoft.AspNetCore.HttpOverrides;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -74,7 +74,15 @@ builder.Services.AddScoped<HttpClient>(sp =>
     return client;
 });
 
-builder.Services.AddScoped<IGithubRequestHandler, GithubRequestHandler>(); 
+builder.Services.AddScoped<IGithubRequestHandler, GithubRequestHandler>(sp =>
+{
+    var logger = sp.GetRequiredService<ILogger<GithubRequestHandler>>();
+    var contextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+    var keyGenService = sp.GetRequiredService<IKeyGenService>();  
+    var devtunnelUrl = builder.Configuration["VS_TUNNEL_URL"]; 
+
+    return new GithubRequestHandler(logger, contextAccessor, keyGenService, devtunnelUrl); 
+}); 
 builder.Services.AddScoped<IUserRequestHandler, UserRequestHandler>();
 builder.Services.AddScoped<IProjectRequestHandler, ProjectRequestHandler>();
 builder.Services.AddScoped<ITeamMemberRequestHandler, TeamMemberRequestHandler>();
@@ -90,6 +98,13 @@ builder.Services.AddScoped<IJobService, JobService>();
 builder.Services.AddScoped<IJobSequenceService, JobSequenceService>(); 
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IAssignmentService, AssignmentService>(); 
+builder.Services.AddScoped<IKeyGenService, KeyGenService>(sp =>
+{
+    var logger = sp.GetRequiredService<ILogger<KeyGenService>>();
+    var masterKey = builder.Configuration["masterKey"]; 
+
+    return new KeyGenService(logger, masterKey);
+});
 
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 

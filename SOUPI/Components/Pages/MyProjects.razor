@@ -1,7 +1,9 @@
 ﻿@page "/myprojects"
 @inject NavigationManager NavigationManager 
 @inject IProjectRequestHandler projectRequestHandler 
-@inject ISnackbar Snackbar
+@inject IGithubRequestHandler githubRequestHandler 
+@inject ISnackbar Snackbar 
+@inject IDialogService DialogService 
 @attribute [Authorize]
 
 
@@ -9,7 +11,7 @@
 
 <MudContainer Class="pt-14" MaxWidth=MaxWidth.False>
     <MudStack AlignItems="AlignItems.Center">
-        <MudButton Variant="Variant.Filled" OnClick="NavigateToNewProject">Новый проект</MudButton>
+        <MudButton Variant="Variant.Filled" OnClick="OpenAddDialog">Новый проект</MudButton>
 
         @if(error != null)
         {
@@ -90,6 +92,11 @@
     {
         try
         {
+            if(projectDto.GithubRepository != null)
+            {
+                await githubRequestHandler.DeleteHook(User!.Login, projectDto.GithubRepository);    
+            }
+
             await projectRequestHandler.Delete(projectDto.Id); 
 
             await LoadProjects(); 
@@ -105,8 +112,23 @@
         }
     }
 
-    private void NavigateToNewProject()
+    private async Task OpenAddDialog()
     {
-        NavigationManager.NavigateTo("/newproject"); 
+        var parameters = new DialogParameters<NewProjectForm>
+        {
+            { x => x.User, User },
+            { x => x.GithubUser, GithubUser } 
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, FullWidth = true, MaxWidth = MaxWidth.Small };
+
+        var dialog = await DialogService.ShowAsync<NewProjectForm>("Новый проект", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadProjects(); 
+            StateHasChanged(); 
+        }
     }
 }

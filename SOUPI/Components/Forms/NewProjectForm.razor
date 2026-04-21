@@ -1,0 +1,142 @@
+﻿@inject IGithubRequestHandler githubRequestHandler
+@inject IProjectRequestHandler projectRequestHandler
+@inject ISnackbar Snackbar
+
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5">Новый проект </MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (User == null || GithubUser == null || newProject == null)
+        {
+            <MudText Align="Align.Center">Загрузка...</MudText>
+        }
+        else
+        {
+            <EditForm Model=@newProject OnValidSubmit="CreateNewProject">
+                <DataAnnotationsValidator />
+                
+                <MudTextField @bind-Value=@newProject.Title For="@(() => newProject.Title)" Label="Название проекта" Variant=Variant.Outlined />
+                <MudTextField @bind-Value=@newProject.Description For="@(() => newProject.Description)" Label="Описание проекта" Variant=Variant.Outlined Lines="5" />
+
+                @if (isAppInstalled)
+                {
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mt-4">
+                        <MudTextField @bind-Value=@newProject.GithubRepository For="@(() => newProject.GithubRepository)" Label="Название репозитория на Github (опционально)" Variant=Variant.Outlined />
+                        <MudCheckBox @bind-Value="@shouldCreateWebhook" Disabled="@(string.IsNullOrEmpty(newProject.GithubRepository))">Создать вебхук</MudCheckBox>
+                    </MudStack>
+                }
+                else
+                {
+                    <MudStack AlignItems="AlignItems.Center" Class="mt-4">
+                        <MudText Typo="Typo.body2">
+                            Привязка репозитория и создание вебхуков недоступно, т.к. вы не установили соответствующее приложение в личном кабинете Github. 
+                            <MudLink Color="Color.Primary"
+                                     Href="https://github.com/apps/soupigithubapp/installations/new/"
+                                     EndIcon="@Icons.Custom.Brands.GitHub">
+                                Установить
+                            </MudLink>
+                        </MudText>
+                     </MudStack>
+                }
+
+                <div class="d-flex justify-end mt-4">
+                    <MudButton OnClick="Cancel" Class="mr-2">Отмена</MudButton>
+                    <MudButton OnClick="ResetForm" Color="Color.Secondary" Variant="Variant.Filled" Class="mr-2">Сбросить</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled">Создать</MudButton>
+                </div>
+            </EditForm>
+        }
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter, EditorRequired]
+    public UserDto? User { get; set; }
+    [Parameter, EditorRequired]
+    public GithubUser? GithubUser { get; set; }
+    public bool isAppInstalled { get; set; }
+
+    private ProjectDto newProject { get; set; } = new ProjectDto();
+    private bool shouldCreateWebhook { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (User != null && GithubUser != null)
+        {
+            try
+            {
+                isAppInstalled = await githubRequestHandler.IsAppInstalled(); 
+            }
+            catch (Exception)
+            {
+                isAppInstalled = false; 
+            }
+        }
+    }
+
+    private void ResetForm()
+    {
+        newProject = new ProjectDto();
+        StateHasChanged(); 
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task CreateNewProject()
+    {
+        newProject.CreatorId = User!.Id;
+        if(newProject.GithubRepository != null)
+        {
+            newProject.GithubRepository = newProject.GithubRepository.Trim();     
+        }
+
+        try
+        {
+            if (!string.IsNullOrEmpty(newProject.GithubRepository))
+            {
+                var repositories = await githubRequestHandler.GetRepositoriesForCurrentUser();
+                if (!repositories.Select(r => r.Name).Contains(newProject.GithubRepository))
+                {
+                    throw new SoupiException("Похоже, у вас нет доступа к этому репозиторию. Проверьте название репозитория ");
+                }
+            }
+
+            var projects = await projectRequestHandler.GetByUserId(User.Id);
+            if (projects.Select(p => p.Title).Contains(newProject.Title))
+            {
+                throw new SoupiException("Вы уже создавали проект с таким названием. Названия проектов должны быть уникальными ");
+            }
+
+            if (string.IsNullOrEmpty(newProject.GithubRepository) 
+                || projects.Select(p => p.GithubRepository).Contains(newProject.GithubRepository))
+            {
+                throw new SoupiException("Этот репозиторий уже привязан к другому проекту ");
+            }
+
+            if (shouldCreateWebhook)
+            {
+                await githubRequestHandler.CreateHook(User.Login, newProject.GithubRepository);
+            }
+
+            newProject = await projectRequestHandler.Create(newProject);
+
+            Snackbar.Add("Проект успешно создан", Severity.Success);
+
+            ResetForm();
+
+            MudDialog.Close(DialogResult.Ok(newProject));
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+}
