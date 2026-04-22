@@ -101,7 +101,7 @@
                 var repositories = await githubRequestHandler.GetRepositoriesForCurrentUser();
                 if (!repositories.Select(r => r.Name).Contains(newProject.GithubRepository))
                 {
-                    throw new SoupiException("Похоже, у вас нет доступа к этому репозиторию. Проверьте название репозитория ");
+                    throw new SoupiException("Похоже, у вас нет доступа к этому репозиторию. Проверьте название репозитория и проверьте, есть ли у приложения доступ к этому репозиторию в личном кабинете ");
                 }
             }
 

@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc; 
 using Microsoft.Extensions.Logging;
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions;
-using System.Text.Json; 
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using static SOUPIShared.Dtos.GitHubPushPayload;
 
 
 namespace SOUPICore.Controllers
@@ -15,12 +17,14 @@ namespace SOUPICore.Controllers
     public class WebhookController : ControllerBase 
     {
         private readonly ILogger<WebhookController> _logger;
-        private readonly IKeyGenService _keyGenService; 
+        private readonly IKeyGenService _keyGenService;
+        private readonly IActivityService _activityService; 
 
-        public WebhookController(ILogger<WebhookController> logger, IKeyGenService keyGenService)
+        public WebhookController(ILogger<WebhookController> logger, IKeyGenService keyGenService, IActivityService activityService)
         {
             _logger = logger; 
             _keyGenService = keyGenService;  
+            _activityService = activityService; 
         }
 
         [HttpPost]
@@ -45,8 +49,30 @@ namespace SOUPICore.Controllers
                     return Unauthorized("Ошибка проверки подписи ");
                 }
 
-                // logic
-                
+                if (payloadObj.Ref != null && payloadObj.Commits != null && payloadObj.Commits.Count != 0)
+                {
+                    // regex to capture jobs within the commit message 
+                    var jobRegex = new Regex(@"\[([a-zA-Z0-9\u0400-\u04FF\s]+)\]", RegexOptions.Compiled);
+
+                    ILookup<string, CommitInfo> jobCommits = payloadObj.Commits
+                        .SelectMany(commit => jobRegex.Matches(commit.Message)
+                            .Select(m => m.Groups[1].Value.Trim())
+                            .Where(name => !string.IsNullOrWhiteSpace(name))
+                            .Distinct(StringComparer.OrdinalIgnoreCase) // remove duplicates within a commit
+                            .Select(jobName => new { jobName, commit }))
+                        .ToLookup(
+                            x => x.jobName,
+                            x => x.commit,
+                            StringComparer.OrdinalIgnoreCase
+                        );
+
+                    // create activities 
+                    if (jobCommits.Any())
+                    {
+                        await _activityService.CreateSet(jobCommits);
+                    }
+                }
+
                 return Ok();
             }
             catch (BadRequestException)

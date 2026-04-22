@@ -4,12 +4,15 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SOUPIShared.Dtos
 {
-    public class ActivityDto
+    public class ActivityDisplayDto
     {
         public Guid Id { get; set; }
 
         [Required]
         public Guid AssignmentId { get; set; }
+
+        [Required]
+        public string TeamMemberLogin { get; set; } 
 
         [MaxLength(40, ErrorMessage = "Длина хэша коммита - 40 символов")]
         [MinLength(40, ErrorMessage = "Длина хэша коммита - 40 символов")]
@@ -19,14 +22,13 @@ namespace SOUPIShared.Dtos
         public string? Comment { get; set; }
 
 
-        public ActivityDto(Activity activity)
+        public ActivityDisplayDto(Activity activity)
         {
             Id = activity.Id; 
-            AssignmentId = activity.AssignmentId; 
+            AssignmentId = activity.AssignmentId;
+            TeamMemberLogin = activity.Assignment.TeamMember.User.Login;
             Commit = activity.Commit; 
             Comment = activity.Comment; 
         }
-
-        public ActivityDto() { }
     }
 }

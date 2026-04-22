@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Components; 
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,9 @@ using SOUPI.Handlers.Interfaces;
 using SOUPICore;
 using SOUPICore.Services;
 using SOUPICore.Services.Interfaces; 
-using System.Security.Claims; 
+using System.Security.Claims;
+using System.Net.Http.Headers;
+using System.Text.Json;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -47,13 +50,24 @@ builder.Services.AddAuthentication(options =>
         options.ClaimActions.MapJsonKey("urn:github:url", "html_url");
         options.ClaimActions.MapJsonKey("urn:github:avatar", "avatar_url");
 
-        options.Events.OnCreatingTicket = context => {
-            if (context.TokenResponse.Response.RootElement.TryGetProperty("installation_id", out var id))
+        options.Events = new OAuthEvents
+        {
+            OnCreatingTicket = async context =>
             {
-                context.Identity?.AddClaim(new Claim("github_installation_id", id.ToString()));
+                if (context.TokenResponse.Response.RootElement.TryGetProperty("installation_id", out var id))
+                {
+                    context.Identity?.AddClaim(new Claim("github_installation_id", id.ToString()));
+                }
+
+                var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+                var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+                response.EnsureSuccessStatusCode();
+                var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                context.RunClaimActions(json.RootElement);
             }
-            return Task.CompletedTask;
-        }; 
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -97,7 +111,8 @@ builder.Services.AddScoped<ITeamMemberService, TeamMemberService>();
 builder.Services.AddScoped<IJobService, JobService>(); 
 builder.Services.AddScoped<IJobSequenceService, JobSequenceService>(); 
 builder.Services.AddScoped<INotificationService, NotificationService>();
-builder.Services.AddScoped<IAssignmentService, AssignmentService>(); 
+builder.Services.AddScoped<IAssignmentService, AssignmentService>();
+builder.Services.AddScoped<IActivityService, ActivityService>(); 
 builder.Services.AddScoped<IKeyGenService, KeyGenService>(sp =>
 {
     var logger = sp.GetRequiredService<ILogger<KeyGenService>>();

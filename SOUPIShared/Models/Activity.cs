@@ -8,7 +8,7 @@ namespace SOUPIShared.Models
         public Guid Id { get; set; }
 
         [Required]
-        public Guid AssignmentId { get; set; }
+        public Guid AssignmentId { get; set; } 
 
         [MaxLength(40, ErrorMessage = "Длина хэша коммита - 40 символов")]
         [MinLength(40, ErrorMessage = "Длина хэша коммита - 40 символов")]
