@@ -45,7 +45,9 @@ namespace SOUPICore.Services
                     
                     foreach (var commit in jobCommits.ToList())
                     {
-                        if (!commit.Id.IsValidCommitHash())
+                        if (!commit.Id.IsValidCommitHash() 
+                            || !commit.Message.DoesConsistOfNumbersCyrillicLatin()
+                            || !commit.Author.Username.IsValidGitHubUsername())
                         {
                             hasCorruptedEntries = true;
                             continue;

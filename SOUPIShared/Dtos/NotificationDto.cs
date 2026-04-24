@@ -1,6 +1,8 @@
-﻿using SOUPIShared.Misc;
+﻿using SOUPIShared.Attributes;
+using SOUPIShared.Misc;
 using SOUPIShared.Models;
 using System.ComponentModel.DataAnnotations;
+
 
 namespace SOUPIShared.Dtos
 {
@@ -9,6 +11,7 @@ namespace SOUPIShared.Dtos
         public Guid Id { get; set; }
 
         [MaxLength(255, ErrorMessage = "Сообщение слишком длинное (максимум 255 символов)")]
+        [ConsistsOfNumbersCyrillicLatin]
         public string Message { get; set; } = default!;
 
         [Required]
@@ -24,6 +27,7 @@ namespace SOUPIShared.Dtos
         public NotificationType NotificationType { get; set; } = NotificationType.Info;
 
         [MaxLength(255, ErrorMessage = "Роль слишком длинная (максимум 255 символов)")]
+        [ConsistsOfNumbersCyrillicLatin] 
         public string? Role { get; set; } = null;
 
         [Required]

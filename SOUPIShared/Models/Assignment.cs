@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations; 
+﻿using System.ComponentModel.DataAnnotations;
+using SOUPIShared.Attributes; 
 
 
 namespace SOUPIShared.Models
@@ -14,6 +15,7 @@ namespace SOUPIShared.Models
         public Guid JobId { get; set; } = default!;
 
         [MaxLength(255, ErrorMessage = "Комментарий слишком длинный (максимум 255 символов)")]
+        [ConsistsOfNumbersCyrillicLatin]
         public string? Comment { get; set; }
 
 

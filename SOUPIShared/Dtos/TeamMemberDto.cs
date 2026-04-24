@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations; 
 using SOUPIShared.Models;
+using SOUPIShared.Attributes; 
 
 
 namespace SOUPIShared.Dtos
@@ -15,6 +16,7 @@ namespace SOUPIShared.Dtos
         public Guid ProjectId { get; set; } = default!;
 
         [MaxLength(255, ErrorMessage = "Роль слишком длинная (максимум 255 символов)")]
+        [ConsistsOfNumbersCyrillicLatin] 
         public string? Role { get; set; } = null;
 
         public Guid? SupervisorId { get; set; } = null;

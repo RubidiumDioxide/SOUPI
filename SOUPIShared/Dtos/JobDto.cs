@@ -1,4 +1,5 @@
-﻿using SOUPIShared.Misc;
+﻿using SOUPIShared.Attributes;
+using SOUPIShared.Misc;
 using SOUPIShared.Models;
 using System.ComponentModel.DataAnnotations;
 
@@ -18,9 +19,11 @@ namespace SOUPIShared.Dtos
         [Required(ErrorMessage = "Поле названия обязательное")]
         [MaxLength(255, ErrorMessage = "Название слишком длинное (максимум 255 символов)")]
         [MinLength(1, ErrorMessage = "Название слишком короткое (минимум 1 символ)")]
+        [ConsistsOfNumbersCyrillicLatin]
         public string Title { get; set; } = default!;
 
         [MaxLength(255, ErrorMessage = "Содержание задачи слишком длинное (максимум 255 символов)")]
+        [ConsistsOfNumbersCyrillicLatin]
         public string? Body { get; set; }
 
         [Required]

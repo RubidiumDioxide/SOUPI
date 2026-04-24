@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations; 
+﻿using System.ComponentModel.DataAnnotations;
+using SOUPIShared.Attributes; 
 
 
 namespace SOUPIShared.Models
@@ -8,13 +9,13 @@ namespace SOUPIShared.Models
         public Guid Id { get; set; }
 
         [Required]
-        public Guid AssignmentId { get; set; } 
+        public Guid AssignmentId { get; set; }
 
-        [MaxLength(40, ErrorMessage = "Длина хэша коммита - 40 символов")]
-        [MinLength(40, ErrorMessage = "Длина хэша коммита - 40 символов")]
+        [ValidCommitHash]
         public string? Commit { get; set; }
 
         [MaxLength(255, ErrorMessage = "Комментарий слишком длинный (максимум 255 символов)")]
+        [ConsistsOfNumbersCyrillicLatin]
         public string? Comment { get; set; }
 
 

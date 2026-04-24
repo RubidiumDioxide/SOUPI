@@ -1,5 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SOUPIShared.Attributes;
 using SOUPIShared.Models; 
+using System.ComponentModel.DataAnnotations;
 
 
 namespace SOUPIShared.Dtos
@@ -10,10 +11,12 @@ namespace SOUPIShared.Dtos
         [Required]
         public Guid FirstJobId { get; set; }
         [Required]
+        [ConsistsOfNumbersCyrillicLatin]
         public string FirstJobTitle { get; set; }
         [Required]
         public Guid SecondJobId { get; set; }
         [Required]
+        [ConsistsOfNumbersCyrillicLatin]
         public string SecondJobTitle { get; set; }
 
         public JobSequenceDisplayDto (JobSequence jobSequence)

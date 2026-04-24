@@ -4,9 +4,9 @@ using Microsoft.Extensions.Logging;
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions;
+using SOUPIShared.Extensions;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using static SOUPIShared.Dtos.GitHubPushPayload;
 
 
 namespace SOUPICore.Controllers
@@ -49,12 +49,17 @@ namespace SOUPICore.Controllers
                     return Unauthorized("Ошибка проверки подписи ");
                 }
 
+                if (!payloadObj.Repository.Name.IsValidGitHubRepositoryName())
+                {
+                    return BadRequest();
+                }
+
                 if (payloadObj.Ref != null && payloadObj.Commits != null && payloadObj.Commits.Count != 0)
                 {
                     // regex to capture jobs within the commit message 
                     var jobRegex = new Regex(@"\[([a-zA-Z0-9\u0400-\u04FF\s]+)\]", RegexOptions.Compiled);
 
-                    ILookup<string, CommitInfo> jobCommits = payloadObj.Commits
+                    ILookup<string, GitHubPushPayload.CommitInfo> jobCommits = payloadObj.Commits
                         .SelectMany(commit => jobRegex.Matches(commit.Message)
                             .Select(m => m.Groups[1].Value.Trim())
                             .Where(name => !string.IsNullOrWhiteSpace(name))

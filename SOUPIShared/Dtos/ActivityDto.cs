@@ -1,5 +1,6 @@
 ﻿using SOUPIShared.Models;
 using System.ComponentModel.DataAnnotations;
+using SOUPIShared.Attributes;
 
 
 namespace SOUPIShared.Dtos
@@ -11,11 +12,11 @@ namespace SOUPIShared.Dtos
         [Required]
         public Guid AssignmentId { get; set; }
 
-        [MaxLength(40, ErrorMessage = "Длина хэша коммита - 40 символов")]
-        [MinLength(40, ErrorMessage = "Длина хэша коммита - 40 символов")]
+        [ValidCommitHash]
         public string? Commit { get; set; }
 
         [MaxLength(255, ErrorMessage = "Комментарий слишком длинный (максимум 255 символов)")]
+        [ConsistsOfNumbersCyrillicLatin]
         public string? Comment { get; set; }
 
 
