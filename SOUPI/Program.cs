@@ -88,14 +88,14 @@ builder.Services.AddScoped<HttpClient>(sp =>
     return client;
 });
 
-builder.Services.AddScoped<IGithubRequestHandler, GithubRequestHandler>(sp =>
+builder.Services.AddScoped<IGitHubRequestHandler, GitHubRequestHandler>(sp =>
 {
-    var logger = sp.GetRequiredService<ILogger<GithubRequestHandler>>();
+    var logger = sp.GetRequiredService<ILogger<GitHubRequestHandler>>();
     var contextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
     var keyGenService = sp.GetRequiredService<IKeyGenService>();  
     var devtunnelUrl = builder.Configuration["VS_TUNNEL_URL"]; 
 
-    return new GithubRequestHandler(logger, contextAccessor, keyGenService, devtunnelUrl); 
+    return new GitHubRequestHandler(logger, contextAccessor, keyGenService, devtunnelUrl); 
 }); 
 builder.Services.AddScoped<IUserRequestHandler, UserRequestHandler>();
 builder.Services.AddScoped<IProjectRequestHandler, ProjectRequestHandler>();

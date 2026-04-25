@@ -1,6 +1,6 @@
 ﻿@page "/editproject/{projectId:guid}"
 @inject NavigationManager NavigationManager
-@inject IGithubRequestHandler githubRequestHandler 
+@inject IGitHubRequestHandler gitHubRequestHandler 
 @inject IProjectRequestHandler projectRequestHandler 
 @inject ISnackbar Snackbar
 @attribute [Authorize]
@@ -104,7 +104,7 @@
         {
             if (!string.IsNullOrEmpty(project.GithubRepository))
             {
-                var repositories = await githubRequestHandler.GetRepositoriesForCurrentUser();
+                var repositories = await gitHubRequestHandler.GetRepositoriesForCurrentUser();
                 if (!repositories.Select(r => r.Name).Contains(project.GithubRepository))
                 {
                     throw new SoupiException("Похоже, у вас нет доступа к этому репозиторию. Проверьте название репозитория ");

@@ -1,6 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @inject IUserRequestHandler userRequestHandler 
-@inject IGithubRequestHandler githubRequestHandler
+@inject IGitHubRequestHandler gitHubRequestHandler
 @inject ISnackbar Snackbar 
 @inject ProtectedSessionStorage SessionStorage
 
@@ -134,7 +134,7 @@
 
     private async Task LoadGithubUser()
     {
-        githubUser = await githubRequestHandler.GetCurrentUser();    
+        githubUser = await gitHubRequestHandler.GetCurrentUser();    
     }
 
     private async Task LoadUser()

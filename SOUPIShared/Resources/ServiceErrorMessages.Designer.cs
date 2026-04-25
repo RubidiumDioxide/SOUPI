@@ -61,6 +61,24 @@ namespace SOUPIShared.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Действие с таким исполнителем, коммитом или сообщением уже существует .
+        /// </summary>
+        public static string ActivityAlreadyExists {
+            get {
+                return ResourceManager.GetString("ActivityAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Действие не найдено.
+        /// </summary>
+        public static string ActivityNotFound {
+            get {
+                return ResourceManager.GetString("ActivityNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Назначение этого участника команды на эту задачу уже существует.
         /// </summary>
         public static string AssignmentAlreadyExists {

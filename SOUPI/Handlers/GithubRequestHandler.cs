@@ -4,20 +4,20 @@ using Octokit.Internal;
 using SOUPI.Handlers.Interfaces;
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Exceptions;
-using GithubUser = Octokit.User;
+using GitHubUser = Octokit.User;
 
 
 namespace SOUPI.Handlers 
 {
-    public class GithubRequestHandler : IGithubRequestHandler 
+    public class GitHubRequestHandler : IGitHubRequestHandler 
     {
-        private readonly ILogger<GithubRequestHandler> _logger;
+        private readonly ILogger<GitHubRequestHandler> _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IKeyGenService _keyGenService;
         private readonly string _devtunnelUrl;
         private readonly string _callbackUrl = "api/webhook/push/"; 
 
-        public GithubRequestHandler(ILogger<GithubRequestHandler> logger, IHttpContextAccessor httpContextAccessor, IKeyGenService keyGenService, string devtunnelUrl)
+        public GitHubRequestHandler(ILogger<GitHubRequestHandler> logger, IHttpContextAccessor httpContextAccessor, IKeyGenService keyGenService, string devtunnelUrl)
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor; 
@@ -49,7 +49,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<GithubUser> GetCurrentUser()
+        public async Task<GitHubUser> GetCurrentUser()
         {
             try
             {
@@ -71,7 +71,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<GithubUser> GetUserByLogin(string login)
+        public async Task<GitHubUser> GetUserByLogin(string login)
         {
             try
             {
@@ -93,7 +93,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<IEnumerable<GithubUser>> GetUsersByLogins(IEnumerable<string> logins)
+        public async Task<IEnumerable<GitHubUser>> GetUsersByLogins(IEnumerable<string> logins)
         {
             try
             {

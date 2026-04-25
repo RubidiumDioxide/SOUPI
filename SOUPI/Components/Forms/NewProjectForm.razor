@@ -1,4 +1,4 @@
-﻿@inject IGithubRequestHandler githubRequestHandler
+﻿@inject IGitHubRequestHandler gitHubRequestHandler
 @inject IProjectRequestHandler projectRequestHandler
 @inject ISnackbar Snackbar
 
@@ -69,7 +69,7 @@
         {
             try
             {
-                isAppInstalled = await githubRequestHandler.IsAppInstalled(); 
+                isAppInstalled = await gitHubRequestHandler.IsAppInstalled(); 
             }
             catch (Exception)
             {
@@ -98,7 +98,7 @@
         {
             if (!string.IsNullOrEmpty(newProject.GithubRepository))
             {
-                var repositories = await githubRequestHandler.GetRepositoriesForCurrentUser();
+                var repositories = await gitHubRequestHandler.GetRepositoriesForCurrentUser();
                 if (!repositories.Select(r => r.Name).Contains(newProject.GithubRepository))
                 {
                     throw new SoupiException("Похоже, у вас нет доступа к этому репозиторию. Проверьте название репозитория и проверьте, есть ли у приложения доступ к этому репозиторию в личном кабинете ");
@@ -119,7 +119,7 @@
 
             if (shouldCreateWebhook)
             {
-                await githubRequestHandler.CreateHook(User.Login, newProject.GithubRepository);
+                await gitHubRequestHandler.CreateHook(User.Login, newProject.GithubRepository);
             }
 
             newProject = await projectRequestHandler.Create(newProject);

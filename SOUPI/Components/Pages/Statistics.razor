@@ -1,6 +1,6 @@
 ﻿@page "/statistics/{projectId:guid}"
 @inject NavigationManager NavigationManager
-@inject IGithubRequestHandler githubRequestHandler
+@inject IGitHubRequestHandler gitHubRequestHandler
 @inject IProjectRequestHandler projectRequestHandler
 @inject IJobRequestHandler jobRequestHandler
 @inject IAssignmentRequestHandler assignmentRequestHandler
@@ -177,7 +177,7 @@
 
     private async Task LoadTeamMemberGithubUsers()
     {
-        var githubUsers = await githubRequestHandler.GetUsersByLogins(teamMembers!.Select(tm => tm.UserLogin));
+        var githubUsers = await gitHubRequestHandler.GetUsersByLogins(teamMembers!.Select(tm => tm.UserLogin));
 
         teamMemberGithubUsers = githubUsers.ToDictionary(gu => gu.Login); 
     } 

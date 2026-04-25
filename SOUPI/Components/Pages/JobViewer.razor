@@ -5,7 +5,7 @@
 @inject IJobRequestHandler jobRequestHandler
 @inject IJobSequenceRequestHandler jobSequenceRequestHandler
 @inject ITeamMemberRequestHandler teamMemberRequestHandler
-@inject IGithubRequestHandler githubRequestHandler
+@inject IGitHubRequestHandler gitHubRequestHandler
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager 
@@ -202,7 +202,7 @@
 
     private async Task LoadTeamMemberGithubUsers()
     {
-        var githubUsers = await githubRequestHandler.GetUsersByLogins(teamMembers.Select(tm => tm.UserLogin));
+        var githubUsers = await gitHubRequestHandler.GetUsersByLogins(teamMembers.Select(tm => tm.UserLogin));
 
         teamMemberGithubUsers = githubUsers.ToDictionary(gu => gu.Login);
     }

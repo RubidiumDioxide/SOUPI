@@ -159,4 +159,10 @@
   <data name="TeamMemberNotFound" xml:space="preserve">
     <value>Участник команды не найден </value>
   </data>
+  <data name="ActivityNotFound" xml:space="preserve">
+    <value>Действие не найдено</value>
+  </data>
+  <data name="ActivityAlreadyExists" xml:space="preserve">
+    <value>Действие с таким исполнителем, коммитом или сообщением уже существует </value>
+  </data>
 </root>

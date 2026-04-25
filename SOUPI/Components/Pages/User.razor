@@ -1,6 +1,6 @@
 ﻿@page "/users/{userId:guid}"
 @inject NavigationManager NavigationManager 
-@inject IGithubRequestHandler githubRequestHandler 
+@inject IGitHubRequestHandler gitHubRequestHandler 
 @inject IUserRequestHandler userRequestHandler 
 @inject ISnackbar Snackbar 
 @attribute [Authorize]
@@ -71,7 +71,7 @@
 
     private async Task LoadGitHubUser()
     {
-        githubUser = await githubRequestHandler.GetUserByLogin(user.Login); 
+        githubUser = await gitHubRequestHandler.GetUserByLogin(user.Login); 
     }
 
     private async Task LoadUser()
