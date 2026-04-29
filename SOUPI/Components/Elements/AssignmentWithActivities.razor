@@ -1,103 +1,88 @@
-﻿@inject ISnackbar Snackbar
-@inject IDialogService DialogService
-
-
-<PageTitle>Исполнитель </PageTitle>
-
-<MudContainer MaxWidth="MaxWidth.False" Class="" Style="height:100%; ">
-    @if (error != null)
+﻿<MudContainer MaxWidth="MaxWidth.False" Class="" Style="height:100%; " >
+    @if (User == null || Project == null || Assignment == null || Activities == null || TeamMember == null || TeamMemberGitHubUser == null)
     {
-        <MudAlert Severity=severity>@error</MudAlert>
+        <LoadingPlaceholder />
     }
     else
     {
-        @if (User == null || Project == null || Assignment == null || Activities == null || TeamMember == null || TeamMemberGitHubUser == null)
+        @* general assignment info *@
+        <MudContainer Class="ma-0 pa-8">
+            <MudStack Row="true"
+                      Spacing="2"
+                      AlignItems="AlignItems.Center">
+                <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large">
+                    <MudImage Src="@TeamMemberGitHubUser.AvatarUrl" Alt=@TeamMember.UserLogin />
+                </MudAvatar>
+                    
+                <MudStack>
+                    <MudLink Typo="Typo.body1"
+                             Href="@($"/user/{TeamMember.UserId}")">
+                        @TeamMember.UserLogin
+                    </MudLink>
+                        
+                    @if (Assignment.Comment != null)
+                    {
+                        <MudText Typo="Typo.body2">@Assignment.Comment</MudText>
+                    }
+                </MudStack>
+            </MudStack>
+        </MudContainer>
+
+        @* activities *@
+        @if (Activities.Count() == 0)
         {
-            <LoadingPlaceholder />
+            <MudAlert Severity="Severity.Info">Этот исполнитель пока не добавил действий</MudAlert>
         }
         else
         {
-            @* general assignment info *@
-            <MudContainer Class="ma-0 pa-8">
-                <MudStack Row="true"
-                          Spacing="2"
-                          AlignItems="AlignItems.Center">
-                    <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large">
-                        <MudImage Src="@TeamMemberGitHubUser.AvatarUrl" Alt=@TeamMember.UserLogin />
-                    </MudAvatar>
-                    
-                    <MudStack>
-                        <MudLink Typo="Typo.body1"
-                                 Href="@($"/user/{TeamMember.UserId}")">
-                            @TeamMember.UserLogin
-                        </MudLink>
-                        
-                        @if (Assignment.Comment != null)
-                        {
-                            <MudText Typo="Typo.body2">@Assignment.Comment</MudText>
-                        }
-                    </MudStack>
-                </MudStack>
-            </MudContainer>
+            <MudStack Spacing="1">
+                @foreach (var context in Activities)
+                {
+                    <MudPaper Class="pa-2" Elevation="2">
+                        <MudStack Spacing="1">
+                            <MudStack Row="true"
+                                      AlignItems="AlignItems.Center"
+                                      Justify="Justify.SpaceBetween">
+                                @if (context.Commit != null)
+                                {
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.body2">
+                                            Коммит
+                                            <MudLink Href="@($"https://github.com/{context.TeamMemberLogin}/{Project.GithubRepository}/commit/{context.Commit}")"
+                                                     Target="_blank"
+                                                     Underline="Underline.Hover">
+                                                @context.Commit[..7]
+                                            </MudLink>
+                                        </MudText>
+                                        <MudText Typo="Typo.body2">@context.Comment</MudText>
+                                    </MudStack>
+                                }
 
-            @* activities *@
-            @if (Activities.Count() == 0)
-            {
-                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
-                    Этот исполнитель пока не добавил действий
-                </MudAlert>
-            }
-            else
-            {
-                <MudStack Spacing="1">
-                    @foreach (var context in Activities)
-                    {
-                        <MudPaper Class="pa-2" Elevation="2">
-                            <MudStack Spacing="1">
                                 <MudStack Row="true"
+                                          Spacing="1"
                                           AlignItems="AlignItems.Center"
                                           Justify="Justify.SpaceBetween">
-                                    @if (context.Commit != null)
-                                    {
-                                        <MudStack Spacing="0">
-                                            <MudText Typo="Typo.body2">
-                                                Коммит
-                                                <MudLink Href="@($"https://github.com/{context.TeamMemberLogin}/{Project.GithubRepository}/commit/{context.Commit}")"
-                                                         Target="_blank"
-                                                         Underline="Underline.Hover">
-                                                    @context.Commit[..7]
-                                                </MudLink>
-                                            </MudText>
-                                            <MudText Typo="Typo.body2">@context.Comment</MudText>
-                                        </MudStack>
-                                    }
-
-                                    <MudStack Row="true"
-                                              Spacing="1"
-                                              AlignItems="AlignItems.Center"
-                                              Justify="Justify.SpaceBetween">
-                                        <MudStack Row="true" Spacing="1">
-                                            <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
-                                                           Color="Color.Success"
-                                                           Href=@($"/activity/{context.Id}")
-                                                           Size="Size.Medium" /> 
-                                        </MudStack>
+                                    <MudStack Row="true" Spacing="1">
+                                        <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
+                                                       Color="Color.Success"
+                                                       Href=@($"/activity/{context.Id}")
+                                                       Size="Size.Medium" />
                                     </MudStack>
                                 </MudStack>
-                                @if (ActivitiesCommits == null)
-                                {
-                                    <LoadingPlaceholder />
-                                }
-                                else
-                                {
-                                    <MudDivider />
-                                    <CommitDiff Commit="@ActivitiesCommits[context.Id]" />
-                                }
                             </MudStack>
-                        </MudPaper>
-                    }
-                </MudStack>
-            }
+                            @if (ActivitiesCommits == null)
+                            {
+                                <LoadingPlaceholder />
+                            }
+                            else
+                            {
+                                <MudDivider />
+                                <CommitDiff Commit="@ActivitiesCommits[context.Id]" />
+                            }
+                        </MudStack>
+                    </MudPaper>
+                }
+            </MudStack>
         }
     }
 </MudContainer>
@@ -119,28 +104,4 @@
     public IEnumerable<ActivityDisplayDto>? Activities { get; set; }
     [Parameter, EditorRequired] 
     public IDictionary<Guid, GitHubCommit>? ActivitiesCommits { get; set; }
-
-    private string? error { get; set; } = null;
-    private Severity severity { get; set; } = Severity.Warning;
-
-    protected override async Task OnParametersSetAsync()
-    {
-        if (User != null)
-        {
-            try
-            {
-
-            }
-            catch (SoupiException ex)
-            {
-                Snackbar.Add(ex.Message, Severity.Error);
-            }
-            catch (Exception)
-            {
-                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
-            }
-        }
-
-        StateHasChanged();
-    }
 }

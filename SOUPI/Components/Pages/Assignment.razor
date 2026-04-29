@@ -23,92 +23,12 @@
         }
         else
         {   
-            @* general assignment info *@
-            <MudContainer Class="ma-0 pa-8">
-                <MudStack Row="true"
-                          Spacing="2"
-                          AlignItems="AlignItems.Center">
-                    <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large">
-                        <MudImage Src="@teamMemberGitHubUser.AvatarUrl" Alt=@teamMember.UserLogin />
-                    </MudAvatar>
-                    
-                    <MudStack>
-                        <MudLink Typo="Typo.body1"
-                             Href="@($"/user/{teamMember.UserId}")">
-                            @teamMember.UserLogin
-                        </MudLink>
-                        
-                        @if(assignment.Comment != null) 
-                        {
-                            <MudText Typo="Typo.body2">@assignment.Comment</MudText>
-                        }
-                    </MudStack>
-                </MudStack>
-            </MudContainer>
-
-            @* activities *@
-            @if (activities.Count() == 0)
-            {
-                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
-                    Этот исполнитель пока не добавил действий
-                </MudAlert>
-            }
-            else
-            {
-                <MudStack Spacing="1">
-                    @foreach (var context in activities)
-                    {
-                        <MudPaper Class="pa-2" Elevation="2">
-                            <MudStack Spacing="1">
-                                <MudStack Row="true" 
-                                          AlignItems="AlignItems.Center"
-                                          Justify="Justify.SpaceBetween">
-                                    @if (context.Commit != null)
-                                    {
-                                        <MudStack Spacing="0">
-                                            <MudText Typo="Typo.body2">
-                                                Коммит
-                                                <MudLink Href="@($"https://github.com/{context.TeamMemberLogin}/{project.GithubRepository}/commit/{context.Commit}")"
-                                                         Target="_blank"
-                                                         Underline="Underline.Hover">
-                                                    @context.Commit[..7]
-                                                </MudLink>
-                                            </MudText>
-                                            <MudText Typo="Typo.body2">@context.Comment</MudText>
-                                        </MudStack>
-                                    }
-
-                                    <MudStack Row="true"
-                                              Spacing="1"
-                                              AlignItems="AlignItems.Center"
-                                              Justify="Justify.SpaceBetween">
-                                        <MudStack Row="true" Spacing="1">
-                                            <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
-                                                           Color="Color.Success"
-                                                           Href=@($"/activity/{context.Id}")
-                                                           Size="Size.Medium" />
-
-                                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                                           Color="Color.Error"
-                                                           OnClick="@(async () => await DeleteActivity(context.Id))"
-                                                           Size="Size.Medium" />
-                                        </MudStack>
-                                    </MudStack>
-                                </MudStack>
-                                @if (activitiesCommits == null)
-                                {
-                                    <LoadingPlaceholder />
-                                }
-                                else
-                                {
-                                    <MudDivider />
-                                    <CommitDiff Commit="@activitiesCommits[context.Id]" />
-                                }
-                            </MudStack>
-                        </MudPaper>
-                    }
-                </MudStack>
-            }
+           <AssignmentWithActivities Assignment="assignment"
+                                     Project="project"
+                                     TeamMember="teamMember" 
+                                     TeamMemberGitHubUser="teamMemberGitHubUser"
+                                     Activities="activities"
+                                     ActivitiesCommits="activitiesCommits"/>
         }
     }
 </MudContainer>
