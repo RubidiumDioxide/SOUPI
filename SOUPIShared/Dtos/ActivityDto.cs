@@ -27,6 +27,13 @@ namespace SOUPIShared.Dtos
             Commit = activity.Commit; 
             Comment = activity.Comment; 
         }
+        public ActivityDto(ActivityDisplayDto activityDisplayDto)
+        {
+            Id = activityDisplayDto.Id;
+            AssignmentId = activityDisplayDto.AssignmentId;
+            Commit = activityDisplayDto.Commit;
+            Comment = activityDisplayDto.Comment;
+        }
 
         public ActivityDto() { }
     }

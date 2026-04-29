@@ -103,7 +103,8 @@ builder.Services.AddScoped<ITeamMemberRequestHandler, TeamMemberRequestHandler>(
 builder.Services.AddScoped<IJobRequestHandler, JobRequestHandler>(); 
 builder.Services.AddScoped<IJobSequenceRequestHandler, JobSequenceRequestHandler>(); 
 builder.Services.AddScoped<INotificationRequestHandler, NotificationRequestHandler>();
-builder.Services.AddScoped<IAssignmentRequestHandler, AssignmentRequestHandler>(); 
+builder.Services.AddScoped<IAssignmentRequestHandler, AssignmentRequestHandler>();
+builder.Services.AddScoped<IActivityRequestHandler, ActivityRequestHandler>(); 
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();

@@ -2,7 +2,7 @@
 @using static SOUPIShared.Extensions.TeamMemberDtoExtensions;
 
 
-@if (Project == null || TeamMembers == null || TeamMemberGithubUsers == null || treeTeamMembers == null)
+@if (Project == null || TeamMembers == null || TeamMemberGitHubUsers == null || treeTeamMembers == null)
 {
     <p>Loading... </p>
 }
@@ -37,7 +37,7 @@ else
                 <TeamMemberCard TeamMembers=TeamMembers
                                 Project=Project
                                 SelectedTeamMember=selectedTeamMember
-                                SelectedTeamMemberGithubUser=@((selectedTeamMember != null)? TeamMemberGithubUsers[selectedTeamMember.UserLogin] : null)
+                                SelectedTeamMemberGitHubUser=@((selectedTeamMember != null)? TeamMemberGitHubUsers[selectedTeamMember.UserLogin] : null)
                                 Rerender=Rerender/>
             }
         </MudContainer>
@@ -53,7 +53,7 @@ else
     [Parameter, EditorRequired]
     public ProjectDto Project { get; set; } = default!;
     [Parameter, EditorRequired]
-    public IDictionary<string, GithubUser> TeamMemberGithubUsers { get; set; }
+    public IDictionary<string, GitHubUser> TeamMemberGitHubUsers { get; set; }
 
     private List<TreeItemData<TeamMemberDisplayDto>>? treeTeamMembers { get; set; }
     private TeamMemberDisplayDto? selectedTeamMember { get; set; }

@@ -118,6 +118,30 @@ namespace SOUPI.Handlers
             }
         }
 
+        public async Task<GitHubCommit> GetCommitByHash(string ownerLogin, string repository, string hash)
+        {
+            try
+            {
+                var httpContext = _httpContextAccessor.HttpContext;
+
+                var accessToken = await httpContext!.GetTokenAsync("access_token");
+
+                var github = new GitHubClient(
+                    new ProductHeaderValue("AspNetCoreGitHubAuth"),
+                    new InMemoryCredentialStore(new Credentials(accessToken))
+                );
+
+                var commit = await github.Repository.Commit.Get(ownerLogin, repository, hash);
+
+                return commit;  
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Не удалось получить информацию о коммите. {ex.Message}");
+                throw new SoupiException("Не удалось получить информацию о коммите. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
+        }
+
         public async Task<IEnumerable<Repository>> GetRepositoriesForCurrentUser()
         {
             try

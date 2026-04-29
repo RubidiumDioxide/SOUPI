@@ -11,6 +11,7 @@ namespace SOUPI.Handlers
         private readonly ILogger<TeamMemberRequestHandler> _logger;
         private readonly HttpClient _httpClient;
 
+        private const string getByIdUrl = "/api/TeamMember/getbyid/";  
         private const string getByProjectIdUrl = "/api/TeamMember/getbyprojectid/";  
         private const string createUrl = "/api/TeamMember/create"; 
         private const string updateUrl = "/api/TeamMember/update/";
@@ -20,6 +21,30 @@ namespace SOUPI.Handlers
         {
             _logger = logger;
             _httpClient = httpClient;
+        }
+
+        public async Task<TeamMemberDisplayDto> GetById(Guid teamMemberId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{getByIdUrl}{teamMemberId}");
+
+                response.EnsureSuccessStatusCode();
+
+                var newContent = await response.Content.ReadAsStringAsync();
+
+                var teamMemberDto = System.Text.Json.JsonSerializer.Deserialize<TeamMemberDisplayDto>(newContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                return teamMemberDto!;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Не удалось загрузить участника команды проекта: {ex.Message}");
+                throw new SoupiException("Не удалось загрузить участника команды проекта. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
         }
 
         public async Task<IEnumerable<TeamMemberDisplayDto>> GetByProjectId(Guid projectId)

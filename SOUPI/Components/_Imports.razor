@@ -36,12 +36,11 @@
 // possibly separate later  
 @using SOUPIShared.Dtos 
 @using SOUPIShared.Exceptions;
-@using static SOUPIShared.Extensions.JobDtoExtensions;
-@using static SOUPIShared.Extensions.JobSequenceDtoExtensions;
-@using static SOUPIShared.Extensions.TeamMemberDtoExtensions;
+@using SOUPIShared.Extensions; 
 @using SOUPIShared.Misc;  
 @using Octokit
-@using GithubUser = Octokit.User
+@using GitHubUser = Octokit.User
+@using GitHubActivity = Octokit.Activity
 
 
 // MudBlazor 

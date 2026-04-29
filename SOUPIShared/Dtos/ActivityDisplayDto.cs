@@ -32,5 +32,7 @@ namespace SOUPIShared.Dtos
             Commit = activity.Commit; 
             Comment = activity.Comment; 
         }
+
+        public ActivityDisplayDto () { }
     }
 }

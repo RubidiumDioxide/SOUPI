@@ -5,6 +5,8 @@ namespace SOUPICore.Services.Interfaces
 {
     public interface IAssignmentService
     {
+        public Task<AssignmentDisplayDto> GetById(Guid assignmentId);
+
         public Task<IEnumerable<AssignmentDisplayDto>> GetByProjectId(Guid projectId); 
 
         public Task<IEnumerable<AssignmentDisplayDto>> GetByJobId(Guid jobId); 

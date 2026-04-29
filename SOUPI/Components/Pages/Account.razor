@@ -8,7 +8,7 @@
 <PageTitle>Мой аккаунт</PageTitle>
 
 <MudContainer Class="pt-14">  
-    @if (GithubUser == null || User == null)
+    @if (GitHubUser == null || User == null)
     {
         <MudText Align="Align.Center">Loading... </MudText>
     }
@@ -18,23 +18,23 @@
             <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="2">
                 <!-- Profile Picture -->
                 <MudAvatar Style="height:150px; width:150px; font-size:2rem" Class="mb-2">
-                    <MudImage Src="@GithubUser.AvatarUrl" Alt="Profile picture" />
+                    <MudImage Src="@GitHubUser.AvatarUrl" Alt="Profile picture" />
                 </MudAvatar>
 
                 <!-- User Name -->
                 <MudText Typo="Typo.h6" Class="text-center">
-                    @GithubUser.Name
+                    @GitHubUser.Name
                     <MudIcon Color="Color.Primary" Icon=@Icons.Custom.Brands.GitHub Size="Size.Small" @onclick="GoToGitHubUserProfile"/>
                 </MudText> 
-                <MudText Typo="Typo.body2" Class="text-center">@GithubUser.Login</MudText>
+                <MudText Typo="Typo.body2" Class="text-center">@GitHubUser.Login</MudText>
 
                 <MudDivider/>
 
                 <!-- User Bio/Description -->
-                @if (!string.IsNullOrEmpty(GithubUser.Bio))
+                @if (!string.IsNullOrEmpty(GitHubUser.Bio))
                 {
                     <MudText Typo="Typo.body2" Class="text-center mt-2" Color="Color.Secondary">
-                        @GithubUser.Bio
+                        @GitHubUser.Bio
                     </MudText>
                 }
             </MudStack>
@@ -47,10 +47,10 @@
     [CascadingParameter]
     private UserDto? User { get; set; }
     [CascadingParameter]
-    private GithubUser? GithubUser { get; set; }
+    private GitHubUser? GitHubUser { get; set; }
 
     private void GoToGitHubUserProfile()
     {
-        NavigationManager.NavigateTo(GithubUser!.HtmlUrl); 
+        NavigationManager.NavigateTo(GitHubUser!.HtmlUrl); 
     }
 }

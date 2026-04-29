@@ -21,7 +21,7 @@ namespace SOUPICore.Services
             _logger = logger;
         }
 
-        public async Task<IEnumerable<JobDto>> GetByProjectId(Guid projectId)
+        public async Task<IEnumerable<JobDisplayDto>> GetDisplayByProjectId(Guid projectId)
         {
             try
             {
@@ -36,7 +36,7 @@ namespace SOUPICore.Services
                     .Where(j => j.ProjectId == projectId)
                     .ToListAsync();
 
-                return jobs.Select(j => new JobDto(j)); 
+                return jobs.Select(j => new JobDisplayDto(j)); 
             }
             catch (Exception ex)
             {
@@ -53,7 +53,7 @@ namespace SOUPICore.Services
         /// <param name="parentJobId"></param>
         /// <returns></returns>
         /// <exception cref="BadRequestException"></exception>
-        public async Task<IEnumerable<JobDto>> GetByProjectIdParentId(Guid projectId, Guid? parentJobId)
+        public async Task<IEnumerable<JobDisplayDto>> GetDisplayByProjectIdParentId(Guid projectId, Guid? parentJobId)
         {
             try
             {
@@ -86,6 +86,102 @@ namespace SOUPICore.Services
                          .ToListAsync();
                 }
                
+                return jobs.Select(j => new JobDisplayDto(j));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
+        }
+
+        public async Task<JobDisplayDto> GetDisplayById(Guid jobId)
+        {
+            try
+            {
+                var job = await _context.Jobs.FindAsync(jobId);
+
+                if (job == null)
+                {
+                    throw new NotFoundException(ServiceErrorMessages.JobNotFound);
+                }
+                else
+                {
+                    return new JobDisplayDto(job);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<JobDto>> GetByProjectId(Guid projectId)
+        {
+            try
+            {
+                var project = await _context.Projects.FindAsync(projectId);
+
+                if (project == null)
+                {
+                    throw new BadRequestException(ServiceErrorMessages.ProjectNotFound);
+                }
+
+                var jobs = await _context.Jobs
+                    .Where(j => j.ProjectId == projectId)
+                    .ToListAsync();
+
+                return jobs.Select(j => new JobDto(j));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Возврашает задачи нулевого уровня (без родителя), если parentJobId == null 
+        /// Возвращает задачи, являющиеся напрямую дочерними по отношению к задаче с parentJobId (если != null)
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <param name="parentJobId"></param>
+        /// <returns></returns>
+        /// <exception cref="BadRequestException"></exception>
+        public async Task<IEnumerable<JobDto>> GetByProjectIdParentId(Guid projectId, Guid? parentJobId)
+        {
+            try
+            {
+                var project = await _context.Projects.FindAsync(projectId);
+
+                if (project == null)
+                {
+                    throw new BadRequestException(ServiceErrorMessages.ProjectNotFound);
+                }
+
+                var parentJob = await _context.Jobs.FindAsync(parentJobId);
+
+                if ((parentJobId != null && parentJob == null) || (parentJob != null && parentJob.ProjectId != projectId))
+                {
+                    throw new BadRequestException(ServiceErrorMessages.JobNotFound);
+                }
+
+                var jobs = new List<Job>();
+
+                if (parentJob != null)
+                {
+                    jobs = await _context.Jobs
+                        .Where(j => j.ProjectId == projectId && j.ParentJobId == parentJob.Id)
+                        .ToListAsync();
+                }
+                else
+                {
+                    jobs = await _context.Jobs
+                         .Where(j => j.ProjectId == projectId && j.ParentJobId == null)
+                         .ToListAsync();
+                }
+
                 return jobs.Select(j => new JobDto(j));
             }
             catch (Exception ex)
@@ -243,7 +339,11 @@ namespace SOUPICore.Services
                 }
 
                 var jobSequences = job.NextJobSequences.Concat(job.PreviousJobSequences);
+                var assignments = job.Assignments.ToList();
+                var activities = assignments.SelectMany(a => a.Activities).ToList();
 
+                _context.Activities.RemoveRange(activities);
+                _context.Assignments.RemoveRange(assignments);
                 _context.JobSequences.RemoveRange(jobSequences);
 
                 if(job.ChildJobs.Count != 0)
@@ -292,7 +392,7 @@ namespace SOUPICore.Services
         private async Task CheckIfValidJob(Job job)
         {
             var project = await _context.Projects.FindAsync(job.ProjectId);
-            var creator = await _context.Users.FindAsync(job.CreatorId);
+            var creator = await _context.TeamMembers.FindAsync(job.CreatorId);
             Job? parentJob = null;
 
             if (job.ParentJobId != null)
@@ -312,7 +412,12 @@ namespace SOUPICore.Services
 
             if (creator == null)
             {
-                throw new BadRequestException(ServiceErrorMessages.UserNotFound);
+                throw new BadRequestException(ServiceErrorMessages.TeamMemberNotFound);
+            }
+
+            if(creator.ProjectId != project.Id)
+            {
+                throw new BadRequestException(ServiceErrorMessages.TeamMemberNotFound);
             }
 
             if (job.EndDateTime <= job.StartDateTime)

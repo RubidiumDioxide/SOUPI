@@ -101,7 +101,7 @@ public partial class SoupiDbContext : DbContext
             entity.HasOne(j => j.Project).WithMany(p => p.Jobs)
                 .HasForeignKey(j => j.ProjectId)
                 .OnDelete(DeleteBehavior.Restrict); 
-            entity.HasOne(j => j.Creator).WithMany(u => u.CreatedJobs)
+            entity.HasOne(j => j.Creator).WithMany(tm => tm.CreatedJobs)
                 .HasForeignKey(j => j.CreatorId) 
                 .OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(j => j.ParentJob).WithMany(t => t.ChildJobs)

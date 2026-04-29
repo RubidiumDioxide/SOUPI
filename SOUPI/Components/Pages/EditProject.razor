@@ -15,7 +15,7 @@
     }
     else
     {
-        @if (User == null || GithubUser == null || project == null)
+        @if (User == null || GitHubUser == null || project == null)
         {
             <MudText Align="Align.Center">Loading... </MudText>
         }
@@ -50,7 +50,7 @@
     [CascadingParameter]
     private UserDto? User { get; set; }
     [CascadingParameter]
-    private GithubUser? GithubUser { get; set; }
+    private GitHubUser? GitHubUser { get; set; }
 
     [Parameter]
     public Guid projectId { get; set; }
@@ -64,7 +64,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (User != null && GithubUser != null)
+        if (User != null && GitHubUser != null)
         {
             try
             {
@@ -90,9 +90,9 @@
         StateHasChanged();
     }
 
-    private void ResetForm()
+    private async Task ResetForm()
     {
-        LoadProject(); 
+        await LoadProject(); 
         StateHasChanged();
     }
 

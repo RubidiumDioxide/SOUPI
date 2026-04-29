@@ -24,17 +24,77 @@ namespace SOUPICore.Controllers
 
 
         [HttpGet("{jobId}")]
-        public async Task<ActionResult<JobDto>> GetById([FromRoute] Guid jobId)
+        public async Task<ActionResult<JobDisplayDto>> GetDisplayById([FromRoute] Guid jobId)
         {
             try
             {
-                var job = await _jobService.GetById(jobId);
+                var job = await _jobService.GetDisplayById(jobId);
 
                 return Ok(job); 
             }
             catch (NotFoundException)
             {
                 return NotFound(); 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
+        }
+
+        [HttpGet("{projectId}")]
+        public async Task<ActionResult<IEnumerable<JobDisplayDto>>> GetDisplayByProjectId([FromRoute] Guid projectId)
+        {
+            try
+            {
+                var jobs = await _jobService.GetDisplayByProjectId(projectId);
+
+                return Ok(jobs);
+            }
+            catch (BadRequestException)
+            {
+                return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
+        }
+
+        [HttpGet("{projectId}/{parentJobId?}")]
+        public async Task<ActionResult<IEnumerable<JobDisplayDto>>> GetDisplayByProjectIdParentId([FromRoute] Guid projectId, [FromRoute] Guid? parentJobId)
+        {
+            try
+            {
+                var jobs = await _jobService.GetDisplayByProjectIdParentId(projectId, parentJobId);
+
+                return Ok(jobs);
+            }
+            catch (BadRequestException)
+            {
+                return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
+        }
+
+        [HttpGet("{jobId}")]
+        public async Task<ActionResult<JobDto>> GetById([FromRoute] Guid jobId)
+        {
+            try
+            {
+                var job = await _jobService.GetById(jobId);
+
+                return Ok(job);
+            }
+            catch (NotFoundException)
+            {
+                return NotFound();
             }
             catch (Exception ex)
             {

@@ -1,0 +1,85 @@
+﻿@if (Commit == null)
+{
+    <LoadingPlaceholder />
+}
+else
+{
+    <MudExpansionPanels MultiExpansion="true" Class="mud-elevation-0" Elevation="0" Gutters="false">
+        @foreach (var file in Commit.Files)
+        {
+            <MudExpansionPanel>
+                <TitleContent>
+                    <div class="d-flex align-center">
+                        <MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Size="Size.Small" Class="mr-2" />
+                        <MudText Typo="Typo.body2">@file.Filename</MudText>
+                        <MudSpacer />
+                        <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Text">+@file.Additions</MudChip>
+                        <MudChip T="string" Color="Color.Error" Size="Size.Small" Variant="Variant.Text">-@file.Deletions</MudChip>
+                    </div>
+                </TitleContent>
+                <ChildContent>
+                    <MudPaper Elevation="0" Class="pa-0" Style="overflow-x: auto; border: 1px solid var(--mud-palette-lines-inputs);">
+                        @foreach (var line in SplitPatch(file.Patch))
+                        {
+                            <div style="@GetLineStyle(line)" class="px-2 py-0 d-flex">
+                                <span style="width: 20px; flex-shrink: 0; font-family: monospace; font-size: 0.70rem; user-select: none;">
+                                    @GetLinePrefix(line)
+                                </span>
+
+                                <p style="font-family: 'Cascadia Code', 'Ubuntu Mono', monospace; white-space: pre; font-size: 0.70rem; margin: 0; line-height: 1.2; min-height: 1.2em;">
+                                    @StripPrefix(line)
+                                </p>
+                            </div>
+                        }
+                    </MudPaper>
+                </ChildContent>
+            </MudExpansionPanel>
+        }
+    </MudExpansionPanels>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public GitHubCommit? Commit { get; set; }
+
+    private IEnumerable<string> SplitPatch(string patch) =>
+        patch?.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None) ?? Array.Empty<string>();
+
+
+    private string GetLinePrefix(string line)
+    {
+        if (string.IsNullOrEmpty(line)) return "";
+        var firstChar = line[0];
+        return (firstChar == '+' || firstChar == '-' || firstChar == ' ') ? firstChar.ToString() : "";
+    }
+
+    private string StripPrefix(string line)
+    {
+        if (string.IsNullOrEmpty(line)) return "";
+
+        // Only remove the first character if it's a diff marker
+        char firstChar = line[0];
+        
+        if (firstChar == '+' || firstChar == '-' || firstChar == ' ')
+        {
+            return line.Length > 1 ? line.Substring(1) : "";
+        }
+        return line;
+    }
+
+    private string GetLineStyle(string line)
+    {
+        var baseStyle = "border-left: 3px solid transparent; width: 100%;";
+        
+        if (line.StartsWith("+"))
+            return baseStyle + "background-color: var(--mud-palette-success-hover); border-left-color: var(--mud-palette-success);";
+        
+        if (line.StartsWith("-"))
+            return baseStyle + "background-color: var(--mud-palette-error-hover); border-left-color: var(--mud-palette-error);";
+        
+        if (line.StartsWith("@@"))
+            return baseStyle + "background-color: var(--mud-palette-info-hover); ";
+        
+        return baseStyle;
+    }
+}

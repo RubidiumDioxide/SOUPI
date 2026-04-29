@@ -17,5 +17,4 @@ public class User
     public virtual List<TeamMember> TeamMembers { get; set; } = default!; 
     public virtual List<Notification> ReceivedNotifications { get; set; } = default!;
     public virtual List<Notification> SentNotifications { get; set; } = default!;      
-    public virtual List<Job> CreatedJobs { get; set; } = default!; 
 }

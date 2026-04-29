@@ -10,6 +10,9 @@ namespace SOUPI.Handlers
         private readonly ILogger<JobRequestHandler> _logger;
         private readonly HttpClient _httpClient;
 
+        private const string getDisplayByIdUrl = "/api/job/getdisplaybyid/";
+        private const string getDisplayByProjectIdUrl = "/api/job/getdisplaybyprojectid/";
+        private const string getDisplayByProjectIdParentIdUrl = "/api/job/getdisplaybyprojectidparentid/";
         private const string getByIdUrl = "/api/job/getbyid/";
         private const string getByProjectIdUrl = "/api/job/getbyprojectid/";
         private const string getByProjectIdParentIdUrl = "/api/job/getbyprojectidparentid/";
@@ -22,6 +25,78 @@ namespace SOUPI.Handlers
         {
             _logger = logger;
             _httpClient = httpClient;
+        }
+
+        public async Task<JobDisplayDto> GetDisplayById(Guid jobId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{getDisplayByIdUrl}{jobId}");
+
+                response.EnsureSuccessStatusCode();
+
+                var newContent = await response.Content.ReadAsStringAsync();
+
+                var jobDto = System.Text.Json.JsonSerializer.Deserialize<JobDisplayDto>(newContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                return jobDto!;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Не удалось загрузить задачу {ex.Message}");
+                throw new SoupiException("Не удалось загрузить задачу. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
+        }
+
+        public async Task<IEnumerable<JobDisplayDto>> GetDisplayByProjectId(Guid projectId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{getDisplayByProjectIdUrl}{projectId}");
+
+                response.EnsureSuccessStatusCode();
+
+                var newContent = await response.Content.ReadAsStringAsync();
+
+                var jobDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<JobDisplayDto>>(newContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                return jobDtos!;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Не удалось загрузить задачи {ex.Message}");
+                throw new SoupiException("Не удалось загрузить задачи. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
+        }
+
+        public async Task<IEnumerable<JobDisplayDto>> GetDisplayByProjectIdParentId(Guid projectId, Guid? parentJobId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{getDisplayByProjectIdParentIdUrl}{projectId}/{parentJobId}"); 
+
+                response.EnsureSuccessStatusCode();
+
+                var newContent = await response.Content.ReadAsStringAsync();
+
+                var jobDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<JobDisplayDto>>(newContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                return jobDtos!; 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Не удалось загрузить задачи {ex.Message}");
+                throw new SoupiException("Не удалось загрузить задачи. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
         }
 
         public async Task<JobDto> GetById(Guid jobId)
@@ -72,12 +147,11 @@ namespace SOUPI.Handlers
             }
         }
 
-
         public async Task<IEnumerable<JobDto>> GetByProjectIdParentId(Guid projectId, Guid? parentJobId)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByProjectIdParentIdUrl}{projectId}/{parentJobId}"); 
+                var response = await _httpClient.GetAsync($"{getByProjectIdParentIdUrl}{projectId}/{parentJobId}");
 
                 response.EnsureSuccessStatusCode();
 
@@ -88,14 +162,14 @@ namespace SOUPI.Handlers
                     PropertyNameCaseInsensitive = true
                 });
 
-                return jobDtos!; 
+                return jobDtos!;
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Не удалось загрузить задачи {ex.Message}");
                 throw new SoupiException("Не удалось загрузить задачи. Попробуйте позже или сообщите об ошибке в техподдержку ");
             }
-        }
+        }   
 
         public async Task<JobDto> Create(JobDto jobDto)
         {

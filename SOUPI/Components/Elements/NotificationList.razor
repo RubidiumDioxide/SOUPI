@@ -1,10 +1,8 @@
 ﻿@inject INotificationRequestHandler requestHandler
 @inject ISnackbar Snackbar
-@using SOUPIShared.Misc; 
-@using static SOUPIShared.TestData.Notifications; 
 
 
-@if (User == null || GithubUser == null || notifications == null)
+@if (User == null || GitHubUser == null || notifications == null)
 {
     <MudText Align="Align.Center">Loading... </MudText>
 }
@@ -90,7 +88,7 @@ else
     [CascadingParameter]
     private UserDto? User { get; set; }
     [CascadingParameter]
-    private GithubUser? GithubUser { get; set; }
+    private GitHubUser? GitHubUser { get; set; }
 
     private IEnumerable<NotificationDisplayDto>? notifications { get; set; }
 
@@ -98,7 +96,7 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        if (User != null && GithubUser != null)
+        if (User != null && GitHubUser != null)
         {
             try
             {

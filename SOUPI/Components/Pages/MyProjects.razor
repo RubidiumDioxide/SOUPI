@@ -19,7 +19,7 @@
         }
         else
         {
-            @if (User == null || GithubUser == null || projects == null)
+            @if (User == null || GitHubUser == null || projects == null)
             {
                 <MudText Align="Align.Center">Loading... </MudText>
             }
@@ -43,7 +43,7 @@
     [CascadingParameter]
     private UserDto? User { get; set; } 
     [CascadingParameter] 
-    private GithubUser? GithubUser { get; set; } 
+    private GitHubUser? GitHubUser { get; set; } 
 
     private string? error { get; set; } = null;
     private Severity severity { get; set; } = Severity.Warning;
@@ -52,7 +52,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if(User != null && GithubUser != null)
+        if(User != null && GitHubUser != null)
         {
             try
             {
@@ -117,7 +117,7 @@
         var parameters = new DialogParameters<NewProjectForm>
         {
             { x => x.User, User },
-            { x => x.GithubUser, GithubUser } 
+            { x => x.GitHubUser, GitHubUser } 
         };
 
         var options = new DialogOptions { CloseOnEscapeKey = true, FullWidth = true, MaxWidth = MaxWidth.Small };

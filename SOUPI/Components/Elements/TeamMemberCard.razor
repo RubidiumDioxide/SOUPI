@@ -2,7 +2,7 @@
 @inject ITeamMemberRequestHandler teamMemberRequestHandler;
 @inject ISnackbar Snackbar
 
-@if (User == null || Project == null || TeamMembers == null || SelectedTeamMember == null || SelectedTeamMemberGithubUser == null)
+@if (User == null || Project == null || TeamMembers == null || SelectedTeamMember == null || SelectedTeamMemberGitHubUser == null)
 {
     <p>Loading... </p>
 }
@@ -12,7 +12,7 @@ else
         <MudCardHeader>
             <CardHeaderAvatar>
                 <MudAvatar Size=Size.Large>
-                    <MudImage Src="@SelectedTeamMemberGithubUser.AvatarUrl" Alt="Profile picture" />
+                    <MudImage Src="@SelectedTeamMemberGitHubUser.AvatarUrl" Alt="Profile picture" />
                 </MudAvatar>
             </CardHeaderAvatar>
             <CardHeaderContent>
@@ -67,7 +67,7 @@ else
     [Parameter, EditorRequired]
     public TeamMemberDisplayDto SelectedTeamMember { get; set; }
     [Parameter, EditorRequired]
-    public GithubUser SelectedTeamMemberGithubUser { get; set; } 
+    public GitHubUser SelectedTeamMemberGitHubUser { get; set; } 
 
     private bool isEditing = false;
 
@@ -95,6 +95,6 @@ else
 
     private void GoToGitHubUserProfile()
     {
-        NavigationManager.NavigateTo(SelectedTeamMemberGithubUser.HtmlUrl);
+        NavigationManager.NavigateTo(SelectedTeamMemberGitHubUser.HtmlUrl);
     }
 }

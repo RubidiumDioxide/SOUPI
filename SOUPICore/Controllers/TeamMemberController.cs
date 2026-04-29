@@ -7,74 +7,94 @@ using SOUPIShared.Exceptions;
 
 namespace SOUPICore.Controllers
 {
-        [ApiController]
-        [Authorize]
-        [Route("api/[controller]/[action]")]
-        public class TeamMemberController : ControllerBase
+    [ApiController]
+    [Authorize]
+    [Route("api/[controller]/[action]")]
+    public class TeamMemberController : ControllerBase
+    {
+        private readonly ILogger<TeamMemberController> _logger;
+        private readonly ITeamMemberService _teamMemberService;
+
+        public TeamMemberController(ILogger<TeamMemberController> logger, ITeamMemberService teamMemberService)
         {
-            private readonly ILogger<TeamMemberController> _logger;
-            private readonly ITeamMemberService _teamMemberService;
+            _logger = logger;
+            _teamMemberService = teamMemberService;
+        }
 
-            public TeamMemberController(ILogger<TeamMemberController> logger, ITeamMemberService teamMemberService)
+        [HttpGet("{teamMemberId}")]
+        public async Task<ActionResult<TeamMemberDisplayDto>> GetById([FromRoute] Guid teamMemberId)
+        {
+            try
             {
-                _logger = logger;
-            _teamMemberService = teamMemberService;  
+                var teamMember = await _teamMemberService.GetById(teamMemberId);
+
+                return Ok(teamMember);
             }
-
-            [HttpGet("{projectId}")]
-            public async Task<ActionResult<IEnumerable<TeamMemberDisplayDto>>> GetByProjectId([FromRoute] Guid projectId)
+            catch (BadRequestException ex)
             {
-                try 
-                {
-                    var teamMembers = await _teamMemberService.GetByProjectId(projectId);
-
-                    return Ok(teamMembers);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex.Message);
-                    return StatusCode(500);
-                }
+                return BadRequest();
             }
-
-            [HttpPost]
-            public async Task<ActionResult<TeamMemberDto>> Update([FromBody] TeamMemberDto updatedTeamMemberDto)
+            catch (Exception ex)
             {
-                try
-                {
-                    var teamMember = await _teamMemberService.Update(updatedTeamMemberDto);
-
-                    return Ok(teamMember);
-                }
-                catch(BadRequestException ex)
-            {
-                return BadRequest(); 
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
             }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex.Message);
-                    return StatusCode(500);
-                }
-            }
+        }
 
-            [HttpDelete("{id}")]
-            public async Task<ActionResult> DeleteById([FromRoute] Guid id)
+        [HttpGet("{projectId}")]
+        public async Task<ActionResult<IEnumerable<TeamMemberDisplayDto>>> GetByProjectId([FromRoute] Guid projectId)
+        {
+            try
             {
-                try
-                {
-                    await _teamMemberService.DeleteById(id);
+                var teamMembers = await _teamMemberService.GetByProjectId(projectId);
 
-                    return Ok();
-                }
-                catch (BadRequestException)
-                {
-                return BadRequest(); 
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex.Message);
-                    return StatusCode(500);
-                }
+                return Ok(teamMembers);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<TeamMemberDto>> Update([FromBody] TeamMemberDto updatedTeamMemberDto)
+        {
+            try
+            {
+                var teamMember = await _teamMemberService.Update(updatedTeamMemberDto);
+
+                return Ok(teamMember);
+            }
+            catch (BadRequestException ex)
+            {
+                return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteById([FromRoute] Guid id)
+        {
+            try
+            {
+                await _teamMemberService.DeleteById(id);
+
+                return Ok();
+            }
+            catch (BadRequestException)
+            {
+                return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
             }
         }
     }
+}

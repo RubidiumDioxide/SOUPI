@@ -21,6 +21,26 @@ namespace SOUPICore.Services
             _logger = logger; 
         }
 
+        public async Task<AssignmentDisplayDto> GetById(Guid assignmentId)
+        {
+            try
+            {
+                var assignment = await _context.Assignments.FindAsync(assignmentId);
+
+                if (assignment == null)
+                {
+                    throw new BadRequestException(ServiceErrorMessages.AssignmentNotFound);
+                }
+
+                return new AssignmentDisplayDto(assignment); 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
+        }
+
         public async Task<IEnumerable<AssignmentDisplayDto>> GetByProjectId(Guid projectId)
         {
             try

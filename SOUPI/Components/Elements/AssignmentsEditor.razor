@@ -3,7 +3,7 @@
 @inject IDialogService DialogService
 
 
-@if (Job == null || TeamMembers == null || TeamMemberGithubUsers == null || assignments == null)
+@if (Job == null || TeamMembers == null || TeamMemberGitHubUsers == null || assignments == null)
 {
     <LoadingPlaceholder />
 }
@@ -27,7 +27,7 @@ else {
                             @* Left Side: Avatar and Name/Comment *@
                             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
                                 <MudAvatar Color="Color.Primary" Variant="Variant.Filled">
-                                    <MudImage Src="@TeamMemberGithubUsers[context.TeamMemberLogin].AvatarUrl" Alt=@context.TeamMemberLogin />
+                                    <MudImage Src="@TeamMemberGitHubUsers[context.TeamMemberLogin].AvatarUrl" Alt=@context.TeamMemberLogin />
                                 </MudAvatar>
                         
                                 <MudStack Spacing="0">
@@ -40,7 +40,7 @@ else {
                             <MudStack Row="true" Spacing="1">
                                     <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" 
                                                    Color="Color.Success" 
-                                                   OnClick=@(() => GoToAssignment(context.Id)) 
+                                                   Href=@($"/assignment/{context.Id}")
                                                    Size="Size.Medium" />
 
                                     <MudIconButton Icon="@Icons.Material.Filled.Edit"
@@ -78,7 +78,7 @@ else {
     [Parameter, EditorRequired]
     public IEnumerable<TeamMemberDisplayDto>? TeamMembers { get; set; } 
     [Parameter, EditorRequired]
-    public IDictionary<string, GithubUser> TeamMemberGithubUsers { get; set; }
+    public IDictionary<string, GitHubUser> TeamMemberGitHubUsers { get; set; }
 
     public IEnumerable<AssignmentDisplayDto>? assignments { get; set; }
 
@@ -134,7 +134,6 @@ else {
     {
         var parameters = new DialogParameters<EditAssignmentForm>
         {
-            { x => x.Job, Job },
             { x => x.Assignment, updatedAssignment }
         };
 
@@ -172,10 +171,4 @@ else {
             Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
         }
     } 
-
-    // TO-DO: assignment page
-    private void GoToAssignment(Guid assignmentId)
-    {
-        
-    }
 }

@@ -28,6 +28,14 @@ namespace SOUPIShared.Dtos
             Comment = assignment.Comment; 
         }
 
+        public AssignmentDto(AssignmentDto assignmentDto)
+        {
+            Id = assignmentDto.Id;
+            TeamMemberId = assignmentDto.TeamMemberId;
+            JobId = assignmentDto.JobId;
+            Comment = assignmentDto.Comment;
+        }
+
         public AssignmentDto(AssignmentDisplayDto assignmentDisplayDto)
         {
             Id = assignmentDisplayDto.Id;

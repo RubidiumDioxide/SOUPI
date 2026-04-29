@@ -25,6 +25,7 @@ namespace SOUPIShared.Models
         public virtual Project Project { get; set; } = default!; 
         public virtual TeamMember? Supervisor { get; set; } 
         public virtual List<TeamMember> Subservient { get; set; } = default!;
-        public virtual List<Assignment> Assignments { get; set; } = default!;  
+        public virtual List<Assignment> Assignments { get; set; } = default!;
+        public virtual List<Job> CreatedJobs { get; set; } = default!;
     }
 }

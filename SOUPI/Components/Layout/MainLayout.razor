@@ -17,11 +17,11 @@
         
         <MudSpacer />
         
-        @if(user != null && githubUser != null)
+        @if(user != null && gitHubUser != null)
         {
             <MudText Class="ma-4 pa-0">@user.Login</MudText> 
             <CascadingValue Value=@user IsFixed=true>
-                <CascadingValue Value=@githubUser IsFixed=true>
+                <CascadingValue Value=@gitHubUser IsFixed=true>
                     <NotificationList />
                 </CascadingValue>
             </CascadingValue>
@@ -46,7 +46,7 @@
                 </MudStack>
             </MudContainer>
         }
-        else if(user == null || githubUser == null)
+        else if(user == null || gitHubUser == null)
         {
             <MudContainer Class="pt-14">
                 <MudText Align="Align.Center">Loading... </MudText>
@@ -55,7 +55,7 @@
         else
         {
             <CascadingValue Value=@user IsFixed=true>
-                <CascadingValue Value=@githubUser IsFixed=true>
+                <CascadingValue Value=@gitHubUser IsFixed=true>
                     @Body 
                 </CascadingValue>
             </CascadingValue>
@@ -76,7 +76,7 @@
 
     private MudThemeProvider _mudThemeProvider;
 
-    private GithubUser? githubUser { get; set; }
+    private GitHubUser? gitHubUser { get; set; }
     private UserDto? user { get; set; } 
 
     private bool _isDarkMode; 
@@ -134,18 +134,18 @@
 
     private async Task LoadGithubUser()
     {
-        githubUser = await gitHubRequestHandler.GetCurrentUser();    
+        gitHubUser = await gitHubRequestHandler.GetCurrentUser();    
     }
 
     private async Task LoadUser()
     {
-        user = await userRequestHandler.GetByLogin(githubUser.Login);
+        user = await userRequestHandler.GetByLogin(gitHubUser.Login);
 
         if (user == null)
         {
             user = await userRequestHandler.Create(new UserDto()
             {
-                Login = githubUser.Login
+                Login = gitHubUser.Login
             });
         }
     }

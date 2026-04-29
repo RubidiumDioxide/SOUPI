@@ -1,27 +1,27 @@
-﻿@inject IAssignmentRequestHandler assignmentRequestHandler 
+﻿@inject IActivityRequestHandler activityRequestHandler 
 @inject ISnackbar Snackbar
 
 
 <MudDialog>
     <TitleContent> 
-        <MudText Typo="Typo.h5">Редактирование назначения исполнителя </MudText>           
+        <MudText Typo="Typo.h5">Редактирование действия </MudText>           
     </TitleContent>
     <DialogContent>
-        @if (Assignment == null || assignmentBackup == null)
+        @if (Activity == null || activityBackup == null)
         {
             <LoadingPlaceholder/>
         }
         else
         {
-            <EditForm Model=@Assignment OnValidSubmit="UpdateAssignment">
+            <EditForm Model=@Activity OnValidSubmit="UpdateActivity">
                 <DataAnnotationsValidator />
 
-                <MudTextField @bind-Value=@Assignment.TeamMemberLogin
+                <MudTextField @bind-Value=@Activity.Commit
                               Variant="Variant.Outlined" 
                               Disabled="true" />
                
-                <MudTextField @bind-Value=@Assignment.Comment
-                              For="@(() => Assignment.Comment)"
+                <MudTextField @bind-Value=@Activity.Comment
+                              For="@(() => Activity.Comment)"
                               Label="Комментарий"
                               Variant="Variant.Outlined"
                               Lines="3"
@@ -41,13 +41,13 @@
     [CascadingParameter]
     IMudDialogInstance MudDialog { get; set; } = default!; 
     [Parameter, EditorRequired]
-    public AssignmentDisplayDto? Assignment { get; set; } 
-
-    public AssignmentDto? assignmentBackup { get; set; }
+    public ActivityDisplayDto? Activity { get; set; } 
+   
+    public ActivityDto? activityBackup { get; set; }
 
     protected override void OnParametersSet()
     {
-        if(Assignment != null)
+        if(Activity != null)
         {
             ResetForm();            
         }
@@ -55,29 +55,29 @@
 
     private void ResetForm()
     {
-        if(assignmentBackup != null)
+        if(activityBackup != null)
         {
-            Assignment!.Comment = assignmentBackup.Comment;     
+            Activity!.Comment = activityBackup.Comment;     
         }
 
-        assignmentBackup = new AssignmentDto(Assignment!); 
+        activityBackup = new ActivityDto(Activity!); 
 
         StateHasChanged();
     }
 
     private void Cancel() => MudDialog.Cancel();
 
-    private async Task UpdateAssignment()
+    private async Task UpdateActivity()
     {
         try
         {
-            await assignmentRequestHandler.UpdateContent(new AssignmentDto(Assignment!)); 
+            await activityRequestHandler.UpdateContent(new ActivityDto(Activity!)); 
 
             ResetForm(); 
 
-            Snackbar.Add("Назначение успешно изменено ", Severity.Success);
+            Snackbar.Add("Действие успешно изменено ", Severity.Success);
 
-            MudDialog.Close(DialogResult.Ok(Assignment));
+            MudDialog.Close(DialogResult.Ok(Activity));
         }
         catch (SoupiException ex)
         {

@@ -1,0 +1,250 @@
+﻿@page "/assignment/{assignmentId:guid}/"
+@inject IAssignmentRequestHandler assignmentRequestHandler
+@inject IProjectRequestHandler projectRequestHandler
+@inject IActivityRequestHandler activityRequestHandler
+@inject ITeamMemberRequestHandler teamMemberRequestHandler  
+@inject IGitHubRequestHandler gitHubRequestHandler 
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+
+<PageTitle>Исполнитель </PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.False" Class="" Style="height:100%; ">
+    @if(error != null)
+    {
+        <MudAlert Severity=severity>@error</MudAlert>
+    }
+    else
+    {
+        @if (User == null || project == null || assignment == null || activities == null || teamMember == null || teamMemberGitHubUser == null)
+        {
+            <LoadingPlaceholder />
+        }
+        else
+        {   
+            @* general assignment info *@
+            <MudContainer Class="ma-0 pa-8">
+                <MudStack Row="true"
+                          Spacing="2"
+                          AlignItems="AlignItems.Center">
+                    <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large">
+                        <MudImage Src="@teamMemberGitHubUser.AvatarUrl" Alt=@teamMember.UserLogin />
+                    </MudAvatar>
+                    
+                    <MudStack>
+                        <MudLink Typo="Typo.body1"
+                             Href="@($"/user/{teamMember.UserId}")">
+                            @teamMember.UserLogin
+                        </MudLink>
+                        
+                        @if(assignment.Comment != null) 
+                        {
+                            <MudText Typo="Typo.body2">@assignment.Comment</MudText>
+                        }
+                    </MudStack>
+                </MudStack>
+            </MudContainer>
+
+            @* activities *@
+            @if (activities.Count() == 0)
+            {
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                    Этот исполнитель пока не добавил действий
+                </MudAlert>
+            }
+            else
+            {
+                <MudStack Spacing="1">
+                    @foreach (var context in activities)
+                    {
+                        <MudPaper Class="pa-2" Elevation="2">
+                            <MudStack Spacing="1">
+                                <MudStack Row="true" 
+                                          AlignItems="AlignItems.Center"
+                                          Justify="Justify.SpaceBetween">
+                                    @if (context.Commit != null)
+                                    {
+                                        <MudStack Spacing="0">
+                                            <MudText Typo="Typo.body2">
+                                                Коммит
+                                                <MudLink Href="@($"https://github.com/{context.TeamMemberLogin}/{project.GithubRepository}/commit/{context.Commit}")"
+                                                         Target="_blank"
+                                                         Underline="Underline.Hover">
+                                                    @context.Commit[..7]
+                                                </MudLink>
+                                            </MudText>
+                                            <MudText Typo="Typo.body2">@context.Comment</MudText>
+                                        </MudStack>
+                                    }
+
+                                    <MudStack Row="true"
+                                              Spacing="1"
+                                              AlignItems="AlignItems.Center"
+                                              Justify="Justify.SpaceBetween">
+                                        <MudStack Row="true" Spacing="1">
+                                            <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
+                                                           Color="Color.Success"
+                                                           Href=@($"/activity/{context.Id}")
+                                                           Size="Size.Medium" />
+
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                           Color="Color.Error"
+                                                           OnClick="@(async () => await DeleteActivity(context.Id))"
+                                                           Size="Size.Medium" />
+                                        </MudStack>
+                                    </MudStack>
+                                </MudStack>
+                                @if (activitiesCommits == null)
+                                {
+                                    <LoadingPlaceholder />
+                                }
+                                else
+                                {
+                                    <MudDivider />
+                                    <CommitDiff Commit="@activitiesCommits[context.Id]" />
+                                }
+                            </MudStack>
+                        </MudPaper>
+                    }
+                </MudStack>
+            }
+        }
+    }
+</MudContainer>
+
+
+    @code {
+    [CascadingParameter]
+    private UserDto? User { get; set; }
+
+    [Parameter]
+    public Guid assignmentId { get; set; }
+
+    private AssignmentDisplayDto? assignment { get; set; } 
+    private ProjectDto? project { get; set; }
+    private TeamMemberDisplayDto? teamMember { get; set; }
+    private GitHubUser? teamMemberGitHubUser { get; set; }
+    private IEnumerable<ActivityDisplayDto>? activities { get; set; }
+    private IDictionary<Guid, GitHubCommit>? activitiesCommits { get; set; } 
+
+    private string? error { get; set; } = null;
+    private Severity severity { get; set; } = Severity.Warning;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (User != null)
+        {
+            try
+            {
+                await LoadAssignment();
+                await LoadProject(); 
+                await LoadTeamMember();
+                await LoadTeamMemberGithubUser();
+                await LoadActivities(); 
+                await LoadActivitiesCommits();
+            }
+            catch (SoupiException ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error);
+            }
+            catch (Exception)
+            {
+                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task LoadAssignment()
+    {
+        assignment = await assignmentRequestHandler.GetById(assignmentId);
+    }
+
+    private async Task LoadProject()
+    {
+        project = await projectRequestHandler.GetById(assignment!.ProjectId);
+    }
+
+    private async Task LoadActivities()
+    {
+        activities = await activityRequestHandler.GetByAssignmentId(assignmentId);
+    }
+
+    private async Task LoadTeamMember()
+    {
+        teamMember = await teamMemberRequestHandler.GetById(assignment!.TeamMemberId);
+    }
+
+    private async Task LoadTeamMemberGithubUser()
+    {
+        teamMemberGitHubUser = await gitHubRequestHandler.GetUserByLogin(teamMember!.UserLogin); 
+    }
+
+    private async Task LoadActivitiesCommits()
+    {
+        var commits = new List<GitHubCommit>();
+
+        foreach (var activity in activities!)
+        {
+            if(activity.Commit != null)
+            {
+                var commit = await gitHubRequestHandler.GetCommitByHash(activity.TeamMemberLogin, project!.GithubRepository!, activity.Commit);     
+
+                commits.Add(commit);
+            }
+        }
+
+        activitiesCommits = activities
+            .Join(
+                commits,
+                activity => activity.Commit,  // Key from Activity
+                commit => commit.Sha,         // Key from Commit 
+                (activity, commit) => new { activity.Id, commit } 
+            )
+            .ToDictionary(x => x.Id, x => x.commit);
+    } 
+
+    private async Task OpenEditDialog(ActivityDisplayDto updatedActivity)
+    {
+        var parameters = new DialogParameters<EditActivityForm>
+        {
+            { x => x.Activity, updatedActivity }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, FullWidth = true, MaxWidth = MaxWidth.Small };
+
+        var dialog = await DialogService.ShowAsync<EditAssignmentForm>("Редактирование действия ", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadActivities();
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteActivity(Guid activityId)
+    {
+        try
+        {
+            await activityRequestHandler.Delete(activityId);
+
+            await LoadActivities();
+
+            Snackbar.Add($"Действие успешно удалено ", Severity.Success);
+
+            StateHasChanged();
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+}

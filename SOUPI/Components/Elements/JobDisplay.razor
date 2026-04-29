@@ -1,0 +1,127 @@
+﻿@if (Job == null || Creator == null || CreatorGitHubUser == null)
+{
+    <LoadingPlaceholder />
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8" Style="width: 60%;">
+        @* Header Section *@
+        <div class="d-flex justify-space-between align-start mb-4">
+            <MudText Typo="Typo.h4" Class="mr-4">@Job.Title</MudText>
+           
+            @* Actions Section *@
+            <div class="d-flex align-center">
+                <MudChip T="string"
+                         Color="@GetStatusColor(Job.Status)"
+                         Variant="Variant.Filled"
+                         Size="Size.Small"
+                         Class="mt-1">
+                    @TranslateStatus(Job.Status)
+                </MudChip>
+                <MudTooltip Text="Редактировать">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Default" />
+                </MudTooltip>
+                <MudTooltip Text="Удалить">
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" />
+                </MudTooltip>
+            </div>
+        </div>
+
+        @* Description *@
+
+        <MudText Typo="Typo.h6">Описание задачи</MudText>
+        <MudText Typo="Typo.body1" Class="mud-text-secondary">
+            @(string.IsNullOrWhiteSpace(Job.Body) ? "Описание отсутствует" : Job.Body)
+        </MudText>
+
+       
+        <MudDivider Class="mb-6" />
+
+        <MudStack>
+            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                @* Project Info *@
+                <MudStack>
+                    <MudText Typo="Typo.h6" Class="mud-text-secondary">Проект</MudText>
+                    <MudLink Typo="Typo.body1"
+                             Href="@($"/project/{Job.ProjectId}")">
+                        @Job.ProjectTitle
+                    </MudLink> 
+                </MudStack>
+        
+                @* Creator Info *@
+                <MudStack>
+                    <MudText Typo="Typo.h6" Class="mud-text-secondary">Создатель</MudText>
+                    <div class="d-flex align-center">
+                        <MudStack Row="true"
+                                  Spacing="2"
+                                  AlignItems="AlignItems.Center">
+                            <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large">
+                                <MudImage Src="@CreatorGitHubUser.AvatarUrl" Alt=@Creator.UserLogin />
+                            </MudAvatar>
+                  
+                            <MudLink Typo="Typo.body1"
+                                     Href="@($"/user/{Creator.UserId}")">
+                                @Creator.UserLogin
+                            </MudLink>
+                            <MudIconButton Color="Color.Primary" 
+                                           Icon=@Icons.Custom.Brands.GitHub 
+                                           Size="Size.Small"
+                                           Href="@CreatorGitHubUser.HtmlUrl"/>
+                        </MudStack>
+                    </div>
+                </MudStack>
+            </MudStack>
+
+            @* Progress *@
+            <div class="d-flex justify-space-between mb-1">
+                <MudText Typo="Typo.h6" Class="mud-text-secondary">Прогресс выполнения</MudText>
+                <MudText Typo="Typo.caption"><b>@Job.Progress%</b></MudText>
+            </div>
+            <MudProgressLinear Color="Color.Primary" Value="@Job.Progress" Height="10" Class="rounded-sm" />
+
+            @* Dates Section *@
+            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                <MudStack>
+                    <MudText Typo="Typo.h6" Class="mud-text-secondary">Дата создания</MudText>
+                    <MudText Typo="Typo.body1">@Job.CreationDateTime.ToString("dd.MM.yyyy HH:mm")</MudText>
+                </MudStack>
+
+                <MudStack>
+                    <MudText Typo="Typo.h6" Class="mud-text-secondary">Начало</MudText>
+                    <MudText Typo="Typo.body1">@Job.StartDateTime.ToString("dd.MM.yyyy HH:mm")</MudText>
+                </MudStack>
+
+                <MudStack>
+                    <MudText Typo="Typo.h6" Class="mud-text-secondary">Завершение</MudText>
+                    <MudText Typo="Typo.body1">@Job.EndDateTime.ToString("dd.MM.yyyy HH:mm")</MudText>
+                </MudStack>
+            </MudStack>
+        </MudStack>
+    </MudContainer>
+}
+
+
+@code {
+    [Parameter, EditorRequired]
+    public JobDisplayDto? Job { get; set; }
+    [Parameter, EditorRequired]
+    public TeamMemberDisplayDto? Creator { get; set; }
+    [Parameter, EditorRequired]
+    public GitHubUser? CreatorGitHubUser { get; set; }
+
+    private Color GetStatusColor(JobStatus status) => status switch
+    {
+        JobStatus.New => Color.Info,
+        JobStatus.Working => Color.Warning,
+        JobStatus.Completed => Color.Success,
+        _ => Color.Default
+    };
+
+    private string TranslateStatus(JobStatus status) => status switch
+    {
+        JobStatus.New => "Новая",
+        JobStatus.Working => "В процессе",
+        JobStatus.Completed => "Завершена",
+        _ => status.ToString()
+    };
+}

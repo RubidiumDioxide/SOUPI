@@ -5,6 +5,8 @@ namespace SOUPI.Handlers.Interfaces
 {
     public interface IAssignmentRequestHandler
     {
+        public Task<AssignmentDisplayDto> GetById(Guid assignmentId);
+
         public Task<IEnumerable<AssignmentDisplayDto>> GetByProjectId(Guid projectId); 
 
         public Task<IEnumerable<AssignmentDisplayDto>> GetByJobId(Guid jobId);

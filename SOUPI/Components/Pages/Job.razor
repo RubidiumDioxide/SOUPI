@@ -1,0 +1,159 @@
+﻿@page "/job/{jobId:guid}/"
+@inject IJobRequestHandler jobRequestHandler 
+@inject IAssignmentRequestHandler assignmentRequestHandler
+@inject IProjectRequestHandler projectRequestHandler
+@inject IActivityRequestHandler activityRequestHandler
+@inject ITeamMemberRequestHandler teamMemberRequestHandler  
+@inject IGitHubRequestHandler gitHubRequestHandler 
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+
+<PageTitle>Задача </PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.False" Class="" Style="height:100%; " Gutters="false">
+    @if(error != null)
+    {
+        <MudAlert Severity=severity>@error</MudAlert>
+    }
+    else
+    {
+        @if (User == null || job == null || project == null || assignments == null || assignmentsActivities == null || activitiesCommits == null || teamMembers == null || creatorTeamMember == null || teamMemberGitHubUsers == null)
+        {
+            <LoadingPlaceholder />
+        }
+        else
+        {
+            <MudTabs ApplyEffectsToContainer="true" 
+                     TabPanelsClass="pa-2 ma-0"
+                     Centered="true">
+                @* general properties *@
+                <MudTabPanel Text="Общее ">
+                     <JobDisplay Job="@job"
+                                 Creator="@creatorTeamMember"
+                                 CreatorGitHubUser="@teamMemberGitHubUsers[creatorTeamMember!.UserLogin]"/>
+                </MudTabPanel>
+
+                @* activities *@
+                <MudTabPanel Text="Действия ">
+                     
+                </MudTabPanel>
+
+                @* staticstics *@
+                <MudTabPanel Text="Статистика ">
+                     
+                </MudTabPanel>
+
+
+            </MudTabs>
+        }
+    }
+</MudContainer>
+
+
+    @code {
+    [CascadingParameter]
+    private UserDto? User { get; set; }
+
+    [Parameter]
+    public Guid jobId { get; set; }
+
+    private JobDisplayDto? job { get; set; } 
+    private ProjectDto? project { get; set; }
+    private IEnumerable<AssignmentDisplayDto>? assignments { get; set; } 
+    private ILookup<Guid, ActivityDisplayDto>? assignmentsActivities { get; set; }
+    private IDictionary<Guid, GitHubCommit>? activitiesCommits { get; set; }
+    private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; }
+    private TeamMemberDisplayDto? creatorTeamMember { get; set; }
+    private IDictionary<string, GitHubUser>? teamMemberGitHubUsers { get; set; } 
+
+    private string? error { get; set; } = null;
+    private Severity severity { get; set; } = Severity.Warning;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (User != null)
+        {
+            try
+            {
+                await LoadJob();
+                await LoadProject();
+                await LoadAssignments(); 
+                await LoadAssignmentsActivities(); 
+                await LoadActivitiesCommits(); 
+                await LoadTeamMembers(); 
+                await LoadTeamMemberGithubUsers(); 
+            }
+            catch (SoupiException ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task LoadJob()
+    {
+        job = await jobRequestHandler.GetDisplayById(jobId);
+    }
+
+    private async Task LoadProject()
+    {
+        project = await projectRequestHandler.GetById(job!.ProjectId);
+    }
+
+    private async Task LoadAssignments()
+    {
+        assignments = await assignmentRequestHandler.GetByJobId(job!.Id);
+    }
+
+    private async Task LoadAssignmentsActivities()
+    {
+        var activities = await activityRequestHandler.GetByJobId(job!.Id); 
+
+        assignmentsActivities = activities.ToLookup(a => a.AssignmentId); 
+    }
+
+    private async Task LoadActivitiesCommits()
+    {
+        var commits = new List<GitHubCommit>();
+        var activities = assignmentsActivities!.SelectMany(a => a).ToList(); 
+
+        foreach (var activity in activities)
+        {
+            if(activity.Commit != null)
+            {
+                var commit = await gitHubRequestHandler.GetCommitByHash(activity.TeamMemberLogin, project!.GithubRepository!, activity.Commit);     
+
+                commits.Add(commit);
+            }
+        }
+
+        activitiesCommits = activities.Join(
+            commits,
+            activity => activity.Commit,  // Key from Activity
+            commit => commit.Sha,         // Key from Commit 
+            (activity, commit) => new { activity.Id, commit } 
+        )
+        .ToDictionary(x => x.Id, x => x.commit);
+    } 
+
+    private async Task LoadTeamMembers()
+    {
+        teamMembers = await teamMemberRequestHandler.GetByProjectId(job!.ProjectId);  
+
+        creatorTeamMember = teamMembers.FirstOrDefault(tm => tm.Id == job!.CreatorId); 
+    }
+
+    private async Task LoadTeamMemberGithubUsers()
+    {
+        var githubUsers = await gitHubRequestHandler.GetUsersByLogins(teamMembers!.Select(tm => tm.UserLogin));
+
+        teamMemberGitHubUsers = githubUsers.ToDictionary(gu => gu.Login);
+    }
+}

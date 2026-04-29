@@ -1,4 +1,4 @@
-﻿@page "/users/{userId:guid}"
+﻿@page "/user/{userId:guid}"
 @inject NavigationManager NavigationManager 
 @inject IGitHubRequestHandler gitHubRequestHandler 
 @inject IUserRequestHandler userRequestHandler 
@@ -6,10 +6,10 @@
 @attribute [Authorize]
 
 
-<PageTitle>@((user != null && githubUser != null)? user.Login : string.Empty)</PageTitle>
+<PageTitle>@((user != null && gitHubUser != null)? user.Login : string.Empty)</PageTitle>
 
 <MudContainer Class="pt-14">  
-    @if (githubUser == null || user == null)
+    @if (gitHubUser == null || user == null)
     {
         <MudText Align="Align.Center">Loading... </MudText>
     }
@@ -19,23 +19,23 @@
             <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="2">
                 <!-- Profile Picture -->
                 <MudAvatar Style="height:150px; width:150px; font-size:2rem" Class="mb-2">
-                    <MudImage Src="@githubUser.AvatarUrl" Alt="Profile picture" />
+                    <MudImage Src="@gitHubUser.AvatarUrl" Alt="Profile picture" />
                 </MudAvatar>
 
                 <!-- User Name -->
                 <MudText Typo="Typo.h6" Class="text-center">
-                    @githubUser.Name
+                    @gitHubUser.Name
                     <MudIcon Color="Color.Primary" Icon=@Icons.Custom.Brands.GitHub Size="Size.Small" @onclick="GoToGitHubUserProfile"/>
                 </MudText> 
-                <MudText Typo="Typo.body2" Class="text-center">@githubUser.Login</MudText>
+                <MudText Typo="Typo.body2" Class="text-center">@gitHubUser.Login</MudText>
 
                 <MudDivider/>
 
                 <!-- User Bio/Description -->
-                @if (!string.IsNullOrEmpty(githubUser.Bio))
+                @if (!string.IsNullOrEmpty(gitHubUser.Bio))
                 {
                     <MudText Typo="Typo.body2" Class="text-center mt-2" Color="Color.Secondary">
-                        @githubUser.Bio
+                        @gitHubUser.Bio
                     </MudText>
                 }
             </MudStack>
@@ -48,7 +48,7 @@
     [Parameter]
     public Guid userId { get; set; } = default!;
 
-    private GithubUser? githubUser { get; set; } 
+    private GitHubUser? gitHubUser { get; set; } 
     private UserDto? user { get; set; }   
 
     protected override async Task OnInitializedAsync()
@@ -71,7 +71,7 @@
 
     private async Task LoadGitHubUser()
     {
-        githubUser = await gitHubRequestHandler.GetUserByLogin(user.Login); 
+        gitHubUser = await gitHubRequestHandler.GetUserByLogin(user.Login); 
     }
 
     private async Task LoadUser()
@@ -85,6 +85,6 @@
     }
 
     private void GoToGitHubUserProfile(){
-        NavigationManager.NavigateTo(githubUser!.HtmlUrl); 
+        NavigationManager.NavigateTo(gitHubUser!.HtmlUrl); 
     }
 }

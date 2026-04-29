@@ -5,7 +5,7 @@
 @inject IDialogService DialogService
 
 
-@if (User == null || GithubUser == null || assignments == null)
+@if (User == null || GitHubUser == null || assignments == null)
 {
     <LoadingPlaceholder />
 }
@@ -32,7 +32,7 @@ else
                                 <MudStack Spacing="0">
                                     <MudText Typo="Typo.body1">
                                         Проект 
-                                        <MudLink Href=@($"projects/{@context.ProjectId}")>   
+                                        <MudLink Href=@($"project/{@context.ProjectId}")>   
                                             @context.ProjectTitle             
                                         </MudLink>
                                     </MudText> 
@@ -46,7 +46,7 @@ else
                             <MudStack Row="true" Spacing="1">
                                 <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
                                                Color="Color.Success"
-                                               OnClick=@(() => GoToAssignment(context.Id))
+                                               Href=@($"/assignment/{context.Id}")
                                                Size="Size.Medium" />
                             </MudStack>
                         </MudStack>
@@ -62,13 +62,13 @@ else
     [CascadingParameter]
     private UserDto? User { get; set; }
     [CascadingParameter]
-    private GithubUser? GithubUser { get; set; }
+    private GitHubUser? GitHubUser { get; set; }
    
     public IEnumerable<AssignmentDisplayDto>? assignments { get; set; } 
 
     protected override async Task OnParametersSetAsync()
     {
-        if (User != null && GithubUser != null)
+        if (User != null && GitHubUser != null)
         {
             try
             {
@@ -90,11 +90,5 @@ else
     private async Task LoadAssignments()
     {
         assignments = await assignmentRequestHandler.GetByUserId(User!.Id);
-    }
-
-    // TO-DO: assignment page
-    private void GoToAssignment(Guid assignmentId)
-    {
-        
     }
 }

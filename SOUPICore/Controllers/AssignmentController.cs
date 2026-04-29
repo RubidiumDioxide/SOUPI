@@ -22,6 +22,22 @@ namespace SOUPICore.Controllers
             _assignmentService = assignmentService;
         }
 
+        [HttpGet("{assignmentId}")]
+        public async Task<ActionResult<AssignmentDisplayDto>> GetById([FromRoute] Guid assignmentId)
+        {
+            try
+            {
+                var assignment = await _assignmentService.GetById(assignmentId);
+
+                return Ok(assignment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
+        }
+
         [HttpGet("{projectId}")]
         public async Task<ActionResult<IEnumerable<AssignmentDisplayDto>>> GetByProjectId([FromRoute] Guid projectId)
         {

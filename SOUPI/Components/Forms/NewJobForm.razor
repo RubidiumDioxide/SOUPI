@@ -7,7 +7,7 @@
             <MudText Typo="Typo.h5">@($"Новая {((!IsChildJob)? ("задача ") : ("подзадача "))}")</MudText>           
     </TitleContent>
     <DialogContent>
-        @if (User == null || Project == null || ProjectJobs == null || newJob == null)
+        @if (TeamMember == null || Project == null || ProjectJobs == null || newJob == null)
         {
             <MudText Align="Align.Center">Загрузка...</MudText>
         }
@@ -79,7 +79,7 @@
     [CascadingParameter]
     IMudDialogInstance MudDialog { get; set; } = default!; 
     [Parameter, EditorRequired]
-    public UserDto? User { get; set; } 
+    public TeamMemberDisplayDto? TeamMember { get; set; } 
     [Parameter, EditorRequired]
     public ProjectDto? Project { get; set; }
     [Parameter, EditorRequired]
@@ -106,7 +106,7 @@
             endDateTime = DateTime.Today.AddDays(10);
         }
 
-        if(User != null && Project != null)
+        if(TeamMember != null && Project != null)
         {
             ResetForm();       
         }
@@ -117,7 +117,7 @@
         newJob = new JobDto();
 
         newJob.ProjectId = Project!.Id;
-        newJob.CreatorId = User!.Id; 
+        newJob.CreatorId = TeamMember!.Id; 
 
         if (IsChildJob && ParentJob != null)
         {

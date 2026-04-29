@@ -8,7 +8,7 @@
         <MudText Typo="Typo.h5">Новый проект </MudText>
     </TitleContent>
     <DialogContent>
-        @if (User == null || GithubUser == null || newProject == null)
+        @if (User == null || GitHubUser == null || newProject == null)
         {
             <MudText Align="Align.Center">Загрузка...</MudText>
         }
@@ -57,7 +57,7 @@
     [Parameter, EditorRequired]
     public UserDto? User { get; set; }
     [Parameter, EditorRequired]
-    public GithubUser? GithubUser { get; set; }
+    public GitHubUser? GitHubUser { get; set; }
     public bool isAppInstalled { get; set; }
 
     private ProjectDto newProject { get; set; } = new ProjectDto();
@@ -65,7 +65,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (User != null && GithubUser != null)
+        if (User != null && GitHubUser != null)
         {
             try
             {
