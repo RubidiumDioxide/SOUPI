@@ -27,14 +27,14 @@
             <MudTabs ApplyEffectsToContainer="true" 
                      TabPanelsClass="pa-2 ma-0"
                      Centered="true">
-                @* general properties *@
+                @* general *@
                 <MudTabPanel Text="Общее ">
                      <JobDisplay Job="@job"
                                  Creator="@creatorTeamMember"
                                  CreatorGitHubUser="@creatorTeamMemberGitHubUser"/>
                 </MudTabPanel>
 
-                @* activities *@
+                @* assignments & activities *@
                 <MudTabPanel Text="Исполнители и действия ">
                     @if (assignments.Count() == 0)
                     {
@@ -111,7 +111,7 @@
                 await LoadAssignmentsActivities(); 
                 await LoadActivitiesCommits(); 
                 await LoadAssignmentsTeamMembers(); 
-                await LoadTeamMemberGithubUsers(); 
+                await LoadAssignmentsTeamMemberGithubUsers(); 
             }
             catch (SoupiException ex)
             {
@@ -188,7 +188,7 @@
         .ToDictionary(x => x.Id, x => x.teamMember);
     }
 
-    private async Task LoadTeamMemberGithubUsers()
+    private async Task LoadAssignmentsTeamMemberGithubUsers()
     {
         var gitHubUsers = await gitHubRequestHandler.GetUsersByLogins(assignmentsTeamMembers!.Values.Select(tm => tm.UserLogin));
 

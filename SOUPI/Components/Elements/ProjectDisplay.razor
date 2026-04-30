@@ -1,0 +1,73 @@
+﻿@if (Project == null || Creator == null || CreatorGitHubUser == null)
+{
+    <LoadingPlaceholder />
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+        @* Header Section *@
+        <MudText Typo="Typo.h4" Class="mr-4">@Project.Title</MudText>  
+
+        <div class="mt-4 mb-4">
+            @if (!string.IsNullOrEmpty(Project.GithubRepository))
+            {
+                <MudLink Href="@($"https://github.com/{Creator.UserLogin}/{Project.GithubRepository}")"
+                         Underline="Underline.Hover"
+                         Target="_blank"
+                         Class="d-flex align-center">
+                    <MudIcon Icon="@Icons.Custom.Brands.GitHub" Size="Size.Small" Class="mr-1" />
+                    @Project.GithubRepository
+                </MudLink>
+            }
+        </div>
+      
+        @* Description *@
+        <MudText Typo="Typo.h6">Описание проекта</MudText>
+        <MudText Typo="Typo.body1" Class="mud-text-secondary mb-4">
+            @(string.IsNullOrWhiteSpace(Project.Description) ? "Описание отсутствует" : Project.Description)
+        </MudText>
+       
+        <MudDivider Class="mb-6" />
+
+        <MudStack Spacing="4">
+            <MudStack Row="true" Justify="Justify.SpaceBetween" >
+                @* Creator Info *@
+                <MudStack>
+                    <MudText Typo="Typo.h6" Class="mud-text-secondary">Руководитель проекта</MudText>
+                    <div class="d-flex align-center">
+                        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                            <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large">
+                                <MudImage Src="@CreatorGitHubUser.AvatarUrl" Alt="@Creator.UserLogin" />
+                            </MudAvatar>
+                  
+                            <MudLink Typo="Typo.body1" Href="@($"/user/{Creator.UserId}")">
+                                @Creator.UserLogin
+                            </MudLink>
+                            
+                            <MudIconButton Color="Color.Primary" 
+                                           Icon=@Icons.Custom.Brands.GitHub 
+                                           Size="Size.Small"
+                                           Href="@CreatorGitHubUser.HtmlUrl"
+                                           Target="_blank"/>
+                        </MudStack>
+                    </div>
+                </MudStack>
+
+                @* Creation date *@
+                <MudStack AlignItems="AlignItems.End">
+                    <MudText Typo="Typo.h6" Class="mud-text-secondary">Дата создания</MudText>
+                    <MudText Typo="Typo.body1">@Project.CreationDateTime.ToString("dd.MM.yyyy HH:mm")</MudText>
+                </MudStack>
+            </MudStack>
+        </MudStack>
+    </MudContainer>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public ProjectDto? Project { get; set; }
+    [Parameter, EditorRequired]
+    public TeamMemberDisplayDto? Creator { get; set; }
+    [Parameter, EditorRequired]
+    public GitHubUser? CreatorGitHubUser { get; set; }
+}

@@ -4,12 +4,11 @@
 }
 else
 {
-    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8" Style="width: 60%;">
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
         @* Header Section *@
         <div class="d-flex justify-space-between align-start mb-4">
             <MudText Typo="Typo.h4" Class="mr-4">@Job.Title</MudText>
-           
-            @* Actions Section *@
+            
             <div class="d-flex align-center">
                 <MudChip T="string"
                          Color="@GetStatusColor(Job.Status)"
@@ -28,9 +27,8 @@ else
         </div>
 
         @* Description *@
-
         <MudText Typo="Typo.h6">Описание задачи</MudText>
-        <MudText Typo="Typo.body1" Class="mud-text-secondary">
+        <MudText Typo="Typo.body1" Class="mud-text-secondary mb-4">
             @(string.IsNullOrWhiteSpace(Job.Body) ? "Описание отсутствует" : Job.Body)
         </MudText>
 

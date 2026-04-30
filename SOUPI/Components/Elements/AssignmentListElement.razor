@@ -1,0 +1,61 @@
+﻿@if (TeamMemberGitHubUser == null || Assignment == null)
+{
+    <LoadingPlaceholder />
+}
+else
+{
+    <MudPaper Class="pa-2" Elevation="2">
+        <MudStack Row="true"
+        AlignItems="AlignItems.Center"
+        Justify="Justify.SpaceBetween">
+            @* Left Side: Avatar and Name/Comment *@
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                <MudAvatar Color="Color.Primary" Variant="Variant.Filled">
+                    <MudImage Src="@TeamMemberGitHubUser.AvatarUrl" Alt=@Assignment.TeamMemberLogin />
+                </MudAvatar>
+
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle1">@Assignment.TeamMemberLogin</MudText>
+                    <MudText Typo="Typo.body2">@Assignment.Comment</MudText>
+                </MudStack>
+            </MudStack>
+
+            @* Right Side: Buttons *@
+            <MudStack Row="true" Spacing="1"> 
+                <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
+                               Color="Color.Success"
+                               Href=@($"/assignment/{Assignment.Id}")
+                               Size="Size.Medium" />
+
+                @if (IsEditable)
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Color="Color.Info"
+                                   OnClick=@(() => OpenEditDialog.InvokeAsync(Assignment))
+                                   Size="Size.Medium" />
+
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   Color="Color.Error"
+                                   OnClick="@(() => DeleteAssignment.InvokeAsync(Assignment.Id))"
+                                   Size="Size.Medium" />
+
+                }
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+}
+
+
+@code
+{
+    [Parameter, EditorRequired]
+    public AssignmentDisplayDto? Assignment { get; set; }
+    [Parameter, EditorRequired]
+    public GitHubUser? TeamMemberGitHubUser { get; set; }
+    [Parameter, EditorRequired]
+    public bool IsEditable { get; set; } = false; 
+    [Parameter]
+    public EventCallback<AssignmentDisplayDto> OpenEditDialog { get; set; }
+    [Parameter]
+    public EventCallback<Guid> DeleteAssignment { get; set; }
+}

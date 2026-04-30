@@ -1,7 +1,9 @@
-﻿@page "/jobviewer/{projectId:guid}/{parentJobId:guid?}"
+﻿@page "/gantt/{projectId:guid}/{parentJobId:guid?}"
 @rendermode InteractiveServer 
 @inject IProjectRequestHandler projectRequestHandler
 @inject IJobRequestHandler jobRequestHandler
+@inject IActivityRequestHandler activityRequestHandler
+@inject IAssignmentRequestHandler assignmentRequestHandler
 @inject IJobSequenceRequestHandler jobSequenceRequestHandler
 @inject ITeamMemberRequestHandler teamMemberRequestHandler
 @inject IGitHubRequestHandler gitHubRequestHandler
@@ -19,7 +21,7 @@
     }
     else
     {
-        @if (User == null || GitHubUser == null || project == null || projectJobs == null || currentLevelJobs == null || ganttJobs == null || teamMember == null || teamMembers == null || teamMemberGitHubUsers == null || (parentJobId != null && parentJob == null))
+        @if (User == null || GitHubUser == null || project == null || projectJobs == null || currentLevelJobs == null || ganttJobs == null || jobAssignments == null || teamMember == null || teamMembers == null || teamMemberGitHubUsers == null || (parentJobId != null && parentJob == null))
         {
             <LoadingPlaceholder />
         }
@@ -45,7 +47,7 @@
                                     <MudStack Row="true" 
                                               AlignItems="AlignItems.Center" 
                                               Justify="Justify.SpaceBetween" 
-                                              Class="mb-4 mt-4">      
+                                              Class="ma-4">      
 
                                         <MudText Typo="Typo.h6">Задача @selectedJob.Title</MudText> 
    
@@ -85,12 +87,6 @@
                                                                TeamMembers="teamMembers"
                                                                TeamMemberGitHubUsers="teamMemberGitHubUsers" />
                                         </MudTabPanel> 
-                                        
-                                        @* activities *@
-                                        <MudTabPanel Text="Действия ">
-                                            <ActivitiesTable Job="selectedJob"
-                                                             TeamMemberGitHubUsers="teamMemberGitHubUsers" />
-                                        </MudTabPanel>
                                     </MudTabs>
                                 }
                             </MudContainer>
@@ -140,7 +136,8 @@
 
     private ProjectDto? project { get; set; } 
     private IEnumerable<JobDto>? projectJobs { get; set; } 
-    private IEnumerable<JobDto>? currentLevelJobs { get; set; } 
+    private IEnumerable<JobDto>? currentLevelJobs { get; set; }
+    private ILookup<Guid, AssignmentDisplayDto>? jobAssignments { get; set; }
     private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; } 
     private TeamMemberDisplayDto? teamMember { get; set; }
     private IDictionary<string, GitHubUser>? teamMemberGitHubUsers { get; set; }
@@ -166,6 +163,7 @@
             {
                 await LoadProject();
                 await LoadJobs();  
+                await LoadJobAssignments();  
                 await LoadTeamMembers();               
                 await LoadTeamMemberGithubUsers();
             }
@@ -213,6 +211,13 @@
         }
 
         ganttJobs = currentLevelJobs.Select(j => new GanttJobDto(j)); 
+    }
+   
+    private async Task LoadJobAssignments()
+    {
+        var assignments = await assignmentRequestHandler.GetByProjectId(projectId);
+
+        jobAssignments = assignments.ToLookup(a => a.JobId);
     }
 
     private async Task LoadTeamMembers()
@@ -285,7 +290,7 @@
     {
         if(project != null && selectedJobId != null && selectedJobId != parentJobId)
         {
-            NavigationManager.NavigateTo($"jobviewer/{project.Id}/{selectedJobId}");
+            NavigationManager.NavigateTo($"gantt/{project.Id}/{selectedJobId}");
         }
     }
 
@@ -293,7 +298,7 @@
     {
         if (project != null && parentJob != null)
         {
-            NavigationManager.NavigateTo($"jobviewer/{project.Id}/{parentJob.ParentJobId}");
+            NavigationManager.NavigateTo($"gantt/{project.Id}/{parentJob.ParentJobId}");
         }
     }
 
@@ -301,7 +306,7 @@
     {
         if (project != null && parentJobId != null)
         {
-            NavigationManager.NavigateTo($"jobviewer/{project.Id}");
+            NavigationManager.NavigateTo($"gantt/{project.Id}");
         }
     }
 

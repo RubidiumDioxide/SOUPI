@@ -1,0 +1,145 @@
+﻿@inject ISnackbar Snackbar 
+
+
+@if (Job == null || Assignments == null || TeamMemberGitHubUsers == null || assignmentsTeamMemberGitHubUsers == null)
+{
+    <LoadingPlaceholder />
+}
+else
+{
+    <MudPaper Class="pa-2" Elevation="2">
+        <MudContainer>
+            @* Header Section *@
+            <div class="d-flex justify-space-between align-start">
+                <MudText Typo="Typo.h6" Class="mr-4">@Job.Title</MudText>
+            
+                <div class="d-flex align-center">
+                    <MudChip T="string"
+                             Color="@GetStatusColor(Job.Status)"
+                             Variant="Variant.Filled"
+                             Size="Size.Small"
+                             Class="mt-1">
+                        @TranslateStatus(Job.Status)
+                    </MudChip>
+
+                    <MudTooltip Text="Перейти на страницу задачи">
+                        <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
+                                       Color="Color.Success"
+                                       Href="@($"/job/{Job.Id}")" />
+                    </MudTooltip>
+
+                    @if (IsEditable)
+                    {
+                        <MudTooltip Text="Редактировать">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                           Color="Color.Info"
+                                           OnClick=@(() => OpenEditDialog.InvokeAsync(new JobDto(Job)))
+                                           Size="Size.Medium" />
+                        </MudTooltip>
+
+                        <MudTooltip Text="Удалить">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                           Color="Color.Error"
+                                           OnClick="@(() => DeleteAssignment.InvokeAsync(Job.Id))"
+                                           Size="Size.Medium" />
+                        </MudTooltip>
+                    }
+                </div>
+            </div>
+
+            @* Description *@
+            <MudText Typo="Typo.body1" Class="mud-text-secondary mb-4">
+                @(string.IsNullOrWhiteSpace(Job.Body) ? "Описание отсутствует" : Job.Body)
+            </MudText>
+    
+            @* Dates Section *@
+            <MudStack Spacing="0" Row="true" Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.body1" Class="mud-text-secondary">
+                    Дата начала: @Job.StartDateTime.ToString("dd.MM.yyyy HH:mm")
+                </MudText>
+                <MudText Typo="Typo.body1" Class="mud-text-secondary">
+                    Дата завершения: @Job.EndDateTime.ToString("dd.MM.yyyy HH:mm")
+                </MudText>
+            </MudStack>
+
+            @* Progress *@
+            <div class="d-flex justify-space-between mb-4 mt-4">
+                <MudText Typo="Typo.body1" Class="mud-text-secondary">Прогресс выполнения</MudText>
+                <MudText Typo="Typo.body1"><b>@Job.Progress%</b></MudText>
+            </div>
+            <MudProgressLinear Color="Color.Primary" Value="@Job.Progress" Height="10" Class="rounded-sm mb-2" />
+
+            @* Assignments *@ 
+            @if (Assignments.Count() == 0)
+            {
+                <MudAlert Severity="Severity.Info" Class="ma-4">
+                    У этой задачи пока нет исполнителей 
+                </MudAlert>
+            }
+            else
+            {
+                <MudExpansionPanels Elevation="0" Gutters="false">
+                    <MudExpansionPanel Text="Исполнители">
+                        <MudStack Spacing="1">
+                            @foreach (var assignment in Assignments)
+                            {
+                                <AssignmentListElement Assignment="assignment"
+                                                       TeamMemberGitHubUser="assignmentsTeamMemberGitHubUsers[assignment.Id]" 
+                                                       IsEditable="false"/>
+                            }
+                        </MudStack>
+                    </MudExpansionPanel>
+                </MudExpansionPanels>
+            }
+        </MudContainer>
+    </MudPaper>
+}
+
+
+@code {
+    [Parameter, EditorRequired]
+    public JobDisplayDto? Job { get; set; } 
+    [Parameter, EditorRequired]    
+    public IEnumerable<AssignmentDisplayDto>? Assignments { get; set; } 
+    [Parameter, EditorRequired] 
+    public IEnumerable<GitHubUser>? TeamMemberGitHubUsers { get; set; } 
+    [Parameter, EditorRequired]
+    public bool IsEditable { get; set; } = false;
+
+    [Parameter]
+    public EventCallback<JobDto> OpenEditDialog { get; set; }
+    [Parameter]
+    public EventCallback<Guid> DeleteAssignment { get; set; }
+
+    private IDictionary<Guid, GitHubUser>? assignmentsTeamMemberGitHubUsers { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Job != null && Assignments != null && TeamMemberGitHubUsers != null)
+        {
+            assignmentsTeamMemberGitHubUsers = Assignments!.Join(
+                TeamMemberGitHubUsers,
+                assignment => assignment.TeamMemberLogin,
+                gitHubUser => gitHubUser.Login,
+                (assignment, gitHubUser) => new { assignment.Id, gitHubUser }
+            )
+            .ToDictionary(x => x.Id, x => x.gitHubUser);
+        }
+    }
+
+    private Color GetStatusColor(JobStatus status) => status switch
+    {
+        JobStatus.New => Color.Info,
+        JobStatus.Working => Color.Warning,
+        JobStatus.Completed => Color.Success,
+        _ => Color.Default
+    };
+
+    private string TranslateStatus(JobStatus status) => status switch
+    {
+        JobStatus.New => "Новая",
+        JobStatus.Working => "В процессе",
+        JobStatus.Completed => "Завершена",
+        _ => status.ToString()
+    }; 
+}

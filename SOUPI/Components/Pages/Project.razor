@@ -1,37 +1,96 @@
-﻿@page "/project/{projectId:guid}"
-@inject NavigationManager NavigationManager 
+﻿@page "/project/{projectId:guid}/"
+@inject IJobRequestHandler jobRequestHandler 
+@inject IAssignmentRequestHandler assignmentRequestHandler
 @inject IProjectRequestHandler projectRequestHandler
-@inject ITeamMemberRequestHandler teamMemberRequestHandler
-@inject ISnackbar Snackbar 
-@attribute [Authorize]
+@inject IActivityRequestHandler activityRequestHandler
+@inject ITeamMemberRequestHandler teamMemberRequestHandler  
+@inject IGitHubRequestHandler gitHubRequestHandler 
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 
-<PageTitle>Проект @((project != null)? project.Title : string.Empty)</PageTitle>
+<PageTitle>Проект @((project != null) ? project.Title : string.Empty)</PageTitle>
 
-<MudContainer Gutters="false" Class="pt-14">
-    @if (error != null) 
+<MudContainer MaxWidth="MaxWidth.False" Class="" Style="height:100%; " Gutters="false">
+    @if(error != null)
     {
         <MudAlert Severity=severity>@error</MudAlert>
     }
     else
     {
-        @if (User == null || GitHubUser == null || project == null || teamMembers == null)
+        @if (User == null || project == null || jobs == null || jobAssignments == null || teamMembers == null || teamMemberGitHubUsers == null || creatorTeamMember == null || creatorTeamMemberGitHubUser == null)
         {
             <LoadingPlaceholder />
         }
         else
         {
-            @if (!teamMembers.Select(tm => tm.UserId).Contains(User.Id))
-            {
-                <UnauthorizedPlaceholder/>
-            }
-            else
-            {
-                <ProjectTeam Project="project"/>
+            <MudTabs ApplyEffectsToContainer="true" 
+                     TabPanelsClass="pa-2 ma-0"
+                     Centered="true">
+                @* general *@
+                <MudTabPanel Text="Общее ">
+                    <ProjectDisplay Project="@project"
+                                    Creator="@creatorTeamMember"
+                                    CreatorGitHubUser="@creatorTeamMemberGitHubUser" />
+                </MudTabPanel>
 
-                <MudButton OnClick=@(() => NavigationManager.NavigateTo($"jobviewer/{project.Id}"))>Перейти к задачам проекта </MudButton>
-                <MudButton OnClick=@(() => NavigationManager.NavigateTo($"statistics/{project.Id}"))>Перейти к статистике проекта </MudButton>
-            }
+                @* team *@
+                <MudTabPanel Text="Команда проекта ">
+                    @* TO-DO: REWORK *@
+                    <ProjectTeam Project="project" />
+                </MudTabPanel>
+
+                @* jobs *@
+                <MudTabPanel Text="Задачи и исполнители ">
+                    <MudStack Spacing="2" 
+                              Style="width: 70%; " 
+                              Class="mx-auto mb-8 mt-4 " 
+                              AlignItems="AlignItems.Center" 
+                              Justify="Justify.Center">
+                        <MudText Align="Align.Center" Typo="Typo.body1" Class="mud-text-secondary">
+                            Эта страница служит для простого просмотра и навигации по задачам и исполнителям. Чтобы редактировать совйства задачи, а также связи между задачами, перейдите на страницу "Диаграмма Ганта".
+                        </MudText>
+                        
+                        <MudButton Href=@($"/gantt/{projectId}")
+                                   Color="Color.Success"
+                                   Variant="Variant.Filled">
+                            Перейти к диаграмме Ганта
+                            <MudIcon Icon="@Icons.Material.Filled.OpenInNew" />
+                        </MudButton>
+                    </MudStack>
+
+                    <MudContainer MaxWidth="MaxWidth.Medium">
+                        @if (jobs.Count() == 0)
+                        {
+                            <MudAlert Severity="Severity.Info" Class="ma-4">
+                                У этого проекта пока нет задач
+                            </MudAlert>
+                        }
+                        else
+                        {
+                            <MudStack Spacing="1">
+                                @foreach (var job in jobs)
+                                {
+                                    <JobListElement Job="job" 
+                                                    Assignments="jobAssignments[job.Id]"
+                                                    TeamMemberGitHubUsers="teamMemberGitHubUsers.Values" 
+                                                    IsEditable="false"/>
+                                }
+                            </MudStack>
+                        }
+                    </MudContainer>
+                </MudTabPanel>
+
+                @* staticstics *@
+                <MudTabPanel Text="Статистика ">
+              
+                </MudTabPanel>
+
+                @* settings *@
+                <MudTabPanel Text="Настройки ">
+              
+                </MudTabPanel>
+            </MudTabs>
         }
     }
 </MudContainer>
@@ -40,51 +99,82 @@
 @code {
     [CascadingParameter]
     private UserDto? User { get; set; }
-    [CascadingParameter]
-    private GitHubUser? GitHubUser { get; set; }
 
     [Parameter]
     public Guid projectId { get; set; }
 
     private ProjectDto? project { get; set; } 
-    private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; } 
+    private IEnumerable<JobDisplayDto>? jobs { get; set; } 
+    private ILookup<Guid, AssignmentDisplayDto>? jobAssignments { get; set; } 
+    private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; }
+    private IDictionary<Guid, GitHubUser>? teamMemberGitHubUsers { get; set; }
+    private TeamMemberDisplayDto? creatorTeamMember { get; set; }
+    private GitHubUser? creatorTeamMemberGitHubUser { get; set; }
 
     private string? error { get; set; } = null;
     private Severity severity { get; set; } = Severity.Warning;
 
     protected override async Task OnParametersSetAsync()
     {
-        if (User != null && GitHubUser != null)
+        if (User != null)
         {
             try
             {
                 await LoadProject();
+                await LoadJobs(); 
+                await LoadJobAssignments(); 
                 await LoadTeamMembers(); 
+                await LoadTeamMemberGithubUsers(); 
             }
             catch (SoupiException ex)
             {
-                error = ex.Message;
-                severity = Severity.Error;
+                Snackbar.Add(ex.Message, Severity.Error);
             }
             catch (Exception ex)
             {
-                error = "Произошла непредвиденная ошибка ";
-                severity = Severity.Error;
+                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
             }
         }
+
+        StateHasChanged();
     }
 
     private async Task LoadProject()
     {
         project = await projectRequestHandler.GetById(projectId);
+    }
 
-        StateHasChanged();
-    } 
+    private async Task LoadJobs()
+    {
+        jobs = await jobRequestHandler.GetDisplayByProjectId(projectId);
+    }
+
+    private async Task LoadJobAssignments()
+    {
+        var assignments = await assignmentRequestHandler.GetByProjectId(projectId);
+
+        jobAssignments = assignments.ToLookup(a => a.JobId); 
+    }
 
     private async Task LoadTeamMembers()
     {
-        teamMembers = await teamMemberRequestHandler.GetByProjectId(project.Id); 
+        teamMembers = await teamMemberRequestHandler.GetByProjectId(projectId);
 
-        StateHasChanged();
+        creatorTeamMember = teamMembers.FirstOrDefault(tm => tm.UserId == project!.CreatorId);
+    }
+
+    private async Task LoadTeamMemberGithubUsers()
+    {
+        var gitHubUsers = await gitHubRequestHandler.GetUsersByLogins(teamMembers!.Select(tm => tm.UserLogin));
+
+        creatorTeamMemberGitHubUser = gitHubUsers.FirstOrDefault(gu => gu.Login == creatorTeamMember!.UserLogin); 
+
+       teamMemberGitHubUsers = teamMembers!.Join(
+           gitHubUsers,
+           teamMember => teamMember.UserLogin,
+           gitHubUser => gitHubUser.Login,
+           (teamMember, gitHubUser) => new { teamMember.Id, gitHubUser}
+       )
+       .ToDictionary(x => x.Id, x => x.gitHubUser); 
     }
 }
