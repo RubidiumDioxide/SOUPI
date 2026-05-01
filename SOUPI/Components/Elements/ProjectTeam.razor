@@ -20,10 +20,6 @@
                                TeamMembers=teamMembers />
         }
 
-        <ChangeCreatorForm Creator="creator"
-                           Project=Project
-                           AvailibleCreators=availibleCreators />
-
         <TeamTree TeamMembers=teamMembers
                   Project=Project
                   TeamMemberGitHubUsers=teamMemberGitHubUsers
@@ -32,7 +28,7 @@
 </MudContainer>
 
 
-    @code {
+@code {
     [CascadingParameter]
     private UserDto? User { get; set; }
     [CascadingParameter]

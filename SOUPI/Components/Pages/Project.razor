@@ -88,7 +88,9 @@
 
                 @* settings *@
                 <MudTabPanel Text="Настройки ">
-              
+                    <ProjectSettings Project="@project" 
+                                     TeamMembers="@teamMembers" 
+                                     Creator="@creatorTeamMember" />
                 </MudTabPanel>
             </MudTabs>
         }
