@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SOUPIShared.Dtos;
-using Microsoft.Extensions.Logging; 
+using Microsoft.Extensions.Logging;
 using SOUPICore.Services.Interfaces;
+using SOUPIShared.Dtos.SOUPIDtos;
 
 
 namespace SOUPICore.Controllers

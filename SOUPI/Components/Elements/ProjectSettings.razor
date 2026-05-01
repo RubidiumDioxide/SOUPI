@@ -25,7 +25,7 @@ else
     [CascadingParameter]
     private UserDto? User { get; set; }
     [CascadingParameter]
-    private GitHubUser? GitHubUser { get; set; }
+    private GitHubUserDto? GitHubUser { get; set; }
 
     [Parameter, EditorRequired]
     public ProjectDto Project { get; set; } = default!;

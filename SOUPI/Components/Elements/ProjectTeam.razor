@@ -32,14 +32,14 @@
     [CascadingParameter]
     private UserDto? User { get; set; }
     [CascadingParameter]
-    private GitHubUser? GitHubUser { get; set; } 
+    private GitHubUserDto? GitHubUser { get; set; } 
 
     [Parameter, EditorRequired]
     public ProjectDto Project { get; set; } = default!;
 
     private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; }  
     private TeamMemberDisplayDto? creator { get; set; } 
-    private IDictionary<string, GitHubUser>? teamMemberGitHubUsers { get; set; }
+    private IDictionary<string, GitHubUserDto>? teamMemberGitHubUsers { get; set; }
 
     private IEnumerable<TeamMemberDisplayDto>? availibleCreators { get; set; }
 

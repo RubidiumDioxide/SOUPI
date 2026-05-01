@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using SOUPIShared.Models;
-using SOUPIShared.Attributes; 
+using SOUPIShared.Attributes;
 
 
-namespace SOUPIShared.Dtos
+namespace SOUPIShared.Dtos.SOUPIDtos
 {
     public class AssignmentDto
     {

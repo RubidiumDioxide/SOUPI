@@ -1,4 +1,4 @@
-﻿namespace SOUPIShared.Dtos
+﻿namespace SOUPICore.Misc
 {
     public class GitHubPushPayload
     {

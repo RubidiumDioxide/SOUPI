@@ -99,9 +99,9 @@
     [Parameter, EditorRequired] 
     public TeamMemberDisplayDto? TeamMember { get; set; }
     [Parameter, EditorRequired] 
-    public GitHubUser? TeamMemberGitHubUser { get; set; }
+    public GitHubUserDto? TeamMemberGitHubUser { get; set; }
     [Parameter, EditorRequired] 
     public IEnumerable<ActivityDisplayDto>? Activities { get; set; }
     [Parameter, EditorRequired] 
-    public IDictionary<Guid, GitHubCommit>? ActivitiesCommits { get; set; }
+    public IDictionary<Guid, GitHubCommitDto>? ActivitiesCommits { get; set; }
 }

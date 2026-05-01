@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SOUPICore.Misc;
 using SOUPICore.Services.Interfaces;
-using SOUPIShared.Dtos;
+using SOUPIShared.Dtos.SOUPIDtos;
 using SOUPIShared.Exceptions;
 using SOUPIShared.Extensions;
-using SOUPIShared.Models; 
+using SOUPIShared.Models;
 using SOUPIShared.Resources;
-using GitHubActivity = Octokit.Activity;
 
 
 namespace SOUPICore.Services
@@ -27,7 +27,7 @@ namespace SOUPICore.Services
         /// </summary>
         /// <param name="jobsCommits"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<ActivityDto>> CreateSet(ILookup<string, GitHubPushPayload.CommitInfo> jobsCommits)
+        public async Task CreateSet(ILookup<string, GitHubPushPayload.CommitInfo> jobsCommits)
         {
             bool hasCorruptedEntries = false;
             List<Activity> activitiesToAdd = new List<Activity>();
@@ -96,8 +96,6 @@ namespace SOUPICore.Services
                 {
                     throw new Exception("Некоторые из ссылок на задачи были некорректны. Они были пропущены при создании записей ");
                 }
-
-                return activitiesToAdd.Select(a => new ActivityDto(a));
             }
             catch (Exception ex)
             {

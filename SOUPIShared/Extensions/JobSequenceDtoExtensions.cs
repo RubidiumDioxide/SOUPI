@@ -1,4 +1,4 @@
-﻿using SOUPIShared.Dtos;
+﻿using SOUPIShared.Dtos.SOUPIDtos;
 using SOUPIShared.Models;
 
 

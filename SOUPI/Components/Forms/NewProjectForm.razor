@@ -57,7 +57,7 @@
     [Parameter, EditorRequired]
     public UserDto? User { get; set; }
     [Parameter, EditorRequired]
-    public GitHubUser? GitHubUser { get; set; }
+    public GitHubUserDto? GitHubUser { get; set; }
     public bool isAppInstalled { get; set; }
 
     private ProjectDto newProject { get; set; } = new ProjectDto();

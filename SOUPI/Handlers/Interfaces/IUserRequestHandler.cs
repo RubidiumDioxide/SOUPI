@@ -1,4 +1,5 @@
-using SOUPIShared.Dtos;
+using SOUPIShared.Dtos.SOUPIDtos;
+
 
 namespace SOUPI.Handlers.Interfaces
 {

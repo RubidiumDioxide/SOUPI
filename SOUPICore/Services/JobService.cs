@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore; 
-using Microsoft.Extensions.Logging; 
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SOUPICore.Services.Interfaces;
-using SOUPIShared.Dtos;
+using SOUPIShared.Dtos.SOUPIDtos;
 using SOUPIShared.Exceptions;
 using SOUPIShared.Extensions;
 using SOUPIShared.Models;

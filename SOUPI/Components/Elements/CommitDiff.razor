@@ -40,7 +40,7 @@ else
 
 @code {
     [Parameter, EditorRequired]
-    public GitHubCommit? Commit { get; set; }
+    public GitHubCommitDto? Commit { get; set; }
 
     private IEnumerable<string> SplitPatch(string patch) =>
         patch?.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None) ?? Array.Empty<string>();

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SOUPICore;
-using SOUPIShared.Dtos;
+using SOUPIShared.Dtos.SOUPIDtos;
 using SOUPIShared.Misc;
 using SOUPIShared.Models;
 using System;

@@ -1,5 +1,5 @@
-﻿using SOUPIShared.Dtos;
-using MudBlazor; 
+﻿using MudBlazor;
+using SOUPIShared.Dtos.SOUPIDtos;
 
 
 namespace SOUPIShared.Misc

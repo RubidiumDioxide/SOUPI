@@ -109,9 +109,9 @@
     private IEnumerable<JobDisplayDto>? jobs { get; set; } 
     private ILookup<Guid, AssignmentDisplayDto>? jobAssignments { get; set; } 
     private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; }
-    private IDictionary<Guid, GitHubUser>? teamMemberGitHubUsers { get; set; }
+    private IDictionary<Guid, GitHubUserDto>? teamMemberGitHubUsers { get; set; }
     private TeamMemberDisplayDto? creatorTeamMember { get; set; }
-    private GitHubUser? creatorTeamMemberGitHubUser { get; set; }
+    private GitHubUserDto? creatorTeamMemberGitHubUser { get; set; }
 
     private string? error { get; set; } = null;
     private Severity severity { get; set; } = Severity.Warning;

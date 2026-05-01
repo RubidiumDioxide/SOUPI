@@ -1,7 +1,7 @@
-﻿using SOUPIShared.Models; 
+﻿using SOUPIShared.Models;
 
 
-namespace SOUPIShared.Dtos
+namespace SOUPIShared.Dtos.SOUPIDtos
 {
     public class GanttJobDto
     {

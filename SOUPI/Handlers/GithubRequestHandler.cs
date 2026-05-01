@@ -4,7 +4,7 @@ using Octokit.Internal;
 using SOUPI.Handlers.Interfaces;
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Exceptions;
-using GitHubUser = Octokit.User;
+using SOUPIShared.Dtos.OctokitDtos;
 
 
 namespace SOUPI.Handlers 
@@ -38,9 +38,9 @@ namespace SOUPI.Handlers
                     new InMemoryCredentialStore(new Credentials(accessToken))
                 );
 
-                var installations = await github.GitHubApps.GetAllInstallationsForCurrentUser(); 
+                var installations = await github.GitHubApps.GetAllInstallationsForCurrentUser();
 
-                return installations.Installations.Any(); 
+                return installations.Installations.Count() == 0; 
             }
             catch (Exception ex)
             {
@@ -49,7 +49,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<GitHubUser> GetCurrentUser()
+        public async Task<GitHubUserDto> GetCurrentUser()
         {
             try
             {
@@ -62,7 +62,9 @@ namespace SOUPI.Handlers
                     new InMemoryCredentialStore(new Credentials(accessToken))
                 );
 
-                return await github.User.Current();
+                var user = await github.User.Current();
+
+                return new GitHubUserDto(user);
             }
             catch(Exception ex)
             {
@@ -71,7 +73,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<GitHubUser> GetUserByLogin(string login)
+        public async Task<GitHubUserDto> GetUserByLogin(string login)
         {
             try
             {
@@ -84,7 +86,9 @@ namespace SOUPI.Handlers
                     new InMemoryCredentialStore(new Credentials(accessToken))
                 );
 
-                return await github.User.Get(login); 
+                var user = await github.User.Get(login);
+
+                return new GitHubUserDto(user); 
             }
             catch (Exception ex)
             {
@@ -93,7 +97,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<IEnumerable<GitHubUser>> GetUsersByLogins(IEnumerable<string> logins)
+        public async Task<IEnumerable<GitHubUserDto>> GetUsersByLogins(IEnumerable<string> logins)
         {
             try
             {
@@ -109,7 +113,7 @@ namespace SOUPI.Handlers
                 var tasks = logins.Select(l => github.User.Get(l)); 
                 var users = await Task.WhenAll(tasks);
 
-                return users.ToList(); 
+                return users.Select(u => new GitHubUserDto(u)).ToList(); 
             }
             catch (Exception ex)
             {
@@ -118,7 +122,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<GitHubCommit> GetCommitByHash(string ownerLogin, string repository, string hash)
+        public async Task<GitHubCommitDto> GetCommitByHash(string ownerLogin, string repository, string hash)
         {
             try
             {
@@ -133,7 +137,7 @@ namespace SOUPI.Handlers
 
                 var commit = await github.Repository.Commit.Get(ownerLogin, repository, hash);
 
-                return commit;  
+                return new GitHubCommitDto(commit);   
             }
             catch (Exception ex)
             {
@@ -142,7 +146,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<IEnumerable<Repository>> GetRepositoriesForCurrentUser()
+        public async Task<IEnumerable<GitHubRepositoryDto>> GetRepositoriesForCurrentUser()
         {
             try
             {
@@ -155,7 +159,9 @@ namespace SOUPI.Handlers
                     new InMemoryCredentialStore(new Credentials(accessToken))
                 ); 
 
-                return await github.Repository.GetAllForCurrent();
+                var repositories = await github.Repository.GetAllForCurrent();
+
+                return repositories.Select(r => new GitHubRepositoryDto(r)).ToList(); 
             }
             catch (Exception ex)
             {

@@ -1,5 +1,5 @@
 ﻿using SOUPI.Handlers.Interfaces;
-using SOUPIShared.Dtos;
+using SOUPIShared.Dtos.SOUPIDtos;
 using SOUPIShared.Exceptions;
 using System.Text.Json;
 

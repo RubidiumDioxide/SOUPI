@@ -21,6 +21,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage; 
 
+
 // SOUPI
 @using SOUPI
 @using SOUPI.Components
@@ -34,13 +35,11 @@
 
 // SOUPI Shared - only Dtos, Exceptions and Misc visible, Models belong to Core 
 // possibly separate later  
-@using SOUPIShared.Dtos 
+@using SOUPIShared.Dtos.SOUPIDtos; 
+@using SOUPIShared.Dtos.OctokitDtos; 
 @using SOUPIShared.Exceptions;
 @using SOUPIShared.Extensions; 
 @using SOUPIShared.Misc;  
-@using Octokit
-@using GitHubUser = Octokit.User
-@using GitHubActivity = Octokit.Activity
 
 
 // MudBlazor 

@@ -1,9 +1,9 @@
 ﻿using SOUPIShared.Models;
 using System.ComponentModel.DataAnnotations;
-using SOUPIShared.Attributes; 
+using SOUPIShared.Attributes;
 
 
-namespace SOUPIShared.Dtos
+namespace SOUPIShared.Dtos.SOUPIDtos
 {
     public class ActivityDisplayDto
     {

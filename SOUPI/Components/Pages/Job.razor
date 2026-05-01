@@ -89,11 +89,11 @@
     private ProjectDto? project { get; set; }
     private IEnumerable<AssignmentDisplayDto>? assignments { get; set; } 
     private ILookup<Guid, ActivityDisplayDto>? assignmentsActivities { get; set; }
-    private IDictionary<Guid, GitHubCommit>? activitiesCommits { get; set; }
+    private IDictionary<Guid, GitHubCommitDto>? activitiesCommits { get; set; }
     private IDictionary<Guid, TeamMemberDisplayDto>? assignmentsTeamMembers { get; set; }
-    private IDictionary<Guid, GitHubUser>? assignmentsTeamMemberGitHubUsers { get; set; } 
+    private IDictionary<Guid, GitHubUserDto>? assignmentsTeamMemberGitHubUsers { get; set; } 
     private TeamMemberDisplayDto? creatorTeamMember { get; set; }
-    private GitHubUser? creatorTeamMemberGitHubUser { get; set; }
+    private GitHubUserDto? creatorTeamMemberGitHubUser { get; set; }
 
 
     private string? error { get; set; } = null;
@@ -150,7 +150,7 @@
 
     private async Task LoadActivitiesCommits()
     {
-        var commits = new List<GitHubCommit>();
+        var commits = new List<GitHubCommitDto>();
         var activities = assignmentsActivities!.SelectMany(a => a).ToList(); 
 
         foreach (var activity in activities)

@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc; 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using SOUPICore.Misc;
 using SOUPICore.Services.Interfaces;
-using SOUPIShared.Dtos;
+using SOUPIShared.Dtos.SOUPIDtos;
 using SOUPIShared.Exceptions;
 using SOUPIShared.Extensions;
 using System.Text.Json;

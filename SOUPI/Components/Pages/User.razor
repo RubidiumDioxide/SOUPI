@@ -48,7 +48,7 @@
     [Parameter]
     public Guid userId { get; set; } = default!;
 
-    private GitHubUser? gitHubUser { get; set; } 
+    private GitHubUserDto? gitHubUser { get; set; } 
     private UserDto? user { get; set; }   
 
     protected override async Task OnInitializedAsync()

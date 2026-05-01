@@ -4,7 +4,7 @@ using SOUPIShared.Models;
 using System.ComponentModel.DataAnnotations;
 
 
-namespace SOUPIShared.Dtos
+namespace SOUPIShared.Dtos.SOUPIDtos
 {
     public class NotificationDto
     {

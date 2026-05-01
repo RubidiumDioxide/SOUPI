@@ -1,12 +1,12 @@
-﻿using SOUPIShared.Dtos;
-using static SOUPIShared.Dtos.GitHubPushPayload;
+﻿using SOUPIShared.Dtos.SOUPIDtos;
+using static SOUPICore.Misc.GitHubPushPayload; 
 
 
 namespace SOUPICore.Services.Interfaces
 {
     public interface IActivityService
     {
-        public Task<IEnumerable<ActivityDto>> CreateSet(ILookup<string, CommitInfo> jobsCommits);
+        public Task CreateSet(ILookup<string, CommitInfo> jobsCommits);
 
         public Task<IEnumerable<ActivityDisplayDto>> GetByAssignmentId(Guid assignmentId);
 

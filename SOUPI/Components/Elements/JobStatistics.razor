@@ -22,7 +22,7 @@
     [Parameter, EditorRequired]
     public IDictionary<Guid, TeamMemberDisplayDto>? AssignmentsTeamMembers { get; set; }
     [Parameter, EditorRequired]
-    public IDictionary<Guid, GitHubUser>? AssignmentsTeamMemberGitHubUsers { get; set; }
+    public IDictionary<Guid, GitHubUserDto>? AssignmentsTeamMemberGitHubUsers { get; set; }
 
     private Dictionary<ChartType, string> _menuIcons = new()
     {

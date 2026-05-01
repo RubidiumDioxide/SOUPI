@@ -48,7 +48,7 @@ else {
     [Parameter, EditorRequired]
     public IEnumerable<TeamMemberDisplayDto>? TeamMembers { get; set; } 
     [Parameter, EditorRequired]
-    public IDictionary<string, GitHubUser> TeamMemberGitHubUsers { get; set; }
+    public IDictionary<string, GitHubUserDto> TeamMemberGitHubUsers { get; set; }
 
     public IEnumerable<AssignmentDisplayDto>? assignments { get; set; }
 

@@ -1,8 +1,8 @@
-﻿using SOUPI.Handlers.Interfaces; 
-using SOUPIShared.Dtos;
+﻿using SOUPI.Handlers.Interfaces;
 using SOUPIShared.Exceptions;
 using System.Text.Json;
 using System.Net;
+using SOUPIShared.Dtos.SOUPIDtos;
 
 
 namespace SOUPI.Handlers

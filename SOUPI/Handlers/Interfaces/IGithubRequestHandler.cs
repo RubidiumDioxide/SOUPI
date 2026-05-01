@@ -1,22 +1,21 @@
-﻿using Octokit;
-using GitHubUser = Octokit.User;
+﻿using SOUPIShared.Dtos.OctokitDtos; 
 
 
 namespace SOUPI.Handlers.Interfaces
 {
     public interface IGitHubRequestHandler
     {
-        public Task<bool> IsAppInstalled(); 
+        public Task<bool> IsAppInstalled(  ); 
 
-        public Task<GitHubUser> GetCurrentUser();
+        public Task<GitHubUserDto> GetCurrentUser();
 
-        public Task<GitHubUser> GetUserByLogin(string login);
+        public Task<GitHubUserDto> GetUserByLogin(string login);
 
-        public Task<IEnumerable<GitHubUser>> GetUsersByLogins(IEnumerable<string> logins);
+        public Task<IEnumerable<GitHubUserDto>> GetUsersByLogins(IEnumerable<string> logins);
 
-        public Task<GitHubCommit> GetCommitByHash(string ownerLogin, string repository, string hash); 
+        public Task<GitHubCommitDto> GetCommitByHash(string ownerLogin, string repository, string hash); 
 
-        public Task<IEnumerable<Repository>> GetRepositoriesForCurrentUser();
+        public Task<IEnumerable<GitHubRepositoryDto>> GetRepositoriesForCurrentUser();
 
         public Task CreateHook(string ownerLogin, string repoName);
 

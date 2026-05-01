@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using SOUPIShared.Attributes;
 
 
-namespace SOUPIShared.Dtos
+namespace SOUPIShared.Dtos.SOUPIDtos
 {
     public class ActivityDto
     {

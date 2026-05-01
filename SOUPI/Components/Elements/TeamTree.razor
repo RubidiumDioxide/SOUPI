@@ -53,7 +53,7 @@ else
     [Parameter, EditorRequired]
     public ProjectDto Project { get; set; } = default!;
     [Parameter, EditorRequired]
-    public IDictionary<string, GitHubUser> TeamMemberGitHubUsers { get; set; }
+    public IDictionary<string, GitHubUserDto> TeamMemberGitHubUsers { get; set; }
 
     private List<TreeItemData<TeamMemberDisplayDto>>? treeTeamMembers { get; set; }
     private TeamMemberDisplayDto? selectedTeamMember { get; set; }

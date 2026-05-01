@@ -1,5 +1,5 @@
-﻿using SOUPIShared.Models; 
-using SOUPIShared.Dtos;  
+﻿using SOUPIShared.Models;
+using SOUPIShared.Dtos.SOUPIDtos;
 
 
 namespace SOUPIShared.Extensions

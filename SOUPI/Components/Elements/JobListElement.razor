@@ -102,7 +102,7 @@ else
     [Parameter, EditorRequired]    
     public IEnumerable<AssignmentDisplayDto>? Assignments { get; set; } 
     [Parameter, EditorRequired] 
-    public IEnumerable<GitHubUser>? TeamMemberGitHubUsers { get; set; } 
+    public IEnumerable<GitHubUserDto>? TeamMemberGitHubUsers { get; set; } 
     [Parameter, EditorRequired]
     public bool IsEditable { get; set; } = false;
 
@@ -111,7 +111,7 @@ else
     [Parameter]
     public EventCallback<Guid> DeleteAssignment { get; set; }
 
-    private IDictionary<Guid, GitHubUser>? assignmentsTeamMemberGitHubUsers { get; set; }
+    private IDictionary<Guid, GitHubUserDto>? assignmentsTeamMemberGitHubUsers { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {

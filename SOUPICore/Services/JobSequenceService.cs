@@ -1,13 +1,13 @@
 ﻿using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using SOUPICore.Services.Interfaces;
-using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions;
 using SOUPIShared.Models;
 using SOUPIShared.Resources;
 using Microsoft.EntityFrameworkCore;
-using static SOUPIShared.Extensions.JobExtensions; 
+using static SOUPIShared.Extensions.JobExtensions;
 using static SOUPIShared.Extensions.JobSequenceExtensions;
+using SOUPIShared.Dtos.SOUPIDtos;
 
 
 namespace SOUPICore.Services

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using SOUPICore;
 using SOUPICore.Services;
-using SOUPIShared.Dtos;
+using SOUPIShared.Dtos.SOUPIDtos; 
 using SOUPIShared.Exceptions;
 using SOUPIShared.Misc;
 using SOUPIShared.Resources;

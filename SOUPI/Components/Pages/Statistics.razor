@@ -65,7 +65,7 @@
     [CascadingParameter]
     private UserDto? User { get; set; }
     [CascadingParameter]
-    private GitHubUser? GitHubUser { get; set; }
+    private GitHubUserDto? GitHubUser { get; set; }
 
     [Parameter]
     public Guid projectId { get; set; }
@@ -74,7 +74,7 @@
     private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; } 
     private IDictionary<Guid, JobDto>? assignmentJobs { get; set; }
     private IDictionary<Guid, IEnumerable<AssignmentDisplayDto>>? teamMemberAssignments { get; set; }
-    private IDictionary<string, GitHubUser>? teamMemberGitHubUsers { get; set; }
+    private IDictionary<string, GitHubUserDto>? teamMemberGitHubUsers { get; set; }
 
     private string? error { get; set; } = null;
     private Severity severity { get; set; } = Severity.Warning; 

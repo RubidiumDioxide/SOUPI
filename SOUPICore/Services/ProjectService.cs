@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
-using SOUPIShared.Dtos;
 using SOUPIShared.Exceptions;
-using SOUPIShared.Models; 
+using SOUPIShared.Models;
 using Microsoft.EntityFrameworkCore;
 using SOUPICore.Services.Interfaces;
+using SOUPIShared.Dtos.SOUPIDtos;
 
 
 namespace SOUPICore.Services

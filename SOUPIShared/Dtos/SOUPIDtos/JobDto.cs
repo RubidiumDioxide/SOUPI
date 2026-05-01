@@ -4,9 +4,9 @@ using SOUPIShared.Models;
 using System.ComponentModel.DataAnnotations;
 
 
-namespace SOUPIShared.Dtos
+namespace SOUPIShared.Dtos.SOUPIDtos
 {
-    public class JobDisplayDto
+    public class JobDto
     {
         public Guid Id { get; set; }
 
@@ -14,15 +14,7 @@ namespace SOUPIShared.Dtos
         public Guid ProjectId { get; set; }
 
         [Required]
-        [ConsistsOfNumbersCyrillicLatin] 
-        public string ProjectTitle { get; set; } 
-
-        [Required]
         public Guid CreatorId { get; set; }
-
-        [Required]
-        [ValidGitHubUsername]
-        public string CreatorLogin { get; set; } 
 
         [Required(ErrorMessage = "Поле названия обязательное")]
         [MaxLength(255, ErrorMessage = "Название слишком длинное (максимум 255 символов)")]
@@ -47,21 +39,17 @@ namespace SOUPIShared.Dtos
 
         public JobStatus Status { get; set; } = JobStatus.New;
 
-        public Guid? ParentJobId { get; set; } 
-
-        public string? ParentJobTitle { get; set; } 
+        public Guid? ParentJobId { get; set; }
 
         public string? Dependencies { get; set; } = default!;
 
         public bool HasChildren { get; set; } = default!; 
 
-        public JobDisplayDto(Job job)
+        public JobDto(Job job)
         {
             Id = job.Id; 
-            ProjectId = job.ProjectId;
-            ProjectTitle = job.Project.Title; 
-            CreatorId = job.CreatorId;
-            CreatorLogin = job.Creator.User.Login; 
+            ProjectId = job.ProjectId; 
+            CreatorId = job.CreatorId; 
             Title = job.Title; 
             Body = job.Body; 
             StartDateTime = job.StartDateTime; 
@@ -69,12 +57,7 @@ namespace SOUPIShared.Dtos
             Progress = job.Progress; 
             CreationDateTime = job.CreationDateTime; 
             Status = job.Status; 
-            ParentJobId = job.ParentJobId; 
-            
-            if(job.ParentJob != null)
-            {
-                ParentJobTitle = job.ParentJob.Title; 
-            }
+            ParentJobId = job.ParentJobId;
             
             if (job.PreviousJobSequences != null)
             {
@@ -87,6 +70,33 @@ namespace SOUPIShared.Dtos
             HasChildren = job.ChildJobs != null && job.ChildJobs.Count != 0; 
         }
 
-        public JobDisplayDto() { }
+        public JobDto(GanttJobDto ganttJobDto)
+        {
+            Id = Guid.Parse(ganttJobDto.id); 
+            Title = ganttJobDto.name;
+            StartDateTime = ganttJobDto.start;
+            EndDateTime = ganttJobDto.end;
+            Progress = ganttJobDto.progress;
+            Dependencies = ganttJobDto.dependencies;
+        }
+
+        public JobDto(JobDisplayDto jobDisplayDto)
+        {
+            Id = jobDisplayDto.Id;
+            ProjectId = jobDisplayDto.ProjectId;
+            CreatorId = jobDisplayDto.CreatorId;
+            Title = jobDisplayDto.Title;
+            Body = jobDisplayDto.Body;
+            StartDateTime = jobDisplayDto.StartDateTime;
+            EndDateTime = jobDisplayDto.EndDateTime;
+            Progress = jobDisplayDto.Progress;
+            CreationDateTime = jobDisplayDto.CreationDateTime;
+            Status = jobDisplayDto.Status;
+            ParentJobId = jobDisplayDto.ParentJobId;
+            Dependencies = jobDisplayDto.Dependencies;
+            HasChildren = jobDisplayDto.HasChildren; 
+        }
+
+        public JobDto() { }
     }
 }

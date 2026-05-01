@@ -127,7 +127,7 @@
     [CascadingParameter]
     private UserDto? User { get; set; }
     [CascadingParameter]
-    private GitHubUser? GitHubUser { get; set; }
+    private GitHubUserDto? GitHubUser { get; set; }
 
     [Parameter]
     public Guid projectId { get; set; }
@@ -140,7 +140,7 @@
     private ILookup<Guid, AssignmentDisplayDto>? jobAssignments { get; set; }
     private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; } 
     private TeamMemberDisplayDto? teamMember { get; set; }
-    private IDictionary<string, GitHubUser>? teamMemberGitHubUsers { get; set; }
+    private IDictionary<string, GitHubUserDto>? teamMemberGitHubUsers { get; set; }
     private IEnumerable<GanttJobDto>? ganttJobs { get; set; }
     private Guid? selectedJobId { get; set; }
     private JobDto? parentJob { get; set; } 
