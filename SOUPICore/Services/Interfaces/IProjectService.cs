@@ -13,7 +13,9 @@ namespace SOUPICore.Services.Interfaces
 
         public Task<ProjectDto> Update(ProjectDto changedProjectDto);
 
-        public Task<ProjectDto> ChangeCreator(ProjectDto updatedProjectDto);
+        public Task<ProjectDto> UpdateCreator(ProjectDto updatedProjectDto);
+
+        public Task<ProjectDto> SetGitHubRepository(Guid projectId, string repositoryName);
 
         public Task Delete(Guid Id); 
     }

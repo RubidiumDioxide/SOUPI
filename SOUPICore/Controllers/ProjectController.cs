@@ -119,11 +119,11 @@ namespace SOUPICore.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ProjectDto>> ChangeCreator([FromBody] ProjectDto updatedProjectDto)
+        public async Task<ActionResult<ProjectDto>> UpdateCreator([FromBody] ProjectDto updatedProjectDto)
         {
             try
             {
-                var project = await _projectService.ChangeCreator(updatedProjectDto); 
+                var project = await _projectService.UpdateCreator(updatedProjectDto); 
 
                 return Ok(project);
             }
@@ -142,7 +142,27 @@ namespace SOUPICore.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
+        [HttpGet("{projectId}/{repositoryName}")]
+        public async Task<ActionResult<ProjectDto>> SetGitHubRepository([FromRoute] Guid projectId, [FromRoute] string repositoryName)
+        {
+            try
+            {
+                var project = await _projectService.SetGitHubRepository(projectId, repositoryName);
+
+                return Ok(project);
+            }
+            catch (BadRequestException)
+            {
+                return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
+        }
+
+        [HttpGet("{id}")]
         public async Task<ActionResult> Delete([FromRoute] Guid id)
         {
             try

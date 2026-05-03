@@ -90,7 +90,8 @@
                 <MudTabPanel Text="Настройки ">
                     <ProjectSettings Project="@project" 
                                      TeamMembers="@teamMembers" 
-                                     Creator="@creatorTeamMember" />
+                                     Creator="@creatorTeamMember" 
+                                     ProjectUpdated="ProjectUpdated"/>
                 </MudTabPanel>
             </MudTabs>
         }
@@ -178,5 +179,14 @@
            (teamMember, gitHubUser) => new { teamMember.Id, gitHubUser}
        )
        .ToDictionary(x => x.Id, x => x.gitHubUser); 
+    }
+
+    private async Task ProjectUpdated()
+    {
+        await LoadProject(); 
+        await LoadTeamMembers();
+        await LoadTeamMemberGithubUsers();
+        
+        StateHasChanged();
     }
 }

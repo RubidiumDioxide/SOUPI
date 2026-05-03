@@ -178,11 +178,47 @@ namespace SOUPIShared.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Проект с таким названием уже существует.
+        /// </summary>
+        public static string ProjectAlreadyExists {
+            get {
+                return ResourceManager.GetString("ProjectAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на К этому проекту уже привязан репозиторий.
+        /// </summary>
+        public static string ProjectAlreadyHasRepository {
+            get {
+                return ResourceManager.GetString("ProjectAlreadyHasRepository", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Проект не найден .
         /// </summary>
         public static string ProjectNotFound {
             get {
                 return ResourceManager.GetString("ProjectNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Этот репозиторий уже привязан к другому проекту .
+        /// </summary>
+        public static string RepositoryAlreadyLinkedToProject {
+            get {
+                return ResourceManager.GetString("RepositoryAlreadyLinkedToProject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Некорректное название репозитория .
+        /// </summary>
+        public static string RepositoryNameNotValid {
+            get {
+                return ResourceManager.GetString("RepositoryNameNotValid", resourceCulture);
             }
         }
         

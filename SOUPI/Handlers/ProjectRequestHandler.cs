@@ -16,7 +16,8 @@ namespace SOUPI.Handlers
         private const string getByUserIdUrl = "/api/project/getbyuserid/";
         private const string getByIdUrl = "/api/project/getbyid/";
         private const string updateUrl = "/api/project/update/"; 
-        private const string changeCreatorUrl = "/api/project/changeCreator/"; 
+        private const string updateCreatorUrl = "/api/project/updateCreator/"; 
+        private const string setGitHubRepositoryUrl = "/api/project/setGitHubRepository/"; 
         private const string deleteUrl = "/api/project/delete/"; 
 
         public ProjectRequestHandler(ILogger<ProjectRequestHandler> logger, HttpClient httpClient)
@@ -131,13 +132,13 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<ProjectDto> ChangeCreator(ProjectDto updatedProjectDto)
+        public async Task<ProjectDto> UpdateCreator(ProjectDto updatedProjectDto)
         {
             try
             {
                 var content = JsonContent.Create(updatedProjectDto);
 
-                var response = await _httpClient.PostAsync(changeCreatorUrl, content);
+                var response = await _httpClient.PostAsync(updateCreatorUrl, content);
 
                 response.EnsureSuccessStatusCode();
 
@@ -157,11 +158,35 @@ namespace SOUPI.Handlers
             }
         }
 
+        public async Task<ProjectDto> SetGitHubRepository(Guid projectId, string repositoryName)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{setGitHubRepositoryUrl}{projectId}/{repositoryName}");
+
+                response.EnsureSuccessStatusCode();
+
+                var newContent = await response.Content.ReadAsStringAsync();
+
+                var result = System.Text.Json.JsonSerializer.Deserialize<ProjectDto>(newContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                return result!;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Не удалось привязать репозиторий к проекту: {ex.Message}");
+                throw new SoupiException("Не удалось привязать репозиторий к проекту ");
+            }
+        }
+
         public async Task Delete(Guid projectId)
         {
             try
             {
-                var response = await _httpClient.DeleteAsync($"{deleteUrl}{projectId}");
+                var response = await _httpClient.GetAsync($"{deleteUrl}{projectId}");
 
                 response.EnsureSuccessStatusCode();
             }

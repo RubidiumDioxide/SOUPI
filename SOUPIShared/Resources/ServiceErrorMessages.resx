@@ -165,4 +165,16 @@
   <data name="ActivityAlreadyExists" xml:space="preserve">
     <value>Действие с таким исполнителем, коммитом или сообщением уже существует </value>
   </data>
+  <data name="RepositoryAlreadyLinkedToProject" xml:space="preserve">
+    <value>Этот репозиторий уже привязан к другому проекту </value>
+  </data>
+  <data name="ProjectAlreadyExists" xml:space="preserve">
+    <value>Проект с таким названием уже существует</value>
+  </data>
+  <data name="ProjectAlreadyHasRepository" xml:space="preserve">
+    <value>К этому проекту уже привязан репозиторий</value>
+  </data>
+  <data name="RepositoryNameNotValid" xml:space="preserve">
+    <value>Некорректное название репозитория </value>
+  </data>
 </root>

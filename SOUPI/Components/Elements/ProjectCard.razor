@@ -4,12 +4,6 @@
             <CardHeaderContent>
                 <MudLink Href="@($"/project/{Project.Id}")" Typo="Typo.h6">@Project.Title</MudLink>
             </CardHeaderContent>
-            <CardHeaderActions>
-                <MudMenu Icon="@Icons.Material.Filled.MoreVert" Dense>
-                    <MudMenuItem Icon="@Icons.Material.Filled.Edit" IconColor="Color.Default" OnClick="EditButtonClick" Label="Редактировать" />
-                    <MudMenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error" OnClick="DeleteButtonClick" Label="Удалить" />
-                </MudMenu>
-            </CardHeaderActions>
         </MudCardHeader>
         <MudCardContent>
             <MudText Typo=Typo.body2>@Project.Description</MudText>
@@ -23,22 +17,4 @@
 @code {
     [Parameter, EditorRequired]
     public ProjectDto Project { get; set; } = default!;
-
-    [Parameter, EditorRequired]
-    public EventCallback<ProjectDto> OnDeleteButtonClick { get; set; }
-
-    [Parameter, EditorRequired]
-    public NavigationManager NavigationManager { get; set; } = default!;
-
-    
-    private void EditButtonClick()
-    {
-        NavigationManager.NavigateTo($"/editproject/{Project.Id}");
-    }
-
-
-    public async void DeleteButtonClick()
-    {
-        await OnDeleteButtonClick.InvokeAsync(Project);
-    }
 }

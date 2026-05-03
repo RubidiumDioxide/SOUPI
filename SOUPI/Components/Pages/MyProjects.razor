@@ -26,11 +26,9 @@
             else
             {
                 <MudGrid Class="mt-8">
-                    @foreach (ProjectDto project in projects)
+                    @foreach (var project in projects)
                     {
-                        <ProjectCard Project=@project
-                                     OnDeleteButtonClick="DeleteProject"
-                                     NavigationManager="NavigationManager" />
+                        <ProjectCard Project=@project />
                     }
                 </MudGrid>
             }
@@ -86,30 +84,6 @@
         }
 
         StateHasChanged();
-    }
-
-    private async Task DeleteProject(ProjectDto projectDto)
-    {
-        try
-        {
-            if(projectDto.GithubRepository != null)
-            {
-                await gitHubRequestHandler.DeleteHook(User!.Login, projectDto.GithubRepository);    
-            }
-
-            await projectRequestHandler.Delete(projectDto.Id); 
-
-            await LoadProjects(); 
-            Snackbar.Add("Проект успешно удален ", Severity.Success);
-        }
-        catch (SoupiException ex)
-        {
-            Snackbar.Add(ex.Message, Severity.Error); 
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
-        }
     }
 
     private async Task OpenAddDialog()

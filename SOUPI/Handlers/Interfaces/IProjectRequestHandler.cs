@@ -13,7 +13,9 @@ namespace SOUPI.Handlers.Interfaces
         
         public Task<ProjectDto> Update(ProjectDto updatedProjectDto);
 
-        public Task<ProjectDto> ChangeCreator(ProjectDto updatedProjectDto); 
+        public Task<ProjectDto> UpdateCreator(ProjectDto updatedProjectDto); 
+        
+        public Task<ProjectDto> SetGitHubRepository(Guid projectId, string repositoryName); 
 
         public Task Delete(Guid id); 
     }

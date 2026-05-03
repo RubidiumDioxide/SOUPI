@@ -12,7 +12,7 @@ else
             @if (!string.IsNullOrEmpty(Project.GithubRepository))
             {
                 <MudLink Href="@($"https://github.com/{Creator.UserLogin}/{Project.GithubRepository}")"
-                         Underline="Underline.Hover"
+                         Underline="Underline.Hover" 
                          Target="_blank"
                          Class="d-flex align-center">
                     <MudIcon Icon="@Icons.Custom.Brands.GitHub" Size="Size.Small" Class="mr-1" />

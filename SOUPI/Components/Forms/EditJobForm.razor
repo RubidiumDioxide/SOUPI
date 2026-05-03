@@ -2,64 +2,70 @@
 @inject ISnackbar Snackbar
 
 
-@if (Job != null)
+@if (Job == null)
+{
+    <LoadingPlaceholder />
+}
+else
 {
     <MudContainer MaxWidth=MaxWidth.False Gutters="false" >
         <EditForm Model=@Job OnValidSubmit="SaveJob">
             <DataAnnotationsValidator />
 
             <MudTextField @bind-Value=@Job.Title
-            For="@(() => Job.Title)"
-            Label="Название задачи"
-            Variant="Variant.Outlined"
-            Margin="Margin.Normal" />
+                          For="@(() => Job.Title)"
+                          Label="Название задачи"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Normal" />
 
             <MudTextField @bind-Value=@Job.Body
-            For="@(() => Job.Body)"
-            Label="Описание задачи"
-            Variant="Variant.Outlined"
-            Lines="3"
-            Margin="Margin.Normal" />
+                          For="@(() => Job.Body)"
+                          Label="Описание задачи"
+                          Variant="Variant.Outlined"
+                          Lines="3"
+                          Margin="Margin.Normal" />
 
             <div class="d-flex gap-4">
                 <MudDatePicker @bind-Date=@startDateTime
-                Label="Дата начала"
-                Variant="Variant.Outlined"
-                Editable="true" />
+                               Label="Дата начала"
+                               Variant="Variant.Outlined"
+                               Editable="true" />
 
                 <MudDatePicker @bind-Date=@endDateTime
-                Label="Дата завершения"
-                Variant="Variant.Outlined"
-                Editable="true" />
+                               Label="Дата завершения"
+                               Variant="Variant.Outlined"
+                               Editable="true" />
             </div>
 
             <MudSlider @bind-Value="Job.Progress"
-            Min="0" Max="100"
-            Color="Color.Primary"
-            ValueLabel="true">
+                       Min="0" Max="100"
+                       Color="Color.Primary"
+                       ValueLabel="true">
                 Прогресс (%)
             </MudSlider>
 
             <MudSelect @bind-Value=@Job.Status
-            Label="Статус"
-            Variant="Variant.Outlined"
-            Margin="Margin.Normal">
+                       Label="Статус"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Normal">
                 @foreach (JobStatus item in Enum.GetValues(typeof(JobStatus)))
                 {
                     <MudSelectItem Value="@item">@item.ToString()</MudSelectItem>
                 }
             </MudSelect>
 
-            <MudButton ButtonType="ButtonType.Submit"
-            Variant="Variant.Filled"
-            Color="Color.Primary">
-                Сохранить
-            </MudButton>
-            <MudButton OnClick="ResetForm"
-            Variant="Variant.Filled"
-            Color="Color.Secondary">
-                Отмена
-            </MudButton>
+            <div class="d-flex justify-end mt-4">
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary">
+                    Сохранить
+                </MudButton>
+                <MudButton OnClick="ResetForm"
+                           Variant="Variant.Text"
+                           Color="Color.Default">
+                    Сбросить
+                </MudButton> 
+            </div>
         </EditForm>
     </MudContainer>
 }
@@ -92,10 +98,10 @@
 
     private void ResetForm()
     {
-        Job.CopyContentProperties(jobBackup);
+        Job!.CopyContentProperties(jobBackup!);
 
-        startDateTime = Job.StartDateTime;
-        endDateTime = Job.EndDateTime;
+        startDateTime = Job!.StartDateTime;
+        endDateTime = Job!.EndDateTime;
 
         StateHasChanged();
     }

@@ -1,4 +1,5 @@
-﻿@inject ISnackbar Snackbar
+﻿@inject IGitHubRequestHandler gitHubRequestHandler 
+@inject ISnackbar Snackbar
 
 
 @if (Project == null || Creator == null)
@@ -8,14 +9,42 @@
 else
 {
     <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+        @* general properties edit *@
+        <EditProjectForm Project="@Project"
+                         ProjectUpdated="ProjectUpdated"/>
+
+        <MudDivider Class="mb-4 mt-8"/>
+        
+        @if (isAppInstalled)
+        {
+            <LinkGitHubRepositoryForm Project="Project"
+                                      ProjectUpdated="ProjectUpdated" />
+        }
+        else
+        {
+            <MudText Align="Align.Center" Typo="Typo.body1" Class="mud-text-secondary">
+                Привязка репозитория и создание вебхуков недоступно, т.к. вы не установили соответствующее приложение в личном кабинете Github.
+                <MudLink Color="Color.Primary"
+                         Href="https://github.com/apps/soupigithubapp/installations/new/"
+                         EndIcon="@Icons.Custom.Brands.GitHub" 
+                         Target="_blank">
+                    Установить
+                </MudLink>
+            </MudText>
+        }
+
+        <MudDivider Class="mb-4 mt-8" />
+
+        @* transfer ownership *@
         <ChangeCreatorForm Creator="@Creator"
                            Project="@Project"
-                           AvailibleCreators="@availibleCreators" />
+                           AvailibleCreators="@availibleCreators" 
+                           ProjectUpdated="ProjectUpdated" />
 
+        <MudDivider Class="mb-4 mt-8" />
 
-
-
-
+        @* delete project *@
+       <DeleteProjectForm Project="@Project"/>
     </MudContainer>
 }
 
@@ -33,22 +62,33 @@ else
     public IEnumerable<TeamMemberDisplayDto>? TeamMembers { get; set; }
     [Parameter, EditorRequired]
     public TeamMemberDisplayDto? Creator { get; set; }
+    [Parameter, EditorRequired]
+    public EventCallback ProjectUpdated { get; set; }
+
+    public bool isAppInstalled { get; set; }
 
     private IEnumerable<TeamMemberDisplayDto>? availibleCreators { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
-        try
+        if(User != null && GitHubUser != null)
         {
-            await LoadAvailibleCreators();
-        }
-        catch (SoupiException ex)
-        {
-            Snackbar.Add(ex.Message, Severity.Error);
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+            try
+            {
+                isAppInstalled = await gitHubRequestHandler.IsAppInstalled();
+
+                await LoadAvailibleCreators();
+            }
+            catch (SoupiException ex)
+            {
+                isAppInstalled = false;
+                Snackbar.Add(ex.Message, Severity.Error);
+            }
+            catch (Exception ex)
+            {
+                isAppInstalled = false;
+                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+            }
         }
     }
 

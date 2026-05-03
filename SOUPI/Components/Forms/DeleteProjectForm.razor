@@ -1,0 +1,83 @@
+﻿@inject NavigationManager NavigationManager 
+@inject IProjectRequestHandler projectRequestHandler 
+@inject IGitHubRequestHandler gitHubRequestHandler 
+@inject IDialogService DialogService 
+@inject ISnackbar Snackbar
+
+
+@if (User == null)
+{
+    <LoadingPlaceholder />
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.False">
+        <MudStack Spacing="2" 
+                  Style="width: 70%; " 
+                  Class="mx-auto" 
+                  AlignItems="AlignItems.Center" 
+                  Justify="Justify.Center">
+            
+            <MudButton OnClick="OpenDeleteDialog"
+                       Color="Color.Error"
+                       Variant="Variant.Filled">
+                Удалить проект
+            </MudButton>
+        </MudStack>
+    </MudContainer>
+}
+
+
+@code {
+    [CascadingParameter]
+    private UserDto? User { get; set; }
+
+    [Parameter, EditorRequired]
+    public ProjectDto Project { get; set; } = default!;
+
+    private async Task OpenDeleteDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.Title, "Удаление проекта"},
+            { x => x.Message, "Этот проект, его команда, задачи и действия будут безвозвратно удалены. Если к проекту был привязан репозиторий, соответствующий вебхук удалится автоматически. Удаление не затронет все остальное содержимое репозитория. " },
+            { x => x.ConfirmationText, "Удалить" },
+            { x => x.ConfirmationColor, Color.Error }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("SimpleDialog", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await Delete();
+        }
+    }
+
+    private async Task Delete()
+    {
+        try
+        {
+            if (Project.GithubRepository != null)
+            {
+                await gitHubRequestHandler.DeleteHook(User!.Login, Project.GithubRepository);
+            }
+
+            await projectRequestHandler.Delete(Project.Id);
+
+            Snackbar.Add("Проект успешно удален ", Severity.Success); 
+
+            NavigationManager.NavigateTo("/myprojects/"); 
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+}

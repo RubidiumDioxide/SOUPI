@@ -1,0 +1,33 @@
+﻿<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5">@Title</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>@Message</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Отмена</MudButton>
+        <MudButton Color=@ConfirmationColor Variant="Variant.Filled" OnClick="Submit">
+            @ConfirmationText
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter, EditorRequired]
+    public string Title { get; set; }
+    [Parameter, EditorRequired]
+    public string Message { get; set; }
+    [Parameter, EditorRequired]
+    public string ConfirmationText { get; set; }
+    [Parameter, EditorRequired]
+    public Color ConfirmationColor { get; set; }
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+
+    private void Cancel() => MudDialog.Cancel();
+}

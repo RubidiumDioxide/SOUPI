@@ -1,0 +1,215 @@
+﻿@inject NavigationManager NavigationManager; 
+@inject IProjectRequestHandler projectRequestHandler;
+@inject IGitHubRequestHandler gitHubRequestHandler;
+@inject ISnackbar Snackbar
+
+
+@if (User == null || Project == null || !hasLinkedRepositoryLoaded)
+{
+    <LoadingPlaceholder />
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.False">
+        <MudStack Spacing="2" 
+                  Style="width: 70%; " 
+                  Class="mx-auto" 
+                  AlignItems="AlignItems.Center" 
+                  Justify="Justify.Center">
+
+            @if (isRepositoryLinked)
+            {
+                <MudText Align="Align.Center" Typo="Typo.body1" Class="mud-text-secondary">
+                    Этот проект привязан к репозиторию
+                    <MudLink Color="Color.Primary"
+                             Href="@linkedRepository!.HtmlUrl"
+                             EndIcon="@Icons.Custom.Brands.GitHub"
+                             Target="_blank">
+                        "@linkedRepository.Name"
+                    </MudLink>
+                </MudText>
+
+                @if (!doesWebhookExist)
+                {
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mud-width-full">
+                        <MudCheckBox @bind-Value="@shouldCreateWebhook">
+                            Создать вебхук
+                        </MudCheckBox>
+
+                        <MudButton OnClick="CreateHook"
+                                   Color="Color.Success"
+                                   Variant="Variant.Filled"
+                                   Disabled="@(!shouldCreateWebhook)">
+                            Создать
+                        </MudButton>
+
+                        <MudButton OnClick="Reset"
+                                   Variant="Variant.Text">
+                            Отмена
+                        </MudButton>
+                    </MudStack>
+                }
+            }
+            else
+            {
+                if (!isLinkingGitHubRepository)
+                {
+                    <MudButton OnClick=@(() => isLinkingGitHubRepository = !isLinkingGitHubRepository)
+                               Color="Color.Success"
+                               Variant="Variant.Filled">
+                        Передать управление проектом
+                    </MudButton>
+                }
+                else
+                {
+                    <MudText Align="Align.Center" Typo="Typo.body1" Class="mud-text-secondary">
+                        Вы сможете вставлять ссылки на коммиты в этом репозитории и создать вебхук для автоматического создания действий.
+                    </MudText>
+
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mud-width-full">
+                        <MudTextField @bind-Value=@linkedRepositoryName
+                                      For="@(() => linkedRepositoryName)"
+                                      Label="Название репозитория на Github "
+                                      Variant=Variant.Outlined />
+                        
+                        <MudCheckBox @bind-Value="@shouldCreateWebhook"
+                                     Disabled="@(string.IsNullOrEmpty(linkedRepositoryName))">
+                            Создать вебхук
+                        </MudCheckBox>
+
+                        <MudButton OnClick="LinkGitHubRepository"
+                                   Color="Color.Success"
+                                   Variant="Variant.Filled">
+                            Привязать
+                        </MudButton>
+
+                        <MudButton OnClick="Reset"
+                                   Variant="Variant.Text">
+                            Отмена
+                        </MudButton>
+                    </MudStack>
+                }
+            }
+        </MudStack>
+    </MudContainer>
+}
+
+@code {
+    [CascadingParameter]
+    private UserDto? User { get; set; }
+
+    [Parameter, EditorRequired]
+    public ProjectDto Project { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public EventCallback ProjectUpdated { get; set; }
+
+    private GitHubRepositoryDto? linkedRepository { get; set; } 
+
+    private bool isRepositoryLinked { get; set; }
+    private bool hasLinkedRepositoryLoaded { get; set; }
+    private bool doesWebhookExist { get; set; }
+    private bool shouldCreateWebhook { get; set; }
+    private bool isLinkingGitHubRepository { get; set; }
+    private string? linkedRepositoryName = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (User != null && Project != null && !hasLinkedRepositoryLoaded)
+        {
+            try
+            {
+                if(Project.GithubRepository != null)
+                {
+                    linkedRepository = await gitHubRequestHandler.GetRepository(User.Login, Project.GithubRepository); 
+                    isRepositoryLinked = true;  
+                }
+
+                doesWebhookExist = isRepositoryLinked && await gitHubRequestHandler.DoesHookExist(User.Login, Project.GithubRepository);
+            }
+            catch (Exception ex)
+            {
+                isRepositoryLinked = true;
+                doesWebhookExist = true; 
+                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+            }
+
+            hasLinkedRepositoryLoaded = true;
+        }
+    }
+
+    private void Reset()
+    {
+        isLinkingGitHubRepository = false;  
+        linkedRepositoryName = string.Empty; 
+    }
+
+    private async Task LinkGitHubRepository()
+    {
+        if (linkedRepositoryName != null)
+        {
+            linkedRepositoryName = linkedRepositoryName.Trim();
+        }
+
+        if (!string.IsNullOrEmpty(linkedRepositoryName))
+        {
+            try
+            {
+                var repositories = await gitHubRequestHandler.GetRepositoriesForCurrentUser();
+                if (!repositories.Select(r => r.Name).Contains(linkedRepositoryName))
+                {
+                    throw new SoupiException("Похоже, у вас нет доступа к этому репозиторию. Проверьте название репозитория и проверьте, есть ли у приложения доступ к этому репозиторию в личном кабинете ");
+                }
+
+                var projects = await projectRequestHandler.GetByUserId(User!.Id);
+                if (string.IsNullOrEmpty(linkedRepositoryName)
+                    || projects.Select(p => p.GithubRepository).Contains(linkedRepositoryName))
+                {
+                    throw new SoupiException("Этот репозиторий уже привязан к другому проекту ");
+                }
+
+                if (shouldCreateWebhook)
+                {
+                    await gitHubRequestHandler.CreateHook(User.Login, linkedRepositoryName);
+                }
+
+                Project = await projectRequestHandler.SetGitHubRepository(Project.Id, linkedRepositoryName);
+
+                Snackbar.Add("Репозиторий успешно привязан к проекту ", Severity.Success);
+
+                Reset();
+            }
+            catch (SoupiException ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error);
+            }
+            catch (Exception)
+            {
+                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+            }
+        }
+    }
+
+    private async Task CreateHook()
+    {
+        if (shouldCreateWebhook)
+        {
+            try
+            {
+                await gitHubRequestHandler.CreateHook(User.Login, Project.GithubRepository);
+                
+                Snackbar.Add("Вебхук успешно создан ", Severity.Success);
+
+                Reset();
+            }
+            catch (SoupiException ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error);
+            }
+            catch (Exception)
+            {
+                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+            }
+        }
+    }
+}

@@ -1,0 +1,97 @@
+﻿@inject IGitHubRequestHandler gitHubRequestHandler
+@inject IProjectRequestHandler projectRequestHandler
+@inject ISnackbar Snackbar
+
+    
+@if (Project == null)
+{
+    <LoadingPlaceholder />
+}
+else
+{
+    <MudContainer MaxWidth=MaxWidth.False Gutters="false">
+        <MudText Typo="Typo.h6" >Редактирование свойств проекта </MudText>
+        
+        <EditForm Model=@Project OnValidSubmit="SaveProject">
+            <DataAnnotationsValidator />
+            
+            <MudTextField @bind-Value=@Project.Title 
+                          For="@(() => Project.Title)" 
+                          Label="Название проекта" 
+                          Variant=Variant.Outlined />
+            <MudTextField @bind-Value=@Project.Description 
+                          For="@(() => Project.Description)" 
+                          Label="Описание проекта" 
+                          Variant=Variant.Outlined 
+                          Lines="5" />
+
+            <div class="d-flex justify-end mt-4">
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary">
+                    Сохранить
+                </MudButton>
+                <MudButton OnClick="ResetForm"
+                           Variant="Variant.Text"
+                           Color="Color.Default">
+                    Сбросить
+                </MudButton>
+            </div>
+        </EditForm>
+    </MudContainer>
+}
+
+
+@code {
+    [CascadingParameter]
+    private UserDto? User { get; set; }
+    
+    [Parameter, EditorRequired] 
+    public ProjectDto? Project { get; set; }
+    [Parameter, EditorRequired]
+    public EventCallback ProjectUpdated { get; set; }
+
+    public ProjectDto? projectBackup { get; set; } = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Project != null && projectBackup != null)
+        {
+            projectBackup!.CopyContentProperties(Project!);
+        }
+    }
+
+    private void ResetForm()
+    {
+        Project!.CopyContentProperties(projectBackup!); 
+
+        StateHasChanged();
+    }
+
+    private async Task SaveProject()
+    {
+        try
+        {
+            var projects = await projectRequestHandler.GetByUserId(User!.Id);
+
+            if (projects.Where(p => p.Id != Project!.Id).Select(p => p.Title).Contains(Project!.Title))
+            {
+                throw new SoupiException("Вы уже создавали проект с таким названием. Названия проектов должны быть уникальными ");
+            }
+
+            Project = await projectRequestHandler.Update(Project);
+
+            await ProjectUpdated.InvokeAsync();
+
+            Snackbar.Add("Изменения в проекте были успешно сохранены ", Severity.Success);
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+        }
+    }
+}

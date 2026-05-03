@@ -58,9 +58,10 @@
     public UserDto? User { get; set; }
     [Parameter, EditorRequired]
     public GitHubUserDto? GitHubUser { get; set; }
-    public bool isAppInstalled { get; set; }
-
+   
     private ProjectDto newProject { get; set; } = new ProjectDto();
+    
+    private bool isAppInstalled { get; set; }
     private bool shouldCreateWebhook { get; set; }
 
     protected override async Task OnParametersSetAsync()

@@ -4,6 +4,7 @@ using SOUPIShared.Models;
 using Microsoft.EntityFrameworkCore;
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos.SOUPIDtos;
+using SOUPIShared.Resources;
 
 
 namespace SOUPICore.Services
@@ -64,6 +65,19 @@ namespace SOUPICore.Services
         {
             try
             {
+                var projects = await _context.Projects.ToListAsync(); 
+
+                if(projects.FirstOrDefault(p => p.Title == newProjectDto.Title) != null)
+                {
+                    throw new BadRequestException(ServiceErrorMessages.ProjectAlreadyExists);
+                }
+
+                if(newProjectDto.GithubRepository != null 
+                   && projects.FirstOrDefault(p => p.GithubRepository == newProjectDto.GithubRepository) != null)
+                {
+                    throw new BadRequestException(ServiceErrorMessages.RepositoryAlreadyLinkedToProject);
+                }
+
                 var newProject = new Project()
                 {
                     Title = newProjectDto.Title,
@@ -119,7 +133,7 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<ProjectDto> ChangeCreator(ProjectDto updatedProjectDto)
+        public async Task<ProjectDto> UpdateCreator(ProjectDto updatedProjectDto)
         {
             try
             {
@@ -127,7 +141,7 @@ namespace SOUPICore.Services
 
                 if (project == null)
                 {
-                    throw new BadRequestException("Руководителя проекта нельзя переназначить, т.к. проект не найден в системе ");
+                    throw new BadRequestException(ServiceErrorMessages.ProjectNotFound);
                 }
 
                 var previousCreatorTeamMember = await _context.TeamMembers
@@ -137,7 +151,7 @@ namespace SOUPICore.Services
 
                 if (previousCreatorTeamMember == null || newCreatorTeamMember == null)
                 {
-                    throw new BadRequestException("Руководителя проекта нельзя переназначить, т.к. соответствующие записи участников команды не найдены в системе ");
+                    throw new BadRequestException(ServiceErrorMessages.TeamMemberNotFound);
                 }
 
                 // link all newCreator's subservient to it's supervisor 
@@ -158,6 +172,47 @@ namespace SOUPICore.Services
             }
         }
 
+        public async Task<ProjectDto> SetGitHubRepository(Guid projectId, string repositoryName)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(repositoryName))
+                {
+                    throw new BadRequestException(ServiceErrorMessages.RepositoryNameNotValid);
+                }
+
+                var project = await _context.Projects.FindAsync(projectId);
+
+                if (project == null)
+                {
+                    throw new BadRequestException(ServiceErrorMessages.ProjectNotFound);
+                }
+
+                if(project.GithubRepository != null)
+                {
+                    throw new BadRequestException(ServiceErrorMessages.ProjectAlreadyHasRepository);
+                }
+
+                var projects = await _context.Projects.ToListAsync(); 
+
+                if( projects.FirstOrDefault(p => p.GithubRepository == repositoryName) != null)
+                {
+                    throw new BadRequestException(ServiceErrorMessages.RepositoryAlreadyLinkedToProject);
+                }
+               
+                project.GithubRepository = repositoryName; 
+
+                await _context.SaveChangesAsync();
+
+                return new ProjectDto(project);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
+        }
+
         public async Task Delete(Guid id)
         {
             try
@@ -166,7 +221,7 @@ namespace SOUPICore.Services
 
                 if (project == null)
                 {
-                    throw new BadRequestException("Проект нельзя удалить, т.к. он не найден в системе ");  
+                    throw new BadRequestException(ServiceErrorMessages.ProjectNotFound);  
                 }
 
                 var teamMembers = project.TeamMembers.ToList();

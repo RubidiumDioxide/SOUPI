@@ -5,7 +5,7 @@ namespace SOUPI.Handlers.Interfaces
 {
     public interface IGitHubRequestHandler
     {
-        public Task<bool> IsAppInstalled(  ); 
+        public Task<bool> IsAppInstalled(); 
 
         public Task<GitHubUserDto> GetCurrentUser();
 
@@ -13,12 +13,16 @@ namespace SOUPI.Handlers.Interfaces
 
         public Task<IEnumerable<GitHubUserDto>> GetUsersByLogins(IEnumerable<string> logins);
 
-        public Task<GitHubCommitDto> GetCommitByHash(string ownerLogin, string repository, string hash); 
+        public Task<GitHubCommitDto> GetCommitByHash(string owner, string repository, string hash); 
 
         public Task<IEnumerable<GitHubRepositoryDto>> GetRepositoriesForCurrentUser();
 
-        public Task CreateHook(string ownerLogin, string repoName);
+        public Task<GitHubRepositoryDto> GetRepository(string owner, string repository);
 
-        public Task DeleteHook(string ownerLogin, string repoName);
+        public Task<bool> DoesHookExist(string owner, string repository); 
+
+        public Task CreateHook(string owner, string repository);
+
+        public Task DeleteHook(string owner, string repository);
     }
 }

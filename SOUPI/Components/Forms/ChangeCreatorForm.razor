@@ -4,26 +4,33 @@
 
 @if (User == null || Project == null || Creator == null || AvailibleCreators == null)
 {
-    <p>Loading... </p>
+    <LoadingPlaceholder />
 }
 else
 {
-    <MudText Align="Align.Center">@($"Руководитель проекта: {Creator.UserLogin}")</MudText>
-    
     <MudContainer MaxWidth="MaxWidth.False">
-        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mud-width-full">
-            @if (User.Id == Creator.UserId)
+        <MudStack Spacing="2" 
+                  Style="width: 70%; " 
+                  Class="mx-auto" 
+                  AlignItems="AlignItems.Center" 
+                  Justify="Justify.Center">
+            @if (!isChangingCreator)
             {
-                if (!isChangingCreator)
-                {
-                    <MudButton OnClick=@(() => isChangingCreator = !isChangingCreator)
-                               Color="Color.Error"
-                               Variant="Variant.Text">
-                        Передать управление проектом
-                    </MudButton>
-                }
-                else
-                {
+                <MudButton OnClick=@(() => isChangingCreator = !isChangingCreator)
+                           Color="Color.Error"
+                           Variant="Variant.Filled">
+                    Передать управление проектом
+                </MudButton>
+            }
+            else
+            {
+                <MudText Align="Align.Center">@($"Текущий руководитель проекта: {Creator.UserLogin}")</MudText>
+    
+                <MudText Align="Align.Center" Typo="Typo.body1" Class="mud-text-secondary">
+                   Вы останетесь в команде проекта, но больше не будете занимать должность руководителя.  
+                </MudText>
+
+                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mud-width-full">
                     <MudAutocomplete T="string"
                                      @bind-Value="@newCreatorLogin"
                                      SearchFunc="AutocompleteTeamMembers"
@@ -39,10 +46,15 @@ else
 
                     <MudButton OnClick="ChangeCreator"
                                Color="Color.Error"
-                               Variant="Variant.Text">
+                               Variant="Variant.Filled">
                         Подтвердить
                     </MudButton>
-                }
+                    
+                    <MudButton OnClick="Reset"
+                               Variant="Variant.Text">
+                        Отмена
+                    </MudButton>
+                </MudStack>
             }
         </MudStack>
     </MudContainer>
@@ -51,13 +63,15 @@ else
 @code {
     [CascadingParameter]
     private UserDto? User { get; set; }
-    
+
     [Parameter, EditorRequired]
     public TeamMemberDisplayDto? Creator { get; set; }
     [Parameter, EditorRequired]
     public ProjectDto Project { get; set; } = default!;
     [Parameter, EditorRequired]
     public IEnumerable<TeamMemberDisplayDto>? AvailibleCreators { get; set; }
+    [Parameter, EditorRequired]
+    public EventCallback ProjectUpdated { get; set; }
 
     private bool isChangingCreator = false;
     private string? newCreatorLogin = string.Empty; 
@@ -72,6 +86,12 @@ else
         return AvailibleCreators.Where(u => u.UserLogin.Contains(query)).Select(u => u.UserLogin);
     }
 
+    private void Reset()
+    {
+        isChangingCreator = false; 
+        newCreatorLogin = string.Empty; 
+    }
+
     private async Task ChangeCreator()
     {
         try
@@ -83,7 +103,7 @@ else
                 throw new SoupiException("Некорректное имя нового руководителя проекта ");
             }
 
-            await projectRequestHandler.ChangeCreator(new ProjectDto
+            await projectRequestHandler.UpdateCreator(new ProjectDto
             {
                 Id = Project.Id,
                 Title = Project.Title,
@@ -93,12 +113,11 @@ else
                 CreationDateTime = Project.CreationDateTime, 
             });
 
-            //refresh the whole page 
-            
-
-
             Snackbar.Add($"Управление проектом успешно передано пользователю {newCreator.UserLogin} ", Severity.Success);
 
+            await ProjectUpdated.InvokeAsync(); 
+
+            // TO-DO: rework 
             NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
         }
         catch (SoupiException ex)

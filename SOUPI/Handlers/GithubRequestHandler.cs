@@ -40,12 +40,12 @@ namespace SOUPI.Handlers
 
                 var installations = await github.GitHubApps.GetAllInstallationsForCurrentUser();
 
-                return installations.Installations.Count() == 0; 
+                return installations.Installations.Count != 0; 
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Не удалось перейти на страницу установки GithubApp. {ex.Message}");
-                throw new SoupiException("Не удалось перейти на страницу установки GithubApp. Попробуйте позже или сообщите об ошибке в техподдержку ");
+                _logger.LogError($"Не удалось получить данные об установленных приложениях {ex.Message}");
+                throw new SoupiException("Не удалось получить данные об установленных приложениях. Попробуйте позже или сообщите об ошибке в техподдержку ");
             }
         }
 
@@ -167,6 +167,67 @@ namespace SOUPI.Handlers
             {
                 _logger.LogError($"Не удалось получить информацию о репозиториях текущего пользователя. {ex.Message}");
                 throw new SoupiException("Не удалось получить информацию о репозиториях текущего пользователя. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
+        }
+        
+        public async Task<GitHubRepositoryDto> GetRepository(string owner, string repository)
+        {
+            try
+            {
+                var httpContext = _httpContextAccessor.HttpContext;
+
+                var accessToken = await httpContext!.GetTokenAsync("access_token");
+
+                var github = new GitHubClient(
+                    new ProductHeaderValue("AspNetCoreGitHubAuth"),
+                    new InMemoryCredentialStore(new Credentials(accessToken))
+                );
+
+                var repo = await github.Repository.Get(owner, repository);
+
+                return new GitHubRepositoryDto(repo);    
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Не удалось получить информацию о репозитории. {ex.Message}");
+                throw new SoupiException("Не удалось получить информацию о репозитории. Попробуйте позже или сообщите об ошибке в техподдержку ");
+            }
+        }
+
+        public async Task<bool> DoesHookExist(string ownerLogin, string repoName)
+        {
+            try
+            {
+                if (_devtunnelUrl == null)
+                {
+                    throw new Exception("Не было предоставлено значение для devtunnelUrl. Убедитесь, что приложение запущено с активным туннелем ");
+                }
+
+                var httpContext = _httpContextAccessor.HttpContext;
+                var accessToken = await httpContext!.GetTokenAsync("access_token");
+
+                var fullCallbackUrl = $"{_devtunnelUrl}{_callbackUrl}";
+
+                var github = new GitHubClient(
+                    new ProductHeaderValue("AspNetCoreGitHubAuth"),
+                    new InMemoryCredentialStore(new Credentials(accessToken))
+                );
+
+                var repository = await github.Repository.Get(ownerLogin, repoName);
+
+                // fetch all hooks and find all matches for the URL
+                var allHooks = await github.Repository.Hooks.GetAll(ownerLogin, repoName);
+
+                var duplicateHooks = allHooks.Where(h =>
+                    h.Config.TryGetValue("url", out var url) && url == fullCallbackUrl).ToList();
+
+                // delete every matching hook found
+                return duplicateHooks.Count != 0;  
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Не удалось получить информацию о наличии вебхука {ex.Message}");
+                throw new SoupiException("Не удалось получить информацию о наличии вебхука. Попробуйте позже или сообщите об ошибке в техподдержку");
             }
         }
 
