@@ -47,6 +47,11 @@ namespace SOUPIShared.Dtos.SOUPIDtos
 
         public JobStatus Status { get; set; } = JobStatus.New;
 
+        [Required]
+        public bool IsCompleted { get; set; }
+
+        public DateTime? CompletedDateTime { get; set; } 
+
         public Guid? ParentJobId { get; set; } 
 
         public string? ParentJobTitle { get; set; } 
@@ -69,6 +74,8 @@ namespace SOUPIShared.Dtos.SOUPIDtos
             Progress = job.Progress; 
             CreationDateTime = job.CreationDateTime; 
             Status = job.Status; 
+            IsCompleted = job.IsCompleted; 
+            CompletedDateTime = job.CompletedDateTime; 
             ParentJobId = job.ParentJobId; 
             
             if(job.ParentJob != null)

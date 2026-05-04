@@ -39,6 +39,11 @@ namespace SOUPIShared.Dtos.SOUPIDtos
 
         public JobStatus Status { get; set; } = JobStatus.New;
 
+        [Required]
+        public bool IsCompleted { get; set; }
+
+        public DateTime? CompletedDateTime { get; set; } 
+
         public Guid? ParentJobId { get; set; }
 
         public string? Dependencies { get; set; } = default!;
@@ -57,6 +62,8 @@ namespace SOUPIShared.Dtos.SOUPIDtos
             Progress = job.Progress; 
             CreationDateTime = job.CreationDateTime; 
             Status = job.Status; 
+            IsCompleted = job.IsCompleted; 
+            CompletedDateTime = job.CompletedDateTime; 
             ParentJobId = job.ParentJobId;
             
             if (job.PreviousJobSequences != null)
@@ -88,10 +95,12 @@ namespace SOUPIShared.Dtos.SOUPIDtos
             Title = jobDisplayDto.Title;
             Body = jobDisplayDto.Body;
             StartDateTime = jobDisplayDto.StartDateTime;
-            EndDateTime = jobDisplayDto.EndDateTime;
+            EndDateTime = jobDisplayDto.EndDateTime; 
             Progress = jobDisplayDto.Progress;
             CreationDateTime = jobDisplayDto.CreationDateTime;
             Status = jobDisplayDto.Status;
+            IsCompleted = jobDisplayDto.IsCompleted; 
+            CompletedDateTime = jobDisplayDto.CompletedDateTime; 
             ParentJobId = jobDisplayDto.ParentJobId;
             Dependencies = jobDisplayDto.Dependencies;
             HasChildren = jobDisplayDto.HasChildren; 

@@ -19,6 +19,8 @@ namespace SOUPIShared.Dtos.SOUPIDtos
         [ConsistsOfNumbersCyrillicLatin]
         public string? Comment { get; set; }
 
+        public DateTime CreationDateTime { get; set; } = default;
+
 
         public ActivityDto(Activity activity)
         {
@@ -26,13 +28,15 @@ namespace SOUPIShared.Dtos.SOUPIDtos
             AssignmentId = activity.AssignmentId; 
             Commit = activity.Commit; 
             Comment = activity.Comment; 
+            CreationDateTime = activity.CreationDateTime; 
         }
         public ActivityDto(ActivityDisplayDto activityDisplayDto)
         {
             Id = activityDisplayDto.Id;
             AssignmentId = activityDisplayDto.AssignmentId;
             Commit = activityDisplayDto.Commit;
-            Comment = activityDisplayDto.Comment;
+            Comment = activityDisplayDto.Comment; 
+            CreationDateTime = activityDisplayDto.CreationDateTime; 
         }
 
         public ActivityDto() { }

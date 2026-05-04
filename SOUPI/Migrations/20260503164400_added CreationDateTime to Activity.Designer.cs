@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SOUPICore;
 
@@ -11,9 +12,11 @@ using SOUPICore;
 namespace SOUPI.Migrations
 {
     [DbContext(typeof(SoupiDbContext))]
-    partial class SoupiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260503164400_added CreationDateTime to Activity")]
+    partial class addedCreationDateTimetoActivity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -93,9 +96,6 @@ namespace SOUPI.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<DateTime?>("CompletedDateTime")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime>("CreationDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -106,9 +106,6 @@ namespace SOUPI.Migrations
 
                     b.Property<DateTime>("EndDateTime")
                         .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsCompleted")
-                        .HasColumnType("bit");
 
                     b.Property<Guid?>("ParentJobId")
                         .HasColumnType("uniqueidentifier");

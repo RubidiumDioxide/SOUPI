@@ -1,0 +1,285 @@
+﻿@inject ISnackbar Snackbar
+
+
+<MudContainer Gutters="false" Class="pt-14">
+    @if (User == null || Project == null || Jobs == null || Assignments == null || Activities == null || TeamMembers == null || assignmentsPerTeamMemberDataSet == null || activitiesPerTeamMemberDataSet == null || completedToUncompletedJobsPerTeamMemberDataSet == null || createdAndCompletedJobsPerMonthDataSet == null || createdAndCompletedJobsPerWeekDataSet == null || activitiesPerMonthDataSet == null || activitiesPerWeekDataSet == null)
+    {
+        <LoadingPlaceholder />
+    }
+    else
+    {
+        <MudExpansionPanels>
+            <MudExpansionPanel Text="Количество назначений в качестве исполнителя по участникам команды " Expanded="true">
+                <MixedChart Labels="@teamMemberLabels"
+                            DataSet="@assignmentsPerTeamMemberDataSet" />
+            </MudExpansionPanel>
+
+            <MudExpansionPanel Text="Количество действий по участникам команды ">
+                <MixedChart Labels="@teamMemberLabels"
+                            DataSet="@activitiesPerTeamMemberDataSet" />
+            </MudExpansionPanel>
+           
+            <MudExpansionPanel Text="Выполненные и невыполненные задачи на участника команды ">
+                <MixedChart Labels="@teamMemberLabels"
+                            DataSet="@completedToUncompletedJobsPerTeamMemberDataSet" />
+            </MudExpansionPanel>
+
+            <MudExpansionPanel Text="Созданные и завершенные задачи по месяцам ">
+                <MixedChart Labels="@monthLabels"
+                            DataSet="@createdAndCompletedJobsPerMonthDataSet" />
+            </MudExpansionPanel>
+        
+            <MudExpansionPanel Text="Созданные и завершенные задачи по неделям ">
+                <MixedChart Labels="@weekLabels"
+                            DataSet="@createdAndCompletedJobsPerWeekDataSet" />
+            </MudExpansionPanel>
+
+            <MudExpansionPanel Text="Количество действий по месяцам ">
+                <MixedChart Labels="@monthLabels"
+                            DataSet="@activitiesPerMonthDataSet" />
+            </MudExpansionPanel>
+
+            <MudExpansionPanel Text="Количество действий по неделям">
+                <MixedChart Labels="@weekLabels"
+                            DataSet="@activitiesPerWeekDataSet" />
+            </MudExpansionPanel>
+        </MudExpansionPanels>  
+    }
+</MudContainer>
+
+
+@code {
+    [CascadingParameter]
+    private UserDto? User { get; set; }
+
+    [Parameter, EditorRequired]
+    public ProjectDto? Project { get; set; }
+    [Parameter, EditorRequired]
+    public IEnumerable<JobDisplayDto>? Jobs { get; set; }
+    [Parameter, EditorRequired]
+    public IEnumerable<AssignmentDisplayDto>? Assignments { get; set; }
+    [Parameter, EditorRequired]
+    public IEnumerable<ActivityDisplayDto>? Activities { get; set; }
+    [Parameter, EditorRequired]
+    public IEnumerable<TeamMemberDisplayDto>? TeamMembers { get; set; }
+
+    private Dictionary<ChartType, string> _menuIcons = new()
+    {
+        { ChartType.Bar, Icons.Material.Filled.BarChart },
+        { ChartType.StackedBar, Icons.Material.Filled.StackedBarChart },
+        { ChartType.Line, Icons.Material.Filled.ShowChart },
+        { ChartType.Pie, Icons.Material.Filled.PieChart },
+        { ChartType.Donut, Icons.Material.Filled.DonutLarge },
+        { ChartType.Rose, Icons.Material.Filled.DonutSmall },
+        { ChartType.Radar, Icons.Material.Filled.Hub },
+    };
+
+    private ChartType chartType = ChartType.StackedBar;
+
+    private string[]? teamMemberLabels { get; set; }
+    private string[]? monthLabels { get; set; }
+    private string[]? weekLabels { get; set; }
+
+    // activities per assignment 
+    private List<ChartSeries<int>>? assignmentsPerTeamMemberDataSet { get; set; }
+    private List<ChartSeries<int>>? activitiesPerTeamMemberDataSet { get; set; }
+    private List<ChartSeries<int>>? completedToUncompletedJobsPerTeamMemberDataSet { get; set; }
+    private List<ChartSeries<int>>? createdAndCompletedJobsPerMonthDataSet { get; set; }
+    private List<ChartSeries<int>>? createdAndCompletedJobsPerWeekDataSet { get; set; }
+    private List<ChartSeries<int>>? activitiesPerMonthDataSet { get; set; }
+    private List<ChartSeries<int>>? activitiesPerWeekDataSet { get; set; }
+
+    protected override async Task OnParametersSetAsync() 
+    {
+        if (User != null && Project != null && Jobs != null && Assignments != null && Activities != null && TeamMembers != null)
+        {
+            try
+            {
+                monthLabels = GetPassedMonths(Project.CreationDateTime); 
+                weekLabels = GetPassedWeeks(Project.CreationDateTime); 
+
+                // assignmentsPerTeamMemberDataSet
+                var teamMemberAssignments = Assignments.OrderBy(a => a.TeamMemberLogin)
+                                                       .ToLookup(a => a.TeamMemberLogin);
+                teamMemberLabels = teamMemberAssignments.Select(g => g.Key).ToArray(); 
+
+                assignmentsPerTeamMemberDataSet =
+                [
+                    new() {
+                        Name = "Назначения в качестве исполнителя",
+                        Data = new(teamMemberAssignments.Select(g => g.Count()).ToList())
+                    } 
+                ];
+
+
+                // activitiesPerTeamMemberDataSet 
+                var teamMemberActivities = Activities.OrderBy(a => a.TeamMemberLogin)
+                                                     .ToLookup(a => a.TeamMemberLogin); 
+
+                activitiesPerTeamMemberDataSet =
+                [
+                    new() {
+                        Name = "Действия",
+                        Data = new(teamMemberActivities.Select(g => g.Count()).ToList())
+                    }
+                ];
+
+
+                // completedToUncompletedJobsPerTeamMemberDataSet
+                var assignmentsJobsJoined = Assignments.Join(Jobs,
+                                                assignment => assignment.JobId,
+                                                job => job.Id,
+                                                (assignment, job) => new { assignment.TeamMemberLogin, job }
+                                            ); 
+
+                var teamMemberCompletedJobs = assignmentsJobsJoined
+                                              .Where(x => x.job.Status == JobStatus.Completed)
+                                              .OrderBy(x => x.TeamMemberLogin) 
+                                              .ToLookup(x => x.TeamMemberLogin);
+
+                var teamMemberUncompletedJobs = assignmentsJobsJoined
+                                              .Where(x => x.job.Status != JobStatus.Completed)
+                                              .OrderBy(x => x.TeamMemberLogin)
+                                              .ToLookup(x => x.TeamMemberLogin);
+
+                completedToUncompletedJobsPerTeamMemberDataSet = 
+                [
+                    new() {
+                        Name = "Назначенные задачи",
+                        Data = new(teamMemberUncompletedJobs.Select(g => g.Count()).ToList())
+                    }, 
+                    new() {
+                        Name = "Завершенные задачи",
+                        Data = new(teamMemberCompletedJobs.Select(g => g.Count()).ToList())
+                    }
+                ];
+
+               
+                // createdAndCompletedJobsPerMonthDataSet 
+                var createdJobsPerMonth = Jobs.Where(j => j.Status != JobStatus.Completed)
+                                      .OrderBy(j => j.CreationDateTime)
+                                      .ToLookup(j => j.CreationDateTime.ToString("MMMM yyyy"));
+
+                var completedJobsPerMonth = Jobs.Where(j => j.Status == JobStatus.Completed && j.IsCompleted && j.CompletedDateTime != null)
+                                                .OrderBy(j => j.CompletedDateTime)
+                                                .ToLookup(j => j.CompletedDateTime.Value.ToString("MMMM yyyy"));
+
+                createdAndCompletedJobsPerMonthDataSet  =
+                [
+                    new() {
+                        Name = "Созданные задачи ",
+                        Data = new(createdJobsPerMonth.Select(g => g.Count()).ToList())
+                    },
+                    new() {
+                        Name = "Заершенные задачи ",
+                        Data = new(completedJobsPerMonth.Select(g => g.Count()).ToList())
+                    }
+                ];
+
+
+                // createdAndCompletedJobsPerWeekDataSet
+                var createdJobsPerWeek = Jobs.Where(j => j.Status != JobStatus.Completed)
+                                             .OrderBy(j => j.CreationDateTime)
+                                             .ToLookup(j =>
+                                             {
+                                                 int diff = (7 + (j.CreationDateTime.DayOfWeek - DayOfWeek.Monday)) % 7;
+                                                 return j.CreationDateTime.AddDays(-1 * diff).Date;
+                                             });
+
+                var completedJobsPerWeek = Jobs.Where(j => j.Status == JobStatus.Completed && j.IsCompleted && j.CompletedDateTime != null)
+                                               .OrderBy(j => j.CompletedDateTime)
+                                               .ToLookup(j =>
+                                               {
+                                                   int diff = (7 + (j.CompletedDateTime.Value.DayOfWeek - DayOfWeek.Monday)) % 7;
+                                                   return j.CompletedDateTime.Value.AddDays(-1 * diff).Date;
+                                               });
+
+                createdAndCompletedJobsPerWeekDataSet =
+                [
+                    new() {
+                        Name = "Созданные задачи ",
+                        Data = new(createdJobsPerWeek.Select(g => g.Count()).ToList())
+                    },
+                    new() {
+                        Name = "Заершенные задачи ",
+                        Data = new(completedJobsPerWeek.Select(g => g.Count()).ToList())
+                    }
+                ];
+
+
+                // activitiesPerMonthDataSet 
+                var monthActivities = Activities.OrderBy(a => a.CreationDateTime)      
+                                                .ToLookup(a => a.CreationDateTime.ToString("MMMM yyyy"));
+              
+                activitiesPerMonthDataSet =
+                [
+                    new() {
+                        Name = "Действия",
+                        Data = new(monthActivities.Select(g => g.Count()).ToList())
+                    }
+                ];
+
+
+                // activitiesPerWeekDataSet
+                var weekActivities = Activities.OrderBy(a => a.CreationDateTime)
+                                               .ToLookup(a =>
+                                               {
+                                                    int diff = (7 + (a.CreationDateTime.DayOfWeek - DayOfWeek.Monday)) % 7;
+                                                    return a.CreationDateTime.AddDays(-1 * diff).Date;
+                                               }); 
+
+                activitiesPerWeekDataSet =
+                [
+                    new() {
+                        Name = "Действия",
+                        Data = new(weekActivities.Select(g => g.Count()).ToList())
+                    }
+                ];
+
+            }
+            catch (SoupiException ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error); 
+            }
+            catch (Exception)
+            {
+                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error); 
+            }
+        }
+    }
+
+    public static string[] GetPassedMonths(DateTime start)
+    {
+        List<string> months = new List<string>();
+        var current = DateTime.Now; 
+
+        var iterator = new DateTime(start.Year, start.Month, 1);
+
+        while (iterator < new DateTime(current.Year, current.Month, 1))
+        {
+            months.Add(iterator.ToString("MMMM yyyy"));
+            
+            iterator = iterator.AddMonths(1);
+        }
+
+        return months.ToArray();
+    }
+
+    public static string[] GetPassedWeeks(DateTime start)
+    {
+        List<string> weeks = new List<string>();
+        var current = DateTime.Now;
+
+        int diff = (7 + (start.DayOfWeek - DayOfWeek.Sunday)) % 7;
+        DateTime iterator = start.AddDays(-1 * diff).Date;
+
+        while (iterator <= current)
+        {
+            weeks.Add($"Week of {iterator.ToString("MMMM dd, yyyy")}"); 
+
+            iterator = iterator.AddDays(7);
+        }
+
+        return weeks.ToArray();
+    }
+}

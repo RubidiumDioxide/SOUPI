@@ -18,7 +18,7 @@
     }
     else
     {
-        @if (User == null || project == null || jobs == null || jobAssignments == null || teamMembers == null || teamMemberGitHubUsers == null || creatorTeamMember == null || creatorTeamMemberGitHubUser == null)
+        @if (User == null || project == null || jobs == null || assignments == null || jobAssignments == null || activities == null || teamMembers == null || teamMemberGitHubUsers == null || creatorTeamMember == null || creatorTeamMemberGitHubUser == null)
         {
             <LoadingPlaceholder />
         }
@@ -83,7 +83,11 @@
 
                 @* staticstics *@
                 <MudTabPanel Text="Статистика ">
-              
+                    <ProjectStatistics Project="project" 
+                                       Jobs="jobs" 
+                                       Assignments="assignments" 
+                                       Activities="activities" 
+                                       TeamMembers="teamMembers" />
                 </MudTabPanel>
 
                 @* settings *@
@@ -108,7 +112,9 @@
 
     private ProjectDto? project { get; set; } 
     private IEnumerable<JobDisplayDto>? jobs { get; set; } 
+    private IEnumerable<AssignmentDisplayDto>? assignments { get; set; }
     private ILookup<Guid, AssignmentDisplayDto>? jobAssignments { get; set; } 
+    private IEnumerable<ActivityDisplayDto>? activities { get; set; }
     private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; }
     private IDictionary<Guid, GitHubUserDto>? teamMemberGitHubUsers { get; set; }
     private TeamMemberDisplayDto? creatorTeamMember { get; set; }
@@ -125,7 +131,9 @@
             {
                 await LoadProject();
                 await LoadJobs(); 
+                await LoadAssignments();
                 await LoadJobAssignments(); 
+                await LoadActivities(); 
                 await LoadTeamMembers(); 
                 await LoadTeamMemberGithubUsers(); 
             }
@@ -152,11 +160,19 @@
         jobs = await jobRequestHandler.GetDisplayByProjectId(projectId);
     }
 
+    private async Task LoadAssignments()
+    {
+        assignments = await assignmentRequestHandler.GetByProjectId(projectId);
+    }
+
     private async Task LoadJobAssignments()
     {
-        var assignments = await assignmentRequestHandler.GetByProjectId(projectId);
+        jobAssignments = assignments.ToLookup(a => a.JobId);
+    }
 
-        jobAssignments = assignments.ToLookup(a => a.JobId); 
+    private async Task LoadActivities()
+    {
+        activities = await activityRequestHandler.GetByProjectId(projectId); 
     }
 
     private async Task LoadTeamMembers()

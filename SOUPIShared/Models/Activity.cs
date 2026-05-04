@@ -18,6 +18,8 @@ namespace SOUPIShared.Models
         [ConsistsOfNumbersCyrillicLatin]
         public string? Comment { get; set; }
 
+        public DateTime CreationDateTime { get; set; } = default;
+
 
         public virtual Assignment Assignment { get; set; } = default!; 
     }

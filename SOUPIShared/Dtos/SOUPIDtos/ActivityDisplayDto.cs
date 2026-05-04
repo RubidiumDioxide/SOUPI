@@ -14,7 +14,7 @@ namespace SOUPIShared.Dtos.SOUPIDtos
 
         [Required]
         [ValidGitHubUsername]
-        public string TeamMemberLogin { get; set; } 
+        public string TeamMemberLogin { get; set; } = default!; 
 
         [ValidCommitHash]
         public string? Commit { get; set; }
@@ -22,6 +22,8 @@ namespace SOUPIShared.Dtos.SOUPIDtos
         [MaxLength(255, ErrorMessage = "Комментарий слишком длинный (максимум 255 символов)")]
         [ConsistsOfNumbersCyrillicLatin]
         public string? Comment { get; set; }
+
+        public DateTime CreationDateTime { get; set; } = default;
 
 
         public ActivityDisplayDto(Activity activity)
@@ -31,6 +33,7 @@ namespace SOUPIShared.Dtos.SOUPIDtos
             TeamMemberLogin = activity.Assignment.TeamMember.User.Login;
             Commit = activity.Commit; 
             Comment = activity.Comment; 
+            CreationDateTime = activity.CreationDateTime; 
         }
 
         public ActivityDisplayDto () { }

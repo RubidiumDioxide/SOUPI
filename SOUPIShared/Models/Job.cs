@@ -1,6 +1,6 @@
 ﻿using SOUPIShared.Misc;
 using System.ComponentModel.DataAnnotations;
-using SOUPIShared.Attributes; 
+using SOUPIShared.Attributes;
 
 
 namespace SOUPIShared.Models
@@ -36,8 +36,13 @@ namespace SOUPIShared.Models
 
         public DateTime CreationDateTime { get; set; } = default; 
 
-        public JobStatus Status { get; set; } = JobStatus.New; 
- 
+        public JobStatus Status { get; set; } = JobStatus.New;
+
+        [Required]
+        public bool IsCompleted { get; set; }
+
+        public DateTime? CompletedDateTime { get; set; } 
+
         public Guid? ParentJobId { get; set; }
 
 

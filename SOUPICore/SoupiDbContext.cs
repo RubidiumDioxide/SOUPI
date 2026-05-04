@@ -167,5 +167,9 @@ public partial class SoupiDbContext : DbContext
         modelBuilder.Entity<Job>()
             .Property(i => i.CreationDateTime)
             .HasDefaultValueSql("GETDATE()");
+
+        modelBuilder.Entity<Job>()
+            .Property(i => i.CreationDateTime)
+            .HasDefaultValueSql("GETDATE()");
     }
 }
