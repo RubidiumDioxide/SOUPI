@@ -1,13 +1,12 @@
 ﻿@inject INotificationRequestHandler notificationRequestHandler; 
 @inject IUserRequestHandler userRequestHandler; 
 @inject ISnackbar Snackbar 
-@using SOUPIShared.Misc; 
 
 
-<MudContainer MaxWidth="MaxWidth.False">
+<MudContainer MaxWidth="MaxWidth.False" Class="pt-4 pb-8">
     @if (Project == null || TeamMembers == null || availibleUsers == null)
     {
-        <p>Loading... </p>
+        <LoadingPlaceholder />
     }
     else
     {

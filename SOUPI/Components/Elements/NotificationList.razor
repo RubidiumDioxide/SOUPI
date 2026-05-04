@@ -2,14 +2,11 @@
 @inject ISnackbar Snackbar
 
 
-@if (User == null || GitHubUser == null || notifications == null)
-{
-    <MudText Align="Align.Center">Loading... </MudText>
-}
-else
+@if (User != null && GitHubUser != null && notifications != null)
 {
     <MudMenu Icon=@Icons.Material.Filled.Notifications 
         MaxHeight="300" 
+        Open="@_open"
         AnchorOrigin="Origin.BottomCenter" 
         TransformOrigin="Origin.TopCenter" 
         FullWidth="false"
@@ -18,12 +15,14 @@ else
             @if (notifications.Any(n => !n.HasBeenViewed))
             {
                 <MudBadge Content="notifications.Where(n => !n.HasBeenViewed).Count()" Color="Color.Error" Overlap="true" >
-                    <MudIconButton Icon=@Icons.Material.Filled.Notifications OnClick="@(() => _open = !_open)"/>
+                    <MudIconButton Icon=@Icons.Material.Filled.Notifications 
+                                   OnClick="@(() => _open = !_open)"/>
                 </MudBadge>
             }
             else
             {
-                <MudIconButton Icon=@Icons.Material.Filled.Notifications OnClick="@(() => _open = !_open)" />
+                <MudIconButton Icon=@Icons.Material.Filled.Notifications 
+                               OnClick="@(() => _open = !_open)" />
             }
         </ActivatorContent>
         <ChildContent>
@@ -101,9 +100,6 @@ else
             try
             {
                 await LoadNotifications(); 
-
-                //test 
-                //notifications = testNotifications; 
             }
             catch (SoupiException ex)
             {

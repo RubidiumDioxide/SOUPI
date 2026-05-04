@@ -121,7 +121,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task DeleteById(Guid id)
+        public async Task Delete(Guid id)
         {
             try
             {

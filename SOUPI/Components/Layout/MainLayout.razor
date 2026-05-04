@@ -28,6 +28,7 @@
         }
         <MudSwitch @bind-Value="@_isDarkMode" Color="Color.Primary" Class="ma-4" T="bool" Label="Toggle Light/Dark Mode" />
     </MudAppBar>
+
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu/>
     </MudDrawer>
@@ -48,9 +49,7 @@
         }
         else if(user == null || gitHubUser == null)
         {
-            <MudContainer Class="pt-14">
-                <MudText Align="Align.Center">Loading... </MudText>
-            </MudContainer>
+            <LoadingPlaceholder />
         }
         else
         {

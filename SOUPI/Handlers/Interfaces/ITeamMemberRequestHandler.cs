@@ -13,6 +13,6 @@ namespace SOUPI.Handlers.Interfaces
 
         public Task<TeamMemberDto> Update(TeamMemberDto teamMemberDto);
 
-        public Task DeleteById(Guid id); 
+        public Task Delete(Guid id); 
     }
 }

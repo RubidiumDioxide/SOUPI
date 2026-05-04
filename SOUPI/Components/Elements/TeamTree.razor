@@ -1,10 +1,9 @@
 ﻿@inject ISnackbar Snackbar
-@using static SOUPIShared.Extensions.TeamMemberDtoExtensions;
 
 
 @if (Project == null || TeamMembers == null || TeamMemberGitHubUsers == null || treeTeamMembers == null)
 {
-    <p>Loading... </p>
+    <LoadingPlaceholder />
 }
 else
 {
@@ -36,9 +35,9 @@ else
             {
                 <TeamMemberCard TeamMembers=TeamMembers
                                 Project=Project
-                                SelectedTeamMember=selectedTeamMember
-                                SelectedTeamMemberGitHubUser=@((selectedTeamMember != null)? TeamMemberGitHubUsers[selectedTeamMember.UserLogin] : null)
-                                Rerender=Rerender/>
+                                TeamMember=selectedTeamMember
+                                TeamMemberGitHubUser=@((selectedTeamMember != null)? TeamMemberGitHubUsers[selectedTeamMember.UserLogin] : null) 
+                                TeamMemberUpdated="TeamMemberUpdated"/>
             }
         </MudContainer>
     </MudContainer>
@@ -47,7 +46,7 @@ else
 
 @code {
     [Parameter, EditorRequired]
-    public EventCallback Rerender { get; set; }
+    public EventCallback TeamMemberUpdated { get; set; }
     [Parameter, EditorRequired]
     public IEnumerable<TeamMemberDisplayDto> TeamMembers { get; set; }
     [Parameter, EditorRequired]
