@@ -82,7 +82,8 @@ else
         var parameters = new DialogParameters<EditTeamMemberForm>
         {
             { x => x.TeamMember, TeamMember }, 
-            { x => x.TeamMembers, TeamMembers }
+            { x => x.TeamMembers, TeamMembers }, 
+            { x => x.Project, Project }
         };
 
         var options = new DialogOptions { CloseOnEscapeKey = true, FullWidth = true, MaxWidth = MaxWidth.Small };

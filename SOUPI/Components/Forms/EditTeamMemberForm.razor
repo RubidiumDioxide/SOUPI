@@ -7,25 +7,28 @@
         <MudText Typo="Typo.h5">Редактирование участника  </MudText>           
     </TitleContent>
     <DialogContent>
-        @if (TeamMember == null || TeamMembers == null || availibleSupervisors == null)
+        @if (Project == null || TeamMember == null || TeamMembers == null || availibleSupervisors == null)
         {
             <LoadingPlaceholder />
         }
         else
         {
             <MudStack>
-                <MudAutocomplete T="string"
-                                 @bind-Value="@updatedSupervisorLogin"
-                                 SearchFunc="AutocompleteTeamMembers"
-                                 Label="Логин нового руководителя"
-                                 Variant="Variant.Outlined"
-                                 For="@(() => updatedSupervisorLogin)">
-                    <NoItemsTemplate>
-                        <MudText Align="Align.Center">
-                            Пользователи не найдены
-                        </MudText>
-                    </NoItemsTemplate>
-                </MudAutocomplete>
+                @if (TeamMember.UserId != Project.CreatorId)
+                {
+                    <MudAutocomplete T="string"
+                                     @bind-Value="@updatedSupervisorLogin"
+                                     SearchFunc="AutocompleteTeamMembers"
+                                     Label="Логин нового руководителя"
+                                     Variant="Variant.Outlined"
+                                     For="@(() => updatedSupervisorLogin)">
+                        <NoItemsTemplate>
+                            <MudText Align="Align.Center">
+                                Пользователи не найдены
+                            </MudText>
+                        </NoItemsTemplate>
+                    </MudAutocomplete>
+                }
 
                 <MudTextField T="string"
                               MaxLength="255"
@@ -48,9 +51,11 @@
     [CascadingParameter]
     IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter, EditorRequired]
-    public TeamMemberDisplayDto TeamMember { get; set; } = default!; 
+    public ProjectDto? Project { get; set; }
     [Parameter, EditorRequired]
-    public IEnumerable<TeamMemberDisplayDto> TeamMembers { get; set; } = default!; 
+    public TeamMemberDisplayDto? TeamMember { get; set; } = default!; 
+    [Parameter, EditorRequired]
+    public IEnumerable<TeamMemberDisplayDto>? TeamMembers { get; set; } = default!; 
 
     private IEnumerable<TeamMemberDisplayDto>? availibleSupervisors { get; set; }
 
@@ -59,18 +64,21 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        try
+        if(Project != null && TeamMember != null && TeamMembers != null)
         {
-            ResetForm(); 
-            await LoadAvailibleUsers();
-        }
-        catch (SoupiException ex)
-        {
-            Snackbar.Add(ex.Message, Severity.Error); 
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add("Произошла непредвиденная ошибка ", Severity.Error); 
+            try
+            {
+                ResetForm();
+                await LoadAvailibleUsers();
+            }
+            catch (SoupiException ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add("Произошла непредвиденная ошибка ", Severity.Error);
+            }
         }
     }
 

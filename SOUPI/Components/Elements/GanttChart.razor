@@ -1,65 +1,79 @@
 ﻿@inject IJSRuntime JS
 
-<MudContainer MaxWidth="MaxWidth.False" Gutters="false">
-    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4 mt-4">
-        <MudText Typo="Typo.h5">Задачи проекта</MudText>
+
+@if (Project == null || GanttJobs == null)
+{
+    <LoadingPlaceholder />
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.False" Gutters="false">
+        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4 mt-4">
+            <MudText Typo="Typo.h5">Задачи проекта 
+                <MudLink Typo="Typo.h5" Href="@($"/project/{Project.Id}")">
+                    @Project.Title 
+                </MudLink>
+            </MudText>
     
-        <MudToggleGroup T="string" Value="currentViewMode" ValueChanged="ChangeScale" Delimiters="true" Color="Color.Primary">
-            <MudToggleItem Value="@("Day")">День</MudToggleItem>
-            <MudToggleItem Value="@("Week")">Неделя</MudToggleItem>
-            <MudToggleItem Value="@("Month")">Месяц</MudToggleItem>
-        </MudToggleGroup>
-    </MudStack>
+            <MudToggleGroup T="string" Value="currentViewMode" ValueChanged="ChangeScale" Delimiters="true" Color="Color.Primary">
+                <MudToggleItem Value="@("Day")">День</MudToggleItem>
+                <MudToggleItem Value="@("Week")">Неделя</MudToggleItem>
+                <MudToggleItem Value="@("Month")">Месяц</MudToggleItem>
+            </MudToggleGroup>
+        </MudStack>
 
-    <MudPaper Elevation="2" Class="pa-0 mb-6" >
-        <div id="gantt-wrapper" style="position: relative;">
-            <div id="react-gantt-root"></div> 
+        <MudPaper Elevation="2" Class="pa-0 mb-6">
+            <div id="gantt-wrapper" style="position: relative;">
+                <div id="react-gantt-root"></div>
            
-            <div style="position: absolute; bottom: 24px; right: 24px; z-index: 999;">
-                <MudFabMenu StartIcon="@Icons.Material.Outlined.ArrowUpward"
-                            Color="Color.Info"
-                            Fixed="false"
-                            Size="Size.Medium"
-                            OpenOnMouseHover="false">
-                    <MudTooltip Text="Перейти на уровень выше (к родительской задаче) "
-                            Placement=@Placement.Left> 
-                        <MudFabMenuItem StartIcon="@Icons.Material.Outlined.KeyboardArrowUp"
-                                        OnClick="@(() => OnGoOneLevelUpButtonClicked.InvokeAsync())" />
-                    </MudTooltip>
+                <div style="position: absolute; bottom: 24px; right: 24px; z-index: 999;">
+                    <MudFabMenu StartIcon="@Icons.Material.Outlined.ArrowUpward"
+                                Color="Color.Info"
+                                Fixed="false"
+                                Size="Size.Medium"
+                                OpenOnMouseHover="false">
+                        <MudTooltip Text="Перейти на уровень выше (к родительской задаче) "
+                                    Placement=@Placement.Left>
+                            <MudFabMenuItem StartIcon="@Icons.Material.Outlined.KeyboardArrowUp"
+                                            OnClick="@(() => OnGoOneLevelUpButtonClicked.InvokeAsync())" />
+                        </MudTooltip>
                          
-                    <MudTooltip Text="Перейти на первый уровень"
-                            Placement=@Placement.Left> 
-                        <MudFabMenuItem StartIcon="@Icons.Material.Outlined.KeyboardDoubleArrowUp"
-                                        OnClick="@(() => OnGoToLevelZeroButtonClicked.InvokeAsync())" />
+                        <MudTooltip Text="Перейти на первый уровень"
+                                    Placement=@Placement.Left>
+                            <MudFabMenuItem StartIcon="@Icons.Material.Outlined.KeyboardDoubleArrowUp"
+                                            OnClick="@(() => OnGoToLevelZeroButtonClicked.InvokeAsync())" />
+                        </MudTooltip>
+                    </MudFabMenu>
+                </div>
+
+                <div style="position: absolute; bottom: 24px; right: 82px; z-index: 999;">
+                    <MudTooltip Text="Добавить задачу "
+                                Placement=@Placement.Top>
+                        <MudFab Color="Color.Success"
+                                OnClick="@(() => OnAddButtonClicked.InvokeAsync())"
+                                StartIcon="@Icons.Material.Filled.Add"
+                                Size="Size.Medium" />
                     </MudTooltip>
-                </MudFabMenu>
-            </div>
+                </div>
 
-            <div style="position: absolute; bottom: 24px; right: 82px; z-index: 999;">
-                <MudTooltip Text="Добавить задачу "
-                            Placement=@Placement.Top>
-                    <MudFab Color="Color.Success"
-                            OnClick="@(() => OnAddButtonClicked.InvokeAsync())"
-                            StartIcon="@Icons.Material.Filled.Add"
-                            Size="Size.Medium" />
-                </MudTooltip>
+                <div style="position: absolute; bottom: 24px; right: 140px; z-index: 999;">
+                    <MudTooltip Text="Сохранить изменения "
+                                Placement=@Placement.Top>
+                        <MudFab Color="Color.Warning"
+                                OnClick="SaveButtonClicked"
+                                StartIcon="@Icons.Material.Filled.Save"
+                                Size="Size.Medium" />
+                    </MudTooltip>
+                </div>
             </div>
-
-            <div style="position: absolute; bottom: 24px; right: 140px; z-index: 999;">
-                <MudTooltip Text="Сохранить изменения "
-                            Placement=@Placement.Top>
-                    <MudFab Color="Color.Warning"
-                            OnClick="SaveButtonClicked" 
-                            StartIcon="@Icons.Material.Filled.Save"
-                            Size="Size.Medium" />
-                </MudTooltip>
-            </div>
-        </div>
-    </MudPaper>
-</MudContainer>
+        </MudPaper>
+    </MudContainer>    
+}
 
 
 @code {
+    [Parameter, EditorRequired]
+    public ProjectDto? Project { get; set; }
     [Parameter, EditorRequired]
     public IEnumerable<GanttJobDto> GanttJobs { get; set; } = default!;
     [Parameter, EditorRequired] 

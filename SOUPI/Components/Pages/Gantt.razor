@@ -93,7 +93,8 @@
                         </MudDrawer>
                                
                         <div class="pa-2" @oncontextmenu:preventDefault @oncontextmenu:stopPropagation>
-                            <GanttChart @ref=ganttChart
+                            <GanttChart @ref=ganttChart 
+                                        Project="@project"
                                         GanttJobs=@ganttJobs
                                         OnEditMenuTriggered="OnEditMenuTriggered"
                                         OnAddButtonClicked="@(() => OpenAddDialog(null))"
@@ -123,7 +124,7 @@
 </MudMenu>
 
 
-    @code {
+@code {
     [CascadingParameter]
     private UserDto? User { get; set; }
     [CascadingParameter]
