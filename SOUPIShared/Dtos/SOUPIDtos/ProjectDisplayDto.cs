@@ -5,7 +5,7 @@ using SOUPIShared.Attributes;
 
 namespace SOUPIShared.Dtos.SOUPIDtos
 {
-    public class ProjectDto
+    public class ProjectDisplayDto
     {
         public Guid Id { get; set; }
 
@@ -24,31 +24,25 @@ namespace SOUPIShared.Dtos.SOUPIDtos
         
         [Required]
         public Guid CreatorId { get; set; }
-        
+
+        [Required]
+        public string CreatorLogin { get; set; } = default!; 
+
         [Required]
         public DateTime CreationDateTime { get; set; } 
 
 
-        public ProjectDto(Project project)
+        public ProjectDisplayDto(Project project)
         {
             Id = project.Id; 
             Title = project.Title; 
             Description = project.Description; 
             GithubRepository = project.GithubRepository; 
-            CreatorId = project.CreatorId; 
+            CreatorId = project.CreatorId;
+            CreatorLogin = project.Creator.Login; 
             CreationDateTime = project.CreationDateTime;  
         }
 
-        public ProjectDto(ProjectDisplayDto projectDisplayDto)
-        {
-            Id = projectDisplayDto.Id;
-            Title = projectDisplayDto.Title;
-            Description = projectDisplayDto.Description;
-            GithubRepository = projectDisplayDto.GithubRepository;
-            CreatorId = projectDisplayDto.CreatorId;
-            CreationDateTime = projectDisplayDto.CreationDateTime;
-        }
-
-        public ProjectDto() { }
+        public ProjectDisplayDto() { }
     }
 }

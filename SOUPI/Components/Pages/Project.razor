@@ -106,7 +106,7 @@
     [Parameter]
     public Guid projectId { get; set; }
 
-    private ProjectDto? project { get; set; } 
+    private ProjectDisplayDto? project { get; set; } 
     private IEnumerable<JobDisplayDto>? jobs { get; set; } 
     private IEnumerable<AssignmentDisplayDto>? assignments { get; set; }
     private ILookup<Guid, AssignmentDisplayDto>? jobAssignments { get; set; } 

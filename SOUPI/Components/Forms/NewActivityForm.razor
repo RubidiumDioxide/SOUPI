@@ -1,0 +1,111 @@
+﻿@inject IActivityRequestHandler activityRequestHandler 
+@inject IGitHubRequestHandler gitHubRequestHandler 
+@inject ISnackbar Snackbar
+
+
+<MudDialog>
+    <TitleContent> 
+        <MudText Typo="Typo.h5">Новое действие </MudText>           
+    </TitleContent>
+    <DialogContent>
+        @if (newActivity == null || Assignment == null || Project == null)
+        {
+            <LoadingPlaceholder/>
+        }
+        else
+        {
+            <EditForm Model=@newActivity OnValidSubmit="AddActivity">
+                <DataAnnotationsValidator />
+
+                <MudTextField @bind-Value=@newActivity.Commit
+                              For="@(() => newActivity.Commit)"
+                              Label="Хэш коммита"
+                              Variant="Variant.Outlined" />
+               
+                <MudTextField @bind-Value=@newActivity.Comment
+                              For="@(() => newActivity.Comment)"
+                              Label="Комментарий"
+                              Variant="Variant.Outlined"
+                              Lines="3"
+                              Margin="Margin.Normal" /> @*?*@
+
+                <div class="d-flex justify-end mt-4">
+                    <MudButton OnClick="Cancel" Class="mr-2">Отмена</MudButton>
+                    <MudButton OnClick="ResetForm" Color="Color.Secondary" Variant="Variant.Filled" Class="mr-2">Сбросить</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled">Сохранить</MudButton>
+                </div>
+            </EditForm>
+        }
+    </DialogContent>
+</MudDialog>
+
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = default!; 
+    [Parameter, EditorRequired]
+    public AssignmentDisplayDto? Assignment { get;set; }
+    [Parameter, EditorRequired]
+    public ProjectDisplayDto? Project { get; set; }
+
+    private ActivityDto? newActivity { get; set; } = new();  
+
+    protected override void OnParametersSet()
+    {
+        ResetForm();            
+    }
+
+    private void ResetForm()
+    {
+        newActivity = new ActivityDto();
+
+        newActivity.AssignmentId = Assignment!.Id; 
+
+        StateHasChanged();
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task AddActivity()
+    {
+        try
+        {
+            if (newActivity!.Commit != null)
+            {
+                newActivity!.Commit = newActivity!.Commit.Trim();
+            }
+            newActivity.Comment = newActivity.Comment.Trim(); 
+
+            var existingActivities = await activityRequestHandler.GetByAssignmentId(Assignment!.Id); 
+
+            if(existingActivities.FirstOrDefault(a => 
+                a.Comment == newActivity!.Comment 
+                || (newActivity.Commit != null 
+                    && a.Commit == newActivity.Commit)) != null)
+            {
+                throw new SoupiException("Действие с таким хэшем коммита и/или комментарием уже существует"); 
+            }
+
+            if(newActivity!.Commit != null)
+            {
+                var commit = await gitHubRequestHandler.GetCommitByHash(Project!, newActivity.Commit); 
+            }
+
+            await activityRequestHandler.Create(newActivity!); 
+
+            ResetForm(); 
+
+            Snackbar.Add("Действие успешно добавлено ", Severity.Success);
+
+            MudDialog.Close(DialogResult.Ok(newActivity));
+        }
+        catch (SoupiException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        catch(Exception)
+        {
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);    
+        }
+    }
+}

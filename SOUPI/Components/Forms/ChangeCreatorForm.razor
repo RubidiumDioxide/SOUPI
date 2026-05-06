@@ -67,7 +67,7 @@ else
     [Parameter, EditorRequired]
     public TeamMemberDisplayDto? Creator { get; set; }
     [Parameter, EditorRequired]
-    public ProjectDto Project { get; set; } = default!;
+    public ProjectDisplayDto Project { get; set; } = default!;
     [Parameter, EditorRequired]
     public IEnumerable<TeamMemberDisplayDto>? AvailibleCreators { get; set; }
     [Parameter, EditorRequired]

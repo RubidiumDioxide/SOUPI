@@ -20,7 +20,7 @@ namespace SOUPICore.Services
             _context = context;  
         } 
 
-        public async Task<IEnumerable<ProjectDto>> GetByUserId(Guid userId)
+        public async Task<IEnumerable<ProjectDisplayDto>> GetByUserId(Guid userId)
         {
             try
             {
@@ -30,7 +30,7 @@ namespace SOUPICore.Services
                     .Contains(userId))
                     .ToListAsync(); 
 
-                return projects.Select(p => new ProjectDto(p)); 
+                return projects.Select(p => new ProjectDisplayDto(p)); 
             }
             catch (Exception ex)
             {
@@ -39,7 +39,7 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<ProjectDto> GetById(Guid id)
+        public async Task<ProjectDisplayDto> GetById(Guid id)
         {
             try
             {
@@ -51,7 +51,7 @@ namespace SOUPICore.Services
                 }
                 else
                 {
-                    return new ProjectDto(project);
+                    return new ProjectDisplayDto(project);
                 }
             }
             catch (Exception ex)
@@ -227,9 +227,13 @@ namespace SOUPICore.Services
                 var teamMembers = project.TeamMembers.ToList();
                 var notifications = project.Notifications.ToList(); 
                 var jobs = project.Jobs.ToList();
-                var assignments = jobs.SelectMany(j => j.Assignments).ToList(); 
+                var jobSequences = jobs.SelectMany(j => j.PreviousJobSequences).Concat(jobs.SelectMany(j => j.NextJobSequences)).ToList(); 
+                var assignments = jobs.SelectMany(j => j.Assignments).ToList();
+                var activities = assignments.SelectMany(a => a.Activities).ToList();
 
+                _context.Activities.RemoveRange(activities); 
                 _context.Assignments.RemoveRange(assignments);
+                _context.JobSequences.RemoveRange(jobSequences); 
                 _context.Jobs.RemoveRange(jobs);
                 _context.Notifications.RemoveRange(notifications);
                 _context.TeamMembers.RemoveRange(teamMembers);

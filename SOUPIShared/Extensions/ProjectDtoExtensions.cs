@@ -17,5 +17,11 @@ namespace SOUPIShared.Extensions
             projectDto.Title = project.Title;
             projectDto.Description = project.Description;
         }
+
+        public static void CopyContentProperties(this ProjectDto projectDto, ProjectDisplayDto projectDisplayDto)
+        {
+            projectDto.Title = projectDisplayDto.Title;
+            projectDto.Description = projectDisplayDto.Description;
+        }
     }
 }

@@ -275,7 +275,7 @@ namespace SOUPICore.Services
             // test extensively 
             var existingActivity = await _context.Activities.FirstOrDefaultAsync(a => 
                 a.AssignmentId == activity.AssignmentId 
-                && (a.Commit == activity.Commit || a.Comment == activity.Comment));
+                && ((activity.Commit != null && a.Commit == activity.Commit) || a.Comment == activity.Comment));
 
             if (existingActivity != null)
             {

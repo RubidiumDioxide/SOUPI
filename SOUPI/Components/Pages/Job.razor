@@ -86,7 +86,7 @@
     public Guid jobId { get; set; }
 
     private JobDisplayDto? job { get; set; } 
-    private ProjectDto? project { get; set; }
+    private ProjectDisplayDto? project { get; set; }
     private IEnumerable<AssignmentDisplayDto>? assignments { get; set; } 
     private ILookup<Guid, ActivityDisplayDto>? assignmentsActivities { get; set; }
     private IDictionary<Guid, GitHubCommitDto>? activitiesCommits { get; set; }
@@ -157,7 +157,7 @@
         {
             if(activity.Commit != null)
             {
-                var commit = await gitHubRequestHandler.GetCommitByHash(activity.TeamMemberLogin, project!.GithubRepository!, activity.Commit);     
+                var commit = await gitHubRequestHandler.GetCommitByHash(project!, activity.Commit);     
 
                 commits.Add(commit);
             }

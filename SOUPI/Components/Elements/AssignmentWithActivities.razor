@@ -1,5 +1,5 @@
 ﻿<MudContainer MaxWidth="MaxWidth.False" Class="" Style="height:100%; " >
-    @if (User == null || Project == null || Assignment == null || Activities == null || TeamMember == null || TeamMemberGitHubUser == null)
+    @if (User == null || Project == null || Assignment == null || Activities == null || ActivitiesCommits == null || TeamMember == null || TeamMemberGitHubUser == null)
     {
         <LoadingPlaceholder />
     }
@@ -43,20 +43,24 @@
                             <MudStack Row="true"
                                       AlignItems="AlignItems.Center"
                                       Justify="Justify.SpaceBetween">
-                                @if (context.Commit != null)
-                                {
-                                    <MudStack Spacing="0">
+                                <MudStack Spacing="0">
+                                    @if (context.Commit != null)
+                                    {
                                         <MudText Typo="Typo.body2">
                                             Коммит
-                                            <MudLink Href="@($"https://github.com/{context.TeamMemberLogin}/{Project.GithubRepository}/commit/{context.Commit}")"
+                                            <MudLink Href="@ActivitiesCommits[context.Id].HtmlUrl"
                                                      Target="_blank"
                                                      Underline="Underline.Hover">
                                                 @context.Commit[..7]
                                             </MudLink>
-                                        </MudText>
-                                        <MudText Typo="Typo.body2">@context.Comment</MudText>
-                                    </MudStack>
-                                }
+                                        </MudText>      
+                                    }
+                                    <MudText Typo="Typo.body2">
+                                        Комментарий: 
+                                        @context.Comment
+                                    </MudText>
+                                
+                                </MudStack>
 
                                 <MudStack Row="true"
                                           Spacing="1"
@@ -67,6 +71,11 @@
                                                        Color="Color.Success"
                                                        Href=@($"/activity/{context.Id}")
                                                        Size="Size.Medium" />
+                                        
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                       Color="Color.Error"
+                                                       OnClick=@(() => DeleteActivity.InvokeAsync(context.Id))
+                                                       Size="Size.Medium" />
                                     </MudStack>
                                 </MudStack>
                             </MudStack>
@@ -76,8 +85,11 @@
                             }
                             else
                             {
-                                <MudDivider />
-                                <CommitDiff Commit="@ActivitiesCommits[context.Id]" />
+                                if (ActivitiesCommits.ContainsKey(context.Id))
+                                {
+                                    <MudDivider />
+                                    <CommitDiff Commit="@ActivitiesCommits[context.Id]" />
+                                }
                             }
                         </MudStack>
                     </MudPaper>
@@ -88,14 +100,14 @@
 </MudContainer>
 
 
-@code {
+    @code {
     [CascadingParameter]
     private UserDto? User { get; set; }
 
     [Parameter, EditorRequired]
     public AssignmentDisplayDto? Assignment { get; set; }
     [Parameter, EditorRequired]
-    public ProjectDto? Project { get; set; }
+    public ProjectDisplayDto? Project { get; set; }
     [Parameter, EditorRequired] 
     public TeamMemberDisplayDto? TeamMember { get; set; }
     [Parameter, EditorRequired] 
@@ -104,4 +116,6 @@
     public IEnumerable<ActivityDisplayDto>? Activities { get; set; }
     [Parameter, EditorRequired] 
     public IDictionary<Guid, GitHubCommitDto>? ActivitiesCommits { get; set; }
+    [Parameter, EditorRequired]
+    public EventCallback<Guid> DeleteActivity { get; set; }
 }

@@ -46,7 +46,7 @@
     private string? error { get; set; } = null;
     private Severity severity { get; set; } = Severity.Warning;
 
-    private IEnumerable<ProjectDto>? projects { get; set; }
+    private IEnumerable<ProjectDisplayDto>? projects { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {

@@ -23,7 +23,7 @@ namespace SOUPICore.Controllers
         }
 
         [HttpGet("{userId}")]
-        public async Task<ActionResult<IEnumerable<ProjectDto>>> GetByUserId([FromRoute] Guid userId)
+        public async Task<ActionResult<IEnumerable<ProjectDisplayDto>>> GetByUserId([FromRoute] Guid userId)
         {
             try
             {
@@ -47,7 +47,7 @@ namespace SOUPICore.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProjectDto?>> GetById([FromRoute] Guid id)
+        public async Task<ActionResult<ProjectDisplayDto?>> GetById([FromRoute] Guid id)
         {
             try
             {

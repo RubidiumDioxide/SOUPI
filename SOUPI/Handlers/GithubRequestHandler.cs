@@ -5,6 +5,7 @@ using SOUPI.Handlers.Interfaces;
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Exceptions;
 using SOUPIShared.Dtos.OctokitDtos;
+using SOUPIShared.Dtos.SOUPIDtos;  
 
 
 namespace SOUPI.Handlers 
@@ -95,7 +96,7 @@ namespace SOUPI.Handlers
                 _logger.LogError($"Не удалось получить информацию о текущем пользовтеле. {ex.Message}");
                 throw new SoupiException("Не удалось получить информацию о текущем пользовтеле. Попробуйте позже или сообщите об ошибке в техподдержку ");
             }
-        }
+        } 
 
         public async Task<IEnumerable<GitHubUserDto>> GetUsersByLogins(IEnumerable<string> logins)
         {
@@ -122,7 +123,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<GitHubCommitDto> GetCommitByHash(string ownerLogin, string repository, string hash)
+        public async Task<GitHubCommitDto> GetCommitByHash(ProjectDisplayDto project, string hash)
         {
             try
             {
@@ -135,14 +136,14 @@ namespace SOUPI.Handlers
                     new InMemoryCredentialStore(new Credentials(accessToken))
                 );
 
-                var commit = await github.Repository.Commit.Get(ownerLogin, repository, hash);
+                var commit = await github.Repository.Commit.Get(project.CreatorLogin, project.GithubRepository, hash);
 
                 return new GitHubCommitDto(commit);   
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Не удалось получить информацию о коммите. {ex.Message}");
-                throw new SoupiException("Не удалось получить информацию о коммите. Попробуйте позже или сообщите об ошибке в техподдержку ");
+                _logger.LogError($"Не удалось получить информацию о коммите.  {ex.Message}");
+                throw new SoupiException("Не удалось получить информацию о коммите. Проверьте правильность хэша. Попробуйте позже или сообщите об ошибке в техподдержку ");
             }
         }
 
@@ -170,7 +171,7 @@ namespace SOUPI.Handlers
             }
         }
         
-        public async Task<GitHubRepositoryDto> GetRepository(string owner, string repository)
+        public async Task<GitHubRepositoryDto> GetRepository(ProjectDisplayDto project)
         {
             try
             {
@@ -183,7 +184,7 @@ namespace SOUPI.Handlers
                     new InMemoryCredentialStore(new Credentials(accessToken))
                 );
 
-                var repo = await github.Repository.Get(owner, repository);
+                var repo = await github.Repository.Get(project.CreatorLogin, project.GithubRepository);
 
                 return new GitHubRepositoryDto(repo);    
             }
@@ -194,7 +195,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<bool> DoesHookExist(string ownerLogin, string repoName)
+        public async Task<bool> DoesHookExist(ProjectDisplayDto project)
         {
             try
             {
@@ -213,10 +214,10 @@ namespace SOUPI.Handlers
                     new InMemoryCredentialStore(new Credentials(accessToken))
                 );
 
-                var repository = await github.Repository.Get(ownerLogin, repoName);
+                var repository = await github.Repository.Get(project.CreatorLogin, project.GithubRepository);
 
                 // fetch all hooks and find all matches for the URL
-                var allHooks = await github.Repository.Hooks.GetAll(ownerLogin, repoName);
+                var allHooks = await github.Repository.Hooks.GetAll(project.CreatorLogin, project.GithubRepository);
 
                 var duplicateHooks = allHooks.Where(h =>
                     h.Config.TryGetValue("url", out var url) && url == fullCallbackUrl).ToList();
@@ -245,7 +246,7 @@ namespace SOUPI.Handlers
         /// </param>
         /// <returns></returns>
         /// <exception cref="SoupiException"></exception>
-        public async Task CreateHook(string ownerLogin, string repoName) 
+        public async Task CreateHook(ProjectDisplayDto project) 
         {
             try
             {
@@ -264,10 +265,10 @@ namespace SOUPI.Handlers
                     new InMemoryCredentialStore(new Credentials(accessToken))
                 );
 
-                var repository = await github.Repository.Get(ownerLogin, repoName);
+                var repository = await github.Repository.Get(project.CreatorLogin, project.GithubRepository);
 
                 // fetch all hooks and find all matches for the URL
-                var allHooks = await github.Repository.Hooks.GetAll(ownerLogin, repoName);
+                var allHooks = await github.Repository.Hooks.GetAll(project.CreatorLogin, project.GithubRepository);
 
                 var duplicateHooks = allHooks.Where(h =>
                     h.Config.TryGetValue("url", out var url) && url == fullCallbackUrl).ToList();
@@ -277,7 +278,7 @@ namespace SOUPI.Handlers
                 {
                     foreach (var hook in duplicateHooks)
                     {
-                        await github.Repository.Hooks.Delete(ownerLogin, repoName, hook.Id);
+                        await github.Repository.Hooks.Delete(project.CreatorLogin, project.GithubRepository, hook.Id);
                     }
                 }
 
@@ -298,7 +299,7 @@ namespace SOUPI.Handlers
                     Active = true
                 };
 
-                await github.Repository.Hooks.Create(ownerLogin, repoName, newHook);
+                await github.Repository.Hooks.Create(project.CreatorLogin, project.GithubRepository, newHook);
             }
             catch (Exception ex)
             {
@@ -307,7 +308,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task DeleteHook(string ownerLogin, string repoName)
+        public async Task DeleteHook(ProjectDisplayDto project)
         {
             try
             {
@@ -326,10 +327,10 @@ namespace SOUPI.Handlers
                     new InMemoryCredentialStore(new Credentials(accessToken))
                 );
 
-                var repository = await github.Repository.Get(ownerLogin, repoName);
+                var repository = await github.Repository.Get(project.CreatorLogin, project.GithubRepository);
 
                 // fetch all hooks and find all matches for the URL
-                var allHooks = await github.Repository.Hooks.GetAll(ownerLogin, repoName);
+                var allHooks = await github.Repository.Hooks.GetAll(project.CreatorLogin, project.GithubRepository);
 
                 var matchingHooks = allHooks.Where(h =>
                     h.Config.TryGetValue("url", out var url) && url == fullCallbackUrl).ToList();
@@ -339,7 +340,7 @@ namespace SOUPI.Handlers
                 {
                     foreach (var hook in matchingHooks)
                     {
-                        await github.Repository.Hooks.Delete(ownerLogin, repoName, hook.Id);
+                        await github.Repository.Hooks.Delete(project.CreatorLogin, project.GithubRepository, hook.Id);
                     }
                 }
             }

@@ -26,7 +26,7 @@ namespace SOUPI.Handlers
             _httpClient = httpClient;
         }
 
-        public async Task<IEnumerable<ProjectDto>> GetByUserId(Guid userId)
+        public async Task<IEnumerable<ProjectDisplayDto>> GetByUserId(Guid userId)
         {
             try
             {
@@ -36,7 +36,7 @@ namespace SOUPI.Handlers
 
                 var newContent = await response.Content.ReadAsStringAsync();
 
-                var projectDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<ProjectDto>>(newContent, new JsonSerializerOptions
+                var projectDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<ProjectDisplayDto>>(newContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
@@ -50,7 +50,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<ProjectDto?> GetById(Guid id)
+        public async Task<ProjectDisplayDto?> GetById(Guid id)
         {
             try
             {
@@ -68,7 +68,7 @@ namespace SOUPI.Handlers
 
                 var newContent = await response.Content.ReadAsStringAsync();
 
-                var projectDto = System.Text.Json.JsonSerializer.Deserialize<ProjectDto>(newContent, new JsonSerializerOptions
+                var projectDto = System.Text.Json.JsonSerializer.Deserialize<ProjectDisplayDto>(newContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });

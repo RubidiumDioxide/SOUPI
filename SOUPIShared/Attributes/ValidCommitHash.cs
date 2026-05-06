@@ -10,6 +10,11 @@ namespace SOUPIShared.Attributes
         {
             var stringValue = value as string;
 
+            if (stringValue == null)
+            {
+                return ValidationResult.Success;
+            }
+
             if (!stringValue.IsValidCommitHash())
             {
                 return new ValidationResult(ErrorMessage ?? "Значение свойства не соответствует формату хэша коммита.");

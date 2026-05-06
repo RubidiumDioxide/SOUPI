@@ -118,12 +118,14 @@
                 throw new SoupiException("Этот репозиторий уже привязан к другому проекту ");
             }
 
+            newProject = await projectRequestHandler.Create(newProject);
+            
+            var createdProject = await projectRequestHandler.GetById(newProject.Id); 
+
             if (shouldCreateWebhook)
             {
-                await gitHubRequestHandler.CreateHook(User.Login, newProject.GithubRepository);
+                await gitHubRequestHandler.CreateHook(createdProject);
             }
-
-            newProject = await projectRequestHandler.Create(newProject);
 
             Snackbar.Add("Проект успешно создан", Severity.Success);
 

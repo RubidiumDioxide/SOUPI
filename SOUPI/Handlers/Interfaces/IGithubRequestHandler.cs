@@ -1,4 +1,5 @@
-﻿using SOUPIShared.Dtos.OctokitDtos; 
+﻿using SOUPIShared.Dtos.OctokitDtos;
+using SOUPIShared.Dtos.SOUPIDtos; 
 
 
 namespace SOUPI.Handlers.Interfaces
@@ -13,16 +14,16 @@ namespace SOUPI.Handlers.Interfaces
 
         public Task<IEnumerable<GitHubUserDto>> GetUsersByLogins(IEnumerable<string> logins);
 
-        public Task<GitHubCommitDto> GetCommitByHash(string owner, string repository, string hash); 
+        public Task<GitHubCommitDto> GetCommitByHash(ProjectDisplayDto project, string hash); 
 
         public Task<IEnumerable<GitHubRepositoryDto>> GetRepositoriesForCurrentUser();
 
-        public Task<GitHubRepositoryDto> GetRepository(string owner, string repository);
+        public Task<GitHubRepositoryDto> GetRepository(ProjectDisplayDto project);
 
-        public Task<bool> DoesHookExist(string owner, string repository); 
+        public Task<bool> DoesHookExist(ProjectDisplayDto project); 
 
-        public Task CreateHook(string owner, string repository);
+        public Task CreateHook(ProjectDisplayDto project);
 
-        public Task DeleteHook(string owner, string repository);
+        public Task DeleteHook(ProjectDisplayDto project);
     }
 }

@@ -5,9 +5,9 @@ namespace SOUPICore.Services.Interfaces
 {
     public interface IProjectService
     {
-        public Task<IEnumerable<ProjectDto>> GetByUserId(Guid creatorId);
+        public Task<IEnumerable<ProjectDisplayDto>> GetByUserId(Guid creatorId);
  
-        public Task<ProjectDto> GetById(Guid id);
+        public Task<ProjectDisplayDto> GetById(Guid id);
 
         public Task<ProjectDto> Create(ProjectDto projectDto);
 

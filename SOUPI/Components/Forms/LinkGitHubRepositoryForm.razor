@@ -99,7 +99,7 @@ else
     private UserDto? User { get; set; }
 
     [Parameter, EditorRequired]
-    public ProjectDto Project { get; set; } = default!;
+    public ProjectDisplayDto Project { get; set; } = default!;
 
     [Parameter, EditorRequired]
     public EventCallback ProjectUpdated { get; set; }
@@ -121,11 +121,11 @@ else
             {
                 if(Project.GithubRepository != null)
                 {
-                    linkedRepository = await gitHubRequestHandler.GetRepository(User.Login, Project.GithubRepository); 
+                    linkedRepository = await gitHubRequestHandler.GetRepository(Project); 
                     isRepositoryLinked = true;  
                 }
 
-                doesWebhookExist = isRepositoryLinked && await gitHubRequestHandler.DoesHookExist(User.Login, Project.GithubRepository);
+                doesWebhookExist = isRepositoryLinked && await gitHubRequestHandler.DoesHookExist(Project);
             }
             catch (Exception ex)
             {
@@ -170,14 +170,16 @@ else
 
                 if (shouldCreateWebhook)
                 {
-                    await gitHubRequestHandler.CreateHook(User.Login, linkedRepositoryName);
+                    await gitHubRequestHandler.CreateHook(Project);
                 }
 
-                Project = await projectRequestHandler.SetGitHubRepository(Project.Id, linkedRepositoryName);
+                await projectRequestHandler.SetGitHubRepository(Project.Id, linkedRepositoryName);
 
                 Snackbar.Add("Репозиторий успешно привязан к проекту ", Severity.Success);
 
                 Reset();
+                 
+                await ProjectUpdated.InvokeAsync();
             }
             catch (SoupiException ex)
             {
@@ -196,9 +198,11 @@ else
         {
             try
             {
-                await gitHubRequestHandler.CreateHook(User.Login, Project.GithubRepository);
+                await gitHubRequestHandler.CreateHook(Project);
                 
                 Snackbar.Add("Вебхук успешно создан ", Severity.Success);
+
+                await ProjectUpdated.InvokeAsync();
 
                 Reset();
             }

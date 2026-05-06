@@ -145,7 +145,7 @@
     [Parameter]
     public Guid? parentJobId { get; set; }
 
-    private ProjectDto? project { get; set; } 
+    private ProjectDisplayDto? project { get; set; } 
     private IEnumerable<JobDto>? projectJobs { get; set; } 
     private IEnumerable<JobDto>? currentLevelJobs { get; set; }
     private ILookup<Guid, AssignmentDisplayDto>? jobAssignments { get; set; }

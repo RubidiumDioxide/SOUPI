@@ -14,9 +14,10 @@ namespace SOUPIShared.Models
         [ValidCommitHash]
         public string? Commit { get; set; }
 
+        [Required]
         [MaxLength(255, ErrorMessage = "Комментарий слишком длинный (максимум 255 символов)")]
         [ConsistsOfNumbersCyrillicLatin]
-        public string? Comment { get; set; }
+        public string Comment { get; set; } = default!; 
 
         public DateTime CreationDateTime { get; set; } = default;
 

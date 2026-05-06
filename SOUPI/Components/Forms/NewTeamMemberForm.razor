@@ -60,7 +60,7 @@
     public UserDto User { get; set; } = default!; 
 
     [Parameter, EditorRequired]
-    public ProjectDto Project { get; set; } = default!;
+    public ProjectDisplayDto Project { get; set; } = default!;
     [Parameter, EditorRequired]
     public IEnumerable<TeamMemberDisplayDto> TeamMembers { get; set; } = default!; 
 

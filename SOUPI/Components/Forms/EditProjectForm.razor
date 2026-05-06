@@ -47,7 +47,7 @@ else
     private UserDto? User { get; set; }
     
     [Parameter, EditorRequired] 
-    public ProjectDto? Project { get; set; }
+    public ProjectDisplayDto? Project { get; set; }
     [Parameter, EditorRequired]
     public EventCallback ProjectUpdated { get; set; }
 
@@ -79,11 +79,11 @@ else
                 throw new SoupiException("Вы уже создавали проект с таким названием. Названия проектов должны быть уникальными ");
             }
 
-            Project = await projectRequestHandler.Update(Project);
+            await projectRequestHandler.Update(new ProjectDto(Project));
+
+            Snackbar.Add("Изменения в проекте были успешно сохранены ", Severity.Success); 
 
             await ProjectUpdated.InvokeAsync();
-
-            Snackbar.Add("Изменения в проекте были успешно сохранены ", Severity.Success);
         }
         catch (SoupiException ex)
         {

@@ -33,7 +33,7 @@ else
     private UserDto? User { get; set; }
 
     [Parameter, EditorRequired]
-    public ProjectDto Project { get; set; } = default!;
+    public ProjectDisplayDto Project { get; set; } = default!;
 
     private async Task OpenDeleteDialog()
     {
@@ -62,7 +62,7 @@ else
         {
             if (Project.GithubRepository != null)
             {
-                await gitHubRequestHandler.DeleteHook(User!.Login, Project.GithubRepository);
+                await gitHubRequestHandler.DeleteHook(Project);
             }
 
             await projectRequestHandler.Delete(Project.Id);

@@ -22,13 +22,29 @@
             <LoadingPlaceholder />
         }
         else
-        {   
+        {      
+            <MudStack AlignItems="AlignItems.Center">
+                <MudText Align="Align.Center"
+                         Typo="Typo.body2"
+                         Class="mud-text-secondary mt-4">
+                    Если к проекту привязан репозиторий GitHub и на нем создан вебхук (создается автоматически в разделе "Настройки" страницы проекта), действия будут добавлять автоматически для кажлого коммита в репозитории, содержащего в тексте комментария к коммиту название задачи в квадратных скобках (например, [задача 1]). Вы также можете добавить действие со ссылкой на коммит вручную - при условии, что коммит существует. Действия без ссылок на коммиты также можно добавить вручную.
+                </MudText>
+
+                <MudButton onclick="OpenAddDialog"
+                           Color="Color.Success"
+                           Variant="Variant.Filled" 
+                           StartIcon="@Icons.Material.Filled.Add">
+                    Добавить действие
+                </MudButton>
+            </MudStack>
+
            <AssignmentWithActivities Assignment="assignment"
                                      Project="project"
                                      TeamMember="teamMember" 
                                      TeamMemberGitHubUser="teamMemberGitHubUser"
                                      Activities="activities"
-                                     ActivitiesCommits="activitiesCommits"/>
+                                     ActivitiesCommits="activitiesCommits"
+                                     DeleteActivity="OpenDeleteDialog"/>
         }
     }
 </MudContainer>
@@ -42,7 +58,7 @@
     public Guid assignmentId { get; set; }
 
     private AssignmentDisplayDto? assignment { get; set; } 
-    private ProjectDto? project { get; set; }
+    private ProjectDisplayDto? project { get; set; }
     private TeamMemberDisplayDto? teamMember { get; set; }
     private GitHubUserDto? teamMemberGitHubUser { get; set; }
     private IEnumerable<ActivityDisplayDto>? activities { get; set; }
@@ -110,7 +126,7 @@
         {
             if(activity.Commit != null)
             {
-                var commit = await gitHubRequestHandler.GetCommitByHash(activity.TeamMemberLogin, project!.GithubRepository!, activity.Commit);     
+                var commit = await gitHubRequestHandler.GetCommitByHash(project!, activity.Commit);     
 
                 commits.Add(commit);
             }
@@ -126,16 +142,38 @@
             .ToDictionary(x => x.Id, x => x.commit);
     } 
 
-    private async Task OpenEditDialog(ActivityDisplayDto updatedActivity)
+    private async Task OpenAddDialog()
     {
-        var parameters = new DialogParameters<EditActivityForm>
+        var parameters = new DialogParameters<NewActivityForm>
         {
-            { x => x.Activity, updatedActivity }
+            { x => x.Assignment, assignment }, 
+            { x => x.Project, project } 
         };
 
         var options = new DialogOptions { CloseOnEscapeKey = true, FullWidth = true, MaxWidth = MaxWidth.Small };
 
-        var dialog = await DialogService.ShowAsync<EditAssignmentForm>("Редактирование действия ", parameters, options);
+        var dialog = await DialogService.ShowAsync<NewActivityForm>("Добавление действия ", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadActivities(); 
+            await LoadActivitiesCommits(); 
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task OpenEditDialog(ActivityDisplayDto updatedActivity)
+    {
+        var parameters = new DialogParameters<EditActivityForm>
+        {
+            { x => x.Activity, updatedActivity } 
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, FullWidth = true, MaxWidth = MaxWidth.Small };
+
+        var dialog = await DialogService.ShowAsync<EditActivityForm>("Редактирование действия ", parameters, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
@@ -146,7 +184,28 @@
         }
     }
 
-    private async Task DeleteActivity(Guid activityId)
+    private async Task OpenDeleteDialog(Guid activityId)
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.Title, "Удаление действия"},
+            { x => x.Message, "Вы действительно хотите удалить это действие? Удаление не затронет содержимое репозитория (например, связанные коммиты) " },
+            { x => x.ConfirmationText, "Удалить" },
+            { x => x.ConfirmationColor, Color.Error }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmationDialog>("SimpleDialog", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await Delete(activityId);
+        }
+    }
+
+    private async Task Delete(Guid activityId)
     {
         try
         {

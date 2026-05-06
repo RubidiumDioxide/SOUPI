@@ -37,7 +37,7 @@
     [Parameter, EditorRequired]
     public EventCallback ProjectUpdated { get; set; }
     [Parameter, EditorRequired]
-    public ProjectDto Project { get; set; } = default!;
+    public ProjectDisplayDto Project { get; set; } = default!;
 
     private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; }  
     private TeamMemberDisplayDto? creator { get; set; } 

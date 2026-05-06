@@ -56,7 +56,7 @@ else
     [Parameter, EditorRequired]
     public IEnumerable<TeamMemberDisplayDto> TeamMembers { get; set; }
     [Parameter, EditorRequired]
-    public ProjectDto Project { get; set; } = default!;
+    public ProjectDisplayDto Project { get; set; } = default!;
     [Parameter, EditorRequired]
     public IDictionary<string, GitHubUserDto> TeamMemberGitHubUsers { get; set; }
 
