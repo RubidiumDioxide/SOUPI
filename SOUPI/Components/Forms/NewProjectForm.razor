@@ -112,8 +112,8 @@
                 throw new SoupiException("Вы уже создавали проект с таким названием. Названия проектов должны быть уникальными ");
             }
 
-            if (string.IsNullOrEmpty(newProject.GithubRepository) 
-                || projects.Select(p => p.GithubRepository).Contains(newProject.GithubRepository))
+            if (!string.IsNullOrEmpty(newProject.GithubRepository) 
+               && projects.Select(p => p.GithubRepository).Contains(newProject.GithubRepository))
             {
                 throw new SoupiException("Этот репозиторий уже привязан к другому проекту ");
             }

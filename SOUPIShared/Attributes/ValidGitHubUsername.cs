@@ -10,6 +10,11 @@ namespace SOUPIShared.Attributes
         {
             var stringValue = value as string;
 
+            if (stringValue == null)
+            {
+                return ValidationResult.Success;
+            }
+
             if (!stringValue.IsValidGitHubUsername())
             {
                 return new ValidationResult(ErrorMessage ?? "Значение свойства не соответствует формату имени пользователя GitHub.");

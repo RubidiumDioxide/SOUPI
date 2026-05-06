@@ -16,12 +16,15 @@
         {
             <EditForm Model=@newActivity OnValidSubmit="AddActivity">
                 <DataAnnotationsValidator />
+   
+                @if (Project.GithubRepository != null)
+                {
+                    <MudTextField @bind-Value=@newActivity.Commit
+                                  For="@(() => newActivity.Commit)"
+                                  Label="Хэш коммита"
+                                  Variant="Variant.Outlined" />     
+                }
 
-                <MudTextField @bind-Value=@newActivity.Commit
-                              For="@(() => newActivity.Commit)"
-                              Label="Хэш коммита"
-                              Variant="Variant.Outlined" />
-               
                 <MudTextField @bind-Value=@newActivity.Comment
                               For="@(() => newActivity.Comment)"
                               Label="Комментарий"

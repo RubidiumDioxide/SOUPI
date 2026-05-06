@@ -10,6 +10,11 @@ namespace SOUPIShared.Attributes
         {
             var stringValue = value as string;
 
+            if (stringValue == null)
+            {
+                return ValidationResult.Success;
+            }
+
             if (!stringValue.DoesConsistOfNumbersCyrillicLatin())
             {
                 return new ValidationResult(ErrorMessage ?? "Свойство может содержать только буквы русского языка, латинские буквы, цифры и пробел.");
