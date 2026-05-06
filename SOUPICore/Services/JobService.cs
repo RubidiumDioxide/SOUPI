@@ -6,6 +6,7 @@ using SOUPIShared.Exceptions;
 using SOUPIShared.Extensions;
 using SOUPIShared.Models;
 using SOUPIShared.Resources;
+using SOUPIShared.Misc;
 
 
 namespace SOUPICore.Services
@@ -86,6 +87,31 @@ namespace SOUPICore.Services
                          .ToListAsync();
                 }
                
+                return jobs.Select(j => new JobDisplayDto(j));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<JobDisplayDto>> GetDisplayByUserId(Guid userId)
+        {
+            try
+            {
+                var user = await _context.Users.FindAsync(userId); 
+
+                if (user == null)
+                {
+                    throw new BadRequestException(ServiceErrorMessages.UserNotFound);
+                }
+
+                var jobs = await _context.TeamMembers.Where(tm => tm.UserId == userId)
+                                                     .SelectMany(tm => tm.Assignments)
+                                                     .Select(a => a.Job)
+                                                     .ToListAsync(); 
+
                 return jobs.Select(j => new JobDisplayDto(j));
             }
             catch (Exception ex)
@@ -264,6 +290,32 @@ namespace SOUPICore.Services
                 }
 
                 job.CopyContentProperties(updatedJobDto); 
+
+                if(job.Progress == 0)
+                {
+                    job.Status = JobStatus.New; 
+                    job.IsCompleted = false;
+                    job.CompletedDateTime = null;
+                }
+                else if (job.Progress > 0 && job.Progress < 100) 
+                {
+                    job.Status = JobStatus.Working;
+                    job.IsCompleted = false;
+                    job.CompletedDateTime = null;
+                }
+                else if(job.Progress == 100)
+                {
+                    job.Status = JobStatus.Completed;  
+                    job.IsCompleted = true; 
+                    job.CompletedDateTime = DateTime.Now; 
+                }
+                else // fallback if the job.Progress somehow exceeds 0-100 range 
+                {
+                    job.Progress = 0;
+                    job.Status = JobStatus.New; 
+                    job.IsCompleted = false;
+                    job.CompletedDateTime = null;
+                }
 
                 await CheckIfValidJob(job); 
                 await _context.SaveChangesAsync();

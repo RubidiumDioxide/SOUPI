@@ -9,7 +9,7 @@ else
 {
     <MudContainer Gutters="false" Style="display:flex; flex-direction:row; flex-wrap: nowrap" Class="ma-0 pa-2" MaxWidth="MaxWidth.False">
         <MudContainer MaxWidth=MaxWidth.False Style="width: 50%">
-            <MudCard Elevation="25">
+            <MudPaper>
                 <MudTreeView Items="@treeTeamMembers" @bind-SelectedValue="selectedTeamMember">
                     <ItemTemplate>
                         @{
@@ -22,12 +22,18 @@ else
                         Text="@context.Value?.UserLogin">
                             <Content>
                                 <MudTreeViewItemToggleButton @bind-Expanded="@context.Expanded" Visible="@context.HasChildren" />
-                                <MudText>@($"{teamMember?.UserLogin} ({((teamMember?.Role != null) ? teamMember.Role : string.Empty)})")</MudText>
+                                <MudStack Row="true" AlignItems="AlignItems.Center">
+                                    <MudAvatar Size=Size.Medium>
+                                        <MudImage Src="@TeamMemberGitHubUsers[teamMember!.UserLogin].AvatarUrl" Alt="@teamMember.UserLogin" />
+                                    </MudAvatar>
+
+                                    <MudText>@($"{teamMember?.UserLogin} ({((teamMember?.Role != null) ? teamMember.Role : string.Empty)})")</MudText> 
+                                </MudStack>
                             </Content>
                         </MudTreeViewItem>
                     </ItemTemplate>
                 </MudTreeView>
-            </MudCard>
+            </MudPaper>
         </MudContainer>
 
         <MudContainer MaxWidth=MaxWidth.False Style="width: 50%">

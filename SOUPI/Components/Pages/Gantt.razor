@@ -49,16 +49,26 @@
                                               Justify="Justify.SpaceBetween" 
                                               Class="ma-4">      
 
-                                        <MudText Typo="Typo.h6">Задача @selectedJob.Title</MudText> 
+                                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center"> 
+                                            <MudText Typo="Typo.h6">Задача @selectedJob.Title</MudText>
+            
+                                            <MudChip T="string"
+                                                     Color="@selectedJob.Status.GetStatusColor()"
+                                                     Variant="Variant.Filled"
+                                                     Size="Size.Small"
+                                                     Class="mt-1">
+                                                @selectedJob.Status.TranslateStatus()
+                                            </MudChip>
    
-                                        <MudStack Row="true" Spacing="1">
-                                            <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
-                                                           Color="Color.Success"
-                                                           Href="@($"/job/{selectedJob.Id}")" />
+                                            <MudStack Row="true" Spacing="1">
+                                                <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
+                                                               Color="Color.Success"
+                                                               Href="@($"/job/{selectedJob.Id}")" />
 
-                                            <MudIconButton Icon="@Icons.Material.Filled.Close"
-                                                           Color="Color.Default"
-                                                           OnClick="@(() => isEditDrawerOpen = false)" />
+                                                <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                                               Color="Color.Default"
+                                                               OnClick="@(() => isEditDrawerOpen = false)" />
+                                            </MudStack>
                                         </MudStack>
                                     </MudStack>
                                                

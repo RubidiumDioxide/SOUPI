@@ -32,7 +32,8 @@ namespace SOUPIShared.Dtos.SOUPIDtos
         [Required] 
         public DateTime EndDateTime { get; set; }
 
-        [Required] 
+        [Required]
+        [Range(0, 100)]
         public int Progress { get; set; } 
 
         public DateTime CreationDateTime { get; set; } = DateTime.Now;

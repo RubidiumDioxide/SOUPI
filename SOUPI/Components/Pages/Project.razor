@@ -43,24 +43,19 @@
 
                 @* jobs *@
                 <MudTabPanel Text="Задачи и исполнители ">
-                    <MudStack Spacing="2" 
-                              Style="width: 70%; " 
-                              Class="mx-auto mb-8 mt-4 " 
-                              AlignItems="AlignItems.Center" 
-                              Justify="Justify.Center">
-                        <MudText Align="Align.Center" Typo="Typo.body1" Class="mud-text-secondary">
-                            Эта страница служит для простого просмотра и навигации по задачам и исполнителям. Чтобы редактировать совйства задачи, а также связи между задачами, перейдите на страницу "Диаграмма Ганта".
+                    <MudContainer MaxWidth="MaxWidth.Medium"> 
+                        <MudText Align="Align.Center"
+                                 Typo="Typo.body2"
+                                 Class="mud-text-secondary mb-4 mt-4">
+                            Эта страница служит для простого просмотра и навигации по задачам и исполнителям. Чтобы редактировать совйства задачи, а также связи между задачами, перейдите на страницу
+                            <MudButton Href="@($"/gantt/{projectId}")"
+                                       Color="Color.Success"
+                                       Size="Size.Small">
+                                Диаграмма Ганта
+                            </MudButton>
+                            .
                         </MudText>
-                        
-                        <MudButton Href=@($"/gantt/{projectId}")
-                                   Color="Color.Success"
-                                   Variant="Variant.Filled">
-                            Перейти к диаграмме Ганта
-                            <MudIcon Icon="@Icons.Material.Filled.OpenInNew" />
-                        </MudButton>
-                    </MudStack>
 
-                    <MudContainer MaxWidth="MaxWidth.Medium">
                         @if (jobs.Count() == 0)
                         {
                             <MudAlert Severity="Severity.Info" Class="ma-4">

@@ -1,18 +1,19 @@
 ﻿@page "/myassignments"
 @inject IAssignmentRequestHandler assignmentRequestHandler
+@inject IJobRequestHandler jobRequestHandler
 @inject IProjectRequestHandler projectRequestHandler
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
 
-@if (User == null || GitHubUser == null || assignments == null)
+@if (User == null || GitHubUser == null || jobs == null || jobsAssignments == null)
 {
     <LoadingPlaceholder />
 }
 else
 {
-    <MudContainer Class="pt-14" MaxWidth=MaxWidth.False>
-        @if (assignments.Count() == 0)
+    <MudContainer Class="pt-14" MaxWidth=MaxWidth.Medium>        
+        @if (jobs.Count() == 0)
         {
             <MudAlert Severity="Severity.Info" >
                 Вам пока не назначили выполнение задач. Отдыхайте :) 
@@ -21,36 +22,10 @@ else
         else
         {
             <MudStack Spacing="3">
-                @foreach (var context in assignments)
+                @foreach (var job in jobs)
                 {
-                    <MudPaper Class="pa-2" Elevation="2">
-                        <MudStack Row="true"
-                                  AlignItems="AlignItems.Center"
-                                  Justify="Justify.SpaceBetween">
-                            @* Left Side: Avatar and Name/Comment *@
-                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3"> 
-                                <MudStack Spacing="0">
-                                    <MudText Typo="Typo.body1">
-                                        Проект 
-                                        <MudLink Href=@($"project/{@context.ProjectId}")>   
-                                            @context.ProjectTitle             
-                                        </MudLink>
-                                    </MudText> 
-
-                                 
-                                    <MudText Typo="Typo.body2">@context.Comment</MudText>
-                                </MudStack>
-                            </MudStack>
-
-                            @* Right Side: Delete Button *@
-                            <MudStack Row="true" Spacing="1">
-                                <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
-                                               Color="Color.Success"
-                                               Href=@($"/assignment/{context.Id}")
-                                               Size="Size.Medium" />
-                            </MudStack>
-                        </MudStack>
-                    </MudPaper>
+                    <JobAssignmentListElement Job="@job"
+                                              Assignment="@jobsAssignments[job.Id]"/>
                 }
             </MudStack>
         }
@@ -63,8 +38,9 @@ else
     private UserDto? User { get; set; }
     [CascadingParameter]
     private GitHubUserDto? GitHubUser { get; set; }
-   
-    public IEnumerable<AssignmentDisplayDto>? assignments { get; set; } 
+
+    public IEnumerable<JobDisplayDto>? jobs { get; set; } 
+    public IDictionary<Guid, AssignmentDisplayDto>? jobsAssignments { get; set; } 
 
     protected override async Task OnParametersSetAsync()
     {
@@ -72,7 +48,8 @@ else
         {
             try
             {
-                await LoadAssignments();
+                await LoadJobs(); 
+                await LoadAssignments(); 
             }
             catch (SoupiException ex)
             {
@@ -87,8 +64,15 @@ else
         StateHasChanged();
     }
 
+    private async Task LoadJobs()
+    {
+        jobs = await jobRequestHandler.GetDisplayByUserId(User!.Id);
+    }
+
     private async Task LoadAssignments()
     {
-        assignments = await assignmentRequestHandler.GetByUserId(User!.Id);
+        var assignments = await assignmentRequestHandler.GetByUserId(User!.Id);
+
+        jobsAssignments = assignments.ToDictionary(a => a.JobId); 
     }
 }

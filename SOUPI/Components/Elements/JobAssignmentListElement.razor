@@ -1,0 +1,74 @@
+﻿@inject ISnackbar Snackbar 
+
+
+@if (Job == null || Assignment == null)
+{
+    <LoadingPlaceholder />
+}
+else
+{
+    <MudPaper Class="pa-2" Elevation="2">
+        <MudContainer>
+            @* Header Section *@
+            <div class="d-flex justify-space-between align-start">
+                <MudText Typo="Typo.h6" Class="mr-4">
+                    Задача 
+                    <MudLink Href=@($"job/{Job.Id}")>
+                        @Job.Title
+                    </MudLink>
+                    , Проект 
+                    <MudLink Href=@($"project/{Job.ProjectId}")>
+                        @Job.ProjectTitle
+                    </MudLink>
+                </MudText>
+            
+                <div class="d-flex align-center">
+                    <MudChip T="string"
+                             Color="@Job.Status.GetStatusColor()"
+                             Variant="Variant.Filled"
+                             Size="Size.Small"
+                             Class="mt-1">
+                        @Job.Status.TranslateStatus()
+                    </MudChip>
+
+                    <MudTooltip Text="Перейти на страницу назначения">
+                        <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
+                                       Color="Color.Success"
+                                       Href="@($"/assignment/{Assignment.Id}")" />
+                    </MudTooltip>
+                </div>
+            </div>
+
+            @* Assignment description *@
+            <MudText Typo="Typo.body1" Class="mb-4">
+                Описание назначения:
+                @(string.IsNullOrWhiteSpace(Assignment.Comment) ? "Описание отсутствует" : Assignment.Comment)
+            </MudText>
+    
+            @* Dates Section *@
+            <MudStack Spacing="0" Row="true" Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.body1" Class="mud-text-secondary">
+                    Дата начала задачи: @Job.StartDateTime.ToString("dd.MM.yyyy HH:mm")
+                </MudText>
+                <MudText Typo="Typo.body1" Class="mud-text-secondary">
+                    Дата завершения задачи: @Job.EndDateTime.ToString("dd.MM.yyyy HH:mm")
+                </MudText>
+            </MudStack>
+
+            @* Progress *@
+            <div class="d-flex justify-space-between mb-4 mt-4">
+                <MudText Typo="Typo.body1" Class="mud-text-secondary">Прогресс выполнения задачи </MudText>
+                <MudText Typo="Typo.body1"><b>@Job.Progress%</b></MudText>
+            </div>
+            <MudProgressLinear Color="Color.Primary" Value="@Job.Progress" Height="10" Class="rounded-sm mb-2" />
+        </MudContainer>
+    </MudPaper>
+}
+
+
+@code {
+    [Parameter, EditorRequired]
+    public JobDisplayDto? Job { get; set; } 
+    [Parameter, EditorRequired]    
+    public AssignmentDisplayDto? Assignment { get; set; }  
+}

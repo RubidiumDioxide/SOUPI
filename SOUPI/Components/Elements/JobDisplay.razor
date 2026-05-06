@@ -4,25 +4,31 @@
 }
 else
 {
-    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+        <MudText Align="Align.Center" 
+                 Typo="Typo.body2" 
+                 Class="mud-text-secondary mb-4 mt-4">
+            Эта страница служит для простого просмотра и навигации по задачам и исполнителям. Чтобы редактировать совйства задачи, а также связи между задачами, перейдите на страницу
+            <MudButton Href="@($"/gantt/{Job.ProjectId}")"
+                       Color="Color.Success" 
+                       Size="Size.Small">
+                Диаграмма Ганта 
+            </MudButton>
+            .
+        </MudText>
+
         @* Header Section *@
         <div class="d-flex justify-space-between align-start mb-4">
             <MudText Typo="Typo.h4" Class="mr-4">@Job.Title</MudText>
             
             <div class="d-flex align-center">
                 <MudChip T="string"
-                         Color="@GetStatusColor(Job.Status)"
+                         Color="@Job.Status.GetStatusColor()"
                          Variant="Variant.Filled"
                          Size="Size.Small"
                          Class="mt-1">
-                    @TranslateStatus(Job.Status)
+                    @Job.Status.TranslateStatus()
                 </MudChip>
-                <MudTooltip Text="Редактировать">
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Default" />
-                </MudTooltip>
-                <MudTooltip Text="Удалить">
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" />
-                </MudTooltip>
             </div>
         </div>
 
@@ -32,7 +38,6 @@ else
             @(string.IsNullOrWhiteSpace(Job.Body) ? "Описание отсутствует" : Job.Body)
         </MudText>
 
-       
         <MudDivider Class="mb-6" />
 
         <MudStack>
@@ -106,20 +111,4 @@ else
     public TeamMemberDisplayDto? Creator { get; set; }
     [Parameter, EditorRequired]
     public GitHubUserDto? CreatorGitHubUser { get; set; }
-
-    private Color GetStatusColor(JobStatus status) => status switch
-    {
-        JobStatus.New => Color.Info,
-        JobStatus.Working => Color.Warning,
-        JobStatus.Completed => Color.Success,
-        _ => Color.Default
-    };
-
-    private string TranslateStatus(JobStatus status) => status switch
-    {
-        JobStatus.New => "Новая",
-        JobStatus.Working => "В процессе",
-        JobStatus.Completed => "Завершена",
-        _ => status.ToString()
-    };
 }

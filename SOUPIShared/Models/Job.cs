@@ -32,6 +32,7 @@ namespace SOUPIShared.Models
         public DateTime EndDateTime { get; set; }
 
         [Required]
+        [Range(0, 100)]
         public int Progress { get; set; }
 
         public DateTime CreationDateTime { get; set; } = default; 

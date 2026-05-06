@@ -15,7 +15,7 @@ else
             <MudStack Row="true" Justify="Justify.SpaceBetween">
                 <MudStack Row="true" AlignItems="AlignItems.Center">
                     <MudAvatar Size=Size.Large>
-                        <MudImage Src="@TeamMemberGitHubUser.AvatarUrl" Alt="Profile picture" />
+                        <MudImage Src="@TeamMemberGitHubUser.AvatarUrl" Alt="@TeamMember.UserLogin" />
                     </MudAvatar>
            
                     <MudLink Href="@($"/user/{TeamMember.UserId}")">

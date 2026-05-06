@@ -44,16 +44,6 @@ else
                 Прогресс (%)
             </MudSlider>
 
-            <MudSelect @bind-Value=@Job.Status
-                       Label="Статус"
-                       Variant="Variant.Outlined"
-                       Margin="Margin.Normal">
-                @foreach (JobStatus item in Enum.GetValues(typeof(JobStatus)))
-                {
-                    <MudSelectItem Value="@item">@item.ToString()</MudSelectItem>
-                }
-            </MudSelect>
-
             <div class="d-flex justify-end mt-4">
                 <MudButton ButtonType="ButtonType.Submit"
                            Variant="Variant.Filled"

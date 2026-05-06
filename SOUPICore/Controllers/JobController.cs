@@ -83,6 +83,26 @@ namespace SOUPICore.Controllers
             }
         }
 
+        [HttpGet("{userId}")]
+        public async Task<ActionResult<IEnumerable<JobDisplayDto>>> GetDisplayByUserId([FromRoute] Guid userId)
+        {
+            try
+            {
+                var jobs = await _jobService.GetDisplayByUserId(userId);
+
+                return Ok(jobs);
+            }
+            catch (BadRequestException)
+            {
+                return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500);
+            }
+        }
+
         [HttpGet("{jobId}")]
         public async Task<ActionResult<JobDto>> GetById([FromRoute] Guid jobId)
         {

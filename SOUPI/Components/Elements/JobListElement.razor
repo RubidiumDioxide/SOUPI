@@ -15,11 +15,11 @@ else
             
                 <div class="d-flex align-center">
                     <MudChip T="string"
-                             Color="@GetStatusColor(Job.Status)"
+                             Color="@Job.Status.GetStatusColor()"
                              Variant="Variant.Filled"
                              Size="Size.Small"
                              Class="mt-1">
-                        @TranslateStatus(Job.Status)
+                        @Job.Status.TranslateStatus()
                     </MudChip>
 
                     <MudTooltip Text="Перейти на страницу задачи">
@@ -126,20 +126,4 @@ else
             .ToDictionary(x => x.Id, x => x.gitHubUser);
         }
     }
-
-    private Color GetStatusColor(JobStatus status) => status switch
-    {
-        JobStatus.New => Color.Info,
-        JobStatus.Working => Color.Warning,
-        JobStatus.Completed => Color.Success,
-        _ => Color.Default
-    };
-
-    private string TranslateStatus(JobStatus status) => status switch
-    {
-        JobStatus.New => "Новая",
-        JobStatus.Working => "В процессе",
-        JobStatus.Completed => "Завершена",
-        _ => status.ToString()
-    }; 
 }

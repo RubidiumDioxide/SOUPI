@@ -9,6 +9,8 @@ namespace SOUPICore.Services.Interfaces
 
         public Task<IEnumerable<JobDisplayDto>> GetDisplayByProjectIdParentId(Guid projectId, Guid? parentJobId);
 
+        public Task<IEnumerable<JobDisplayDto>> GetDisplayByUserId(Guid userId);
+
         public Task<JobDisplayDto> GetDisplayById(Guid jobId);
 
         public Task<IEnumerable<JobDto>> GetByProjectId(Guid projectId);
