@@ -25,15 +25,15 @@ namespace SOUPI.Handlers
             _httpClient = httpClient;
         }
 
-        public async Task<IEnumerable<ActivityDisplayDto>> GetByAssignmentId(Guid assignmentId)
+        public async Task<IEnumerable<ActivityDisplayDto>> GetByAssignmentId(Guid assignmentId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByAssignmentIdUrl}{assignmentId}");
+                var response = await _httpClient.GetAsync($"{getByAssignmentIdUrl}{assignmentId}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var activityDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<ActivityDisplayDto>>(newContent, new JsonSerializerOptions
                 {
@@ -49,15 +49,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<IEnumerable<ActivityDisplayDto>> GetByTeamMemberId(Guid teamMemberId)
+        public async Task<IEnumerable<ActivityDisplayDto>> GetByTeamMemberId(Guid teamMemberId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByTeamMemberIdUrl}{teamMemberId}"); 
+                var response = await _httpClient.GetAsync($"{getByTeamMemberIdUrl}{teamMemberId}", ct); 
 
                 response.EnsureSuccessStatusCode(); 
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var activityDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<ActivityDisplayDto>>(newContent, new JsonSerializerOptions
                 {
@@ -73,15 +73,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<IEnumerable<ActivityDisplayDto>> GetByJobId(Guid jobId)
+        public async Task<IEnumerable<ActivityDisplayDto>> GetByJobId(Guid jobId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByJobIdUrl}{jobId}");
+                var response = await _httpClient.GetAsync($"{getByJobIdUrl}{jobId}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var activityDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<ActivityDisplayDto>>(newContent, new JsonSerializerOptions
                 {
@@ -97,15 +97,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<IEnumerable<ActivityDisplayDto>> GetByProjectId(Guid projectId)
+        public async Task<IEnumerable<ActivityDisplayDto>> GetByProjectId(Guid projectId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByProjectIdUrl}{projectId}");
+                var response = await _httpClient.GetAsync($"{getByProjectIdUrl}{projectId}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var activityDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<ActivityDisplayDto>>(newContent, new JsonSerializerOptions
                 {
@@ -121,15 +121,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<ActivityDto> Create(ActivityDto activityDto)
+        public async Task<ActivityDto> Create(ActivityDto activityDto, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(activityDto)); 
+                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(activityDto), ct); 
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var newActivityDto = System.Text.Json.JsonSerializer.Deserialize<ActivityDto>(newContent, new JsonSerializerOptions
                 {
@@ -145,15 +145,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<ActivityDto> UpdateContent(ActivityDto updatedActivityDto)
+        public async Task<ActivityDto> UpdateContent(ActivityDto updatedActivityDto, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.PostAsync(updateContentUrl, JsonContent.Create(updatedActivityDto));
+                var response = await _httpClient.PostAsync(updateContentUrl, JsonContent.Create(updatedActivityDto), ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var newUpdatedActivityDto = System.Text.Json.JsonSerializer.Deserialize<ActivityDto>(newContent, new JsonSerializerOptions
                 {
@@ -169,11 +169,11 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task Delete(Guid activityId)
+        public async Task Delete(Guid activityId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{deleteUrl}{activityId}");
+                var response = await _httpClient.GetAsync($"{deleteUrl}{activityId}", ct);
 
                 response.EnsureSuccessStatusCode();
             }

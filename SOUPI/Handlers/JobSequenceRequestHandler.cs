@@ -20,15 +20,15 @@ namespace SOUPI.Handlers
             _httpClient = httpClient;
         }
 
-        public async Task<IEnumerable<JobSequenceDisplayDto>> GetByProjectId(Guid projectId)
+        public async Task<IEnumerable<JobSequenceDisplayDto>> GetByProjectId(Guid projectId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByProjectIdUrl}{projectId}");
+                var response = await _httpClient.GetAsync($"{getByProjectIdUrl}{projectId}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var jobSequenceDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<JobSequenceDisplayDto>>(newContent, new JsonSerializerOptions
                 {
@@ -44,15 +44,15 @@ namespace SOUPI.Handlers
             }
         }
         
-        public async Task<JobSequenceDto> Create(Guid firstJobId, Guid secondJobId)
+        public async Task<JobSequenceDto> Create(Guid firstJobId, Guid secondJobId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{createUrl}{firstJobId}/{secondJobId}");
+                var response = await _httpClient.GetAsync($"{createUrl}{firstJobId}/{secondJobId}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var newJobSequenceDto = System.Text.Json.JsonSerializer.Deserialize<JobSequenceDto>(newContent, new JsonSerializerOptions
                 {
@@ -68,11 +68,11 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task Delete(Guid jobSequenceId)
+        public async Task Delete(Guid jobSequenceId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{deleteUrl}{jobSequenceId}");
+                var response = await _httpClient.GetAsync($"{deleteUrl}{jobSequenceId}", ct);
 
                 response.EnsureSuccessStatusCode();
             }

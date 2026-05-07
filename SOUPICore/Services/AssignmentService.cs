@@ -22,11 +22,11 @@ namespace SOUPICore.Services
             _logger = logger; 
         }
 
-        public async Task<AssignmentDisplayDto> GetById(Guid assignmentId)
+        public async Task<AssignmentDisplayDto> GetById(Guid assignmentId, CancellationToken ct = default)
         {
             try
             {
-                var assignment = await _context.Assignments.FindAsync(assignmentId);
+                var assignment = await _context.Assignments.FindAsync([assignmentId], cancellationToken: ct);
 
                 if (assignment == null)
                 {
@@ -42,18 +42,18 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<IEnumerable<AssignmentDisplayDto>> GetByProjectId(Guid projectId)
+        public async Task<IEnumerable<AssignmentDisplayDto>> GetByProjectId(Guid projectId, CancellationToken ct = default)
         {
             try
             {
-                var project = await _context.Projects.FindAsync(projectId);
+                var project = await _context.Projects.FindAsync([projectId], cancellationToken: ct);
 
                 if (project == null)
                 {
                     throw new BadRequestException(ServiceErrorMessages.ProjectNotFound);
                 }
 
-                var assignments = await _context.Assignments.Where(a => a.Job.ProjectId == projectId).ToListAsync();
+                var assignments = await _context.Assignments.Where(a => a.Job.ProjectId == projectId).ToListAsync(ct);
 
                 return assignments.Select(a => new AssignmentDisplayDto(a));
             }
@@ -64,18 +64,18 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<IEnumerable<AssignmentDisplayDto>> GetByJobId(Guid jobId)
+        public async Task<IEnumerable<AssignmentDisplayDto>> GetByJobId(Guid jobId, CancellationToken ct = default)
         {
             try
             {
-                var job = await _context.Jobs.FindAsync(jobId); 
+                var job = await _context.Jobs.FindAsync([jobId], cancellationToken: ct); 
 
                 if(job == null)
                 {
                     throw new BadRequestException(ServiceErrorMessages.JobNotFound); 
                 }
 
-                var assignments = await _context.Assignments.Where(a => a.JobId == jobId).ToListAsync();
+                var assignments = await _context.Assignments.Where(a => a.JobId == jobId).ToListAsync(ct);
 
                 return assignments.Select(a => new AssignmentDisplayDto(a)); 
             }
@@ -86,18 +86,18 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<IEnumerable<AssignmentDisplayDto>> GetByUserId(Guid userId)
+        public async Task<IEnumerable<AssignmentDisplayDto>> GetByUserId(Guid userId, CancellationToken ct = default)
         {
             try
             {
-                var user = await _context.Users.FindAsync(userId);
+                var user = await _context.Users.FindAsync([userId], cancellationToken: ct);
 
                 if (user == null)
                 {
                     throw new BadRequestException(ServiceErrorMessages.UserNotFound);
                 }
 
-                var assignments = await _context.Assignments.Where(a => a.TeamMember.UserId == userId).ToListAsync();
+                var assignments = await _context.Assignments.Where(a => a.TeamMember.UserId == userId).ToListAsync(ct);
 
                 return assignments.Select(a => new AssignmentDisplayDto(a));
             }
@@ -108,7 +108,7 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<AssignmentDto> Create(AssignmentDto newAssignmentDto)
+        public async Task<AssignmentDto> Create(AssignmentDto newAssignmentDto, CancellationToken ct = default)
         {
             try
             {
@@ -119,10 +119,10 @@ namespace SOUPICore.Services
                     Comment = newAssignmentDto.Comment
                 };
 
-                await CheckIfValidAssignment(newAssignment);
+                await CheckIfValidAssignment(newAssignment, ct);
 
-                await _context.Assignments.AddAsync(newAssignment);
-                await _context.SaveChangesAsync();
+                await _context.Assignments.AddAsync(newAssignment, ct);
+                await _context.SaveChangesAsync(ct);
 
                 return new AssignmentDto(newAssignment);
             }
@@ -133,11 +133,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<AssignmentDto> UpdateContent(AssignmentDto updatedAssignmentDto)
+        public async Task<AssignmentDto> UpdateContent(AssignmentDto updatedAssignmentDto, CancellationToken ct = default)
         {
             try
             {
-                var assignment = await _context.Assignments.FindAsync(updatedAssignmentDto.Id);
+                var assignment = await _context.Assignments.FindAsync([updatedAssignmentDto.Id], cancellationToken: ct);
 
                 if (assignment == null)
                 {
@@ -146,7 +146,7 @@ namespace SOUPICore.Services
 
                 assignment.CopyContentProperties(updatedAssignmentDto);
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
 
                 return new AssignmentDto(assignment);
             }
@@ -157,11 +157,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task Delete(Guid assignmentId)
+        public async Task Delete(Guid assignmentId, CancellationToken ct = default)
         {
             try
             {
-                var assignment = await _context.Assignments.FindAsync(assignmentId);
+                var assignment = await _context.Assignments.FindAsync([assignmentId], cancellationToken: ct);
 
                 if (assignment == null)
                 {
@@ -173,7 +173,7 @@ namespace SOUPICore.Services
                 _context.Activities.RemoveRange(activities); 
                 _context.Assignments.Remove(assignment);
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
             }
             catch (Exception ex)
             {
@@ -182,10 +182,10 @@ namespace SOUPICore.Services
             }
         }
 
-        private async Task CheckIfValidAssignment(Assignment assignment)
+        private async Task CheckIfValidAssignment(Assignment assignment, CancellationToken ct = default)
         {
-            var job = await _context.Jobs.FindAsync(assignment.JobId);
-            var teamMember = await _context.TeamMembers.FindAsync(assignment.TeamMemberId);
+            var job = await _context.Jobs.FindAsync([assignment.JobId], cancellationToken: ct);
+            var teamMember = await _context.TeamMembers.FindAsync([assignment.TeamMemberId], cancellationToken: ct);
 
             if (job == null)
             {
@@ -196,7 +196,7 @@ namespace SOUPICore.Services
                 throw new BadRequestException(ServiceErrorMessages.TeamMemberNotFound);
             }
 
-            var existingAssignment = await _context.Assignments.FirstOrDefaultAsync(a => a.JobId == job.Id && a.TeamMemberId == teamMember.Id);
+            var existingAssignment = await _context.Assignments.FirstOrDefaultAsync(a => a.JobId == job.Id && a.TeamMemberId == teamMember.Id, ct);
 
             if (existingAssignment != null)
             {

@@ -22,11 +22,11 @@ namespace SOUPICore.Services
             _logger = logger;
         }
 
-        public async Task<IEnumerable<JobDisplayDto>> GetDisplayByProjectId(Guid projectId)
+        public async Task<IEnumerable<JobDisplayDto>> GetDisplayByProjectId(Guid projectId, CancellationToken ct = default)
         {
             try
             {
-                var project = await _context.Projects.FindAsync(projectId);
+                var project = await _context.Projects.FindAsync([projectId], cancellationToken: ct);
 
                 if (project == null)
                 {
@@ -35,7 +35,7 @@ namespace SOUPICore.Services
 
                 var jobs = await _context.Jobs
                     .Where(j => j.ProjectId == projectId)
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 return jobs.Select(j => new JobDisplayDto(j)); 
             }
@@ -54,18 +54,18 @@ namespace SOUPICore.Services
         /// <param name="parentJobId"></param>
         /// <returns></returns>
         /// <exception cref="BadRequestException"></exception>
-        public async Task<IEnumerable<JobDisplayDto>> GetDisplayByProjectIdParentId(Guid projectId, Guid? parentJobId)
+        public async Task<IEnumerable<JobDisplayDto>> GetDisplayByProjectIdParentId(Guid projectId, Guid? parentJobId, CancellationToken ct = default)
         {
             try
             {
-                var project = await _context.Projects.FindAsync(projectId);
-                
+                var project = await _context.Projects.FindAsync([projectId], cancellationToken: ct);
+
                 if (project == null)
                 {
                     throw new BadRequestException(ServiceErrorMessages.ProjectNotFound);
                 }
 
-                var parentJob = await _context.Jobs.FindAsync(parentJobId);
+                var parentJob = await _context.Jobs.FindAsync([parentJobId], cancellationToken: ct);
 
                 if ((parentJobId != null && parentJob == null) || (parentJob != null && parentJob.ProjectId != projectId))
                 {
@@ -78,15 +78,15 @@ namespace SOUPICore.Services
                 {
                     jobs = await _context.Jobs
                         .Where(j => j.ProjectId == projectId && j.ParentJobId == parentJob.Id)
-                        .ToListAsync();
+                        .ToListAsync(ct);
                 }
                 else
                 {
                     jobs = await _context.Jobs
                          .Where(j => j.ProjectId == projectId && j.ParentJobId == null)
-                         .ToListAsync();
+                         .ToListAsync(ct);
                 }
-               
+
                 return jobs.Select(j => new JobDisplayDto(j));
             }
             catch (Exception ex)
@@ -96,11 +96,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<IEnumerable<JobDisplayDto>> GetDisplayByUserId(Guid userId)
+        public async Task<IEnumerable<JobDisplayDto>> GetDisplayByUserId(Guid userId, CancellationToken ct = default)
         {
             try
             {
-                var user = await _context.Users.FindAsync(userId); 
+                var user = await _context.Users.FindAsync([userId], cancellationToken: ct);
 
                 if (user == null)
                 {
@@ -110,7 +110,7 @@ namespace SOUPICore.Services
                 var jobs = await _context.TeamMembers.Where(tm => tm.UserId == userId)
                                                      .SelectMany(tm => tm.Assignments)
                                                      .Select(a => a.Job)
-                                                     .ToListAsync(); 
+                                                     .ToListAsync(ct); 
 
                 return jobs.Select(j => new JobDisplayDto(j));
             }
@@ -121,11 +121,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<JobDisplayDto> GetDisplayById(Guid jobId)
+        public async Task<JobDisplayDto> GetDisplayById(Guid jobId, CancellationToken ct = default)
         {
             try
             {
-                var job = await _context.Jobs.FindAsync(jobId);
+                var job = await _context.Jobs.FindAsync([jobId], cancellationToken: ct);
 
                 if (job == null)
                 {
@@ -143,11 +143,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<IEnumerable<JobDto>> GetByProjectId(Guid projectId)
+        public async Task<IEnumerable<JobDto>> GetByProjectId(Guid projectId, CancellationToken ct = default)
         {
             try
             {
-                var project = await _context.Projects.FindAsync(projectId);
+                var project = await _context.Projects.FindAsync([projectId], cancellationToken: ct);
 
                 if (project == null)
                 {
@@ -156,7 +156,7 @@ namespace SOUPICore.Services
 
                 var jobs = await _context.Jobs
                     .Where(j => j.ProjectId == projectId)
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 return jobs.Select(j => new JobDto(j));
             }
@@ -175,18 +175,18 @@ namespace SOUPICore.Services
         /// <param name="parentJobId"></param>
         /// <returns></returns>
         /// <exception cref="BadRequestException"></exception>
-        public async Task<IEnumerable<JobDto>> GetByProjectIdParentId(Guid projectId, Guid? parentJobId)
+        public async Task<IEnumerable<JobDto>> GetByProjectIdParentId(Guid projectId, Guid? parentJobId, CancellationToken ct = default)
         {
             try
             {
-                var project = await _context.Projects.FindAsync(projectId);
+                var project = await _context.Projects.FindAsync([projectId], cancellationToken: ct);
 
                 if (project == null)
                 {
                     throw new BadRequestException(ServiceErrorMessages.ProjectNotFound);
                 }
 
-                var parentJob = await _context.Jobs.FindAsync(parentJobId);
+                var parentJob = await _context.Jobs.FindAsync([parentJobId], cancellationToken: ct);
 
                 if ((parentJobId != null && parentJob == null) || (parentJob != null && parentJob.ProjectId != projectId))
                 {
@@ -199,13 +199,13 @@ namespace SOUPICore.Services
                 {
                     jobs = await _context.Jobs
                         .Where(j => j.ProjectId == projectId && j.ParentJobId == parentJob.Id)
-                        .ToListAsync();
+                        .ToListAsync(ct);
                 }
                 else
                 {
                     jobs = await _context.Jobs
-                         .Where(j => j.ProjectId == projectId && j.ParentJobId == null)
-                         .ToListAsync();
+                        .Where(j => j.ProjectId == projectId && j.ParentJobId == null)
+                        .ToListAsync(ct);
                 }
 
                 return jobs.Select(j => new JobDto(j));
@@ -217,11 +217,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<JobDto> GetById(Guid jobId)
+        public async Task<JobDto> GetById(Guid jobId, CancellationToken ct = default)
         {
             try
             {
-                var job = await _context.Jobs.FindAsync(jobId);
+                var job = await _context.Jobs.FindAsync([jobId], cancellationToken: ct);
 
                 if (job == null)
                 {
@@ -239,11 +239,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<JobDto> Create(JobDto newJobDto)
+        public async Task<JobDto> Create(JobDto newJobDto, CancellationToken ct = default)
         {
             try
             {
-                var existingJob = await _context.Jobs.FirstOrDefaultAsync(j => j.Title == newJobDto.Title); 
+                var existingJob = await _context.Jobs.FirstOrDefaultAsync(j => j.Title == newJobDto.Title, ct); 
 
                 if(existingJob != null) 
                 {
@@ -264,10 +264,10 @@ namespace SOUPICore.Services
                     ParentJobId = newJobDto.ParentJobId, 
                 };
 
-                await CheckIfValidJob(newJob);
+                await CheckIfValidJob(newJob, ct);
 
-                await _context.Jobs.AddAsync(newJob);
-                await _context.SaveChangesAsync();
+                await _context.Jobs.AddAsync(newJob, ct);
+                await _context.SaveChangesAsync(ct);
 
                 return new JobDto(newJob);
             }
@@ -278,11 +278,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<JobDto> UpdateContent(JobDto updatedJobDto)
+        public async Task<JobDto> UpdateContent(JobDto updatedJobDto, CancellationToken ct = default)
         {
             try
             {
-                var job = await _context.Jobs.FindAsync(updatedJobDto.Id);
+                var job = await _context.Jobs.FindAsync([updatedJobDto.Id], cancellationToken: ct);
 
                 if (job == null)
                 {
@@ -317,8 +317,8 @@ namespace SOUPICore.Services
                     job.CompletedDateTime = null;
                 }
 
-                await CheckIfValidJob(job); 
-                await _context.SaveChangesAsync();
+                await CheckIfValidJob(job, ct); 
+                await _context.SaveChangesAsync(ct);
 
                 return new JobDto(job); 
             }
@@ -337,12 +337,12 @@ namespace SOUPICore.Services
         /// <param name="newParentId"></param>
         /// <returns></returns>
         /// <exception cref="BadRequestException"></exception>
-        public async Task<JobDto> UpdateParent(Guid jobId, Guid? newParentJobId)
+        public async Task<JobDto> UpdateParent(Guid jobId, Guid? newParentJobId, CancellationToken ct = default)
         {
             try
             {
-                var job = await _context.Jobs.FindAsync(jobId);
-                
+                var job = await _context.Jobs.FindAsync([jobId], cancellationToken: ct);
+
                 if (job == null)
                 {
                     throw new BadRequestException(ServiceErrorMessages.JobNotFound); 
@@ -356,11 +356,11 @@ namespace SOUPICore.Services
                 _context.JobSequences.RemoveRange(job.PreviousJobSequences);
                 _context.JobSequences.RemoveRange(job.NextJobSequences); 
                 job.ParentJobId = newParentJobId; 
-                
-                await CheckIfValidJob(job);
-                await CheckIfCyclic(job.Id, job.ParentJobId);
 
-                await _context.SaveChangesAsync();
+                await CheckIfValidJob(job, ct);
+                await CheckIfCyclic(job.Id, job.ParentJobId, ct);
+
+                await _context.SaveChangesAsync(ct);
 
                 return new JobDto(job);
             }
@@ -379,18 +379,18 @@ namespace SOUPICore.Services
         /// <param name="jobId"></param>
         /// <returns></returns>
         /// <exception cref="BadRequestException"></exception>
-        public async Task Delete(Guid jobId, bool preserveChildren)
+        public async Task Delete(Guid jobId, bool preserveChildren, CancellationToken ct = default)
         {
             try
             {
-                var job = await _context.Jobs.FindAsync(jobId);
+                var job = await _context.Jobs.FindAsync([jobId], cancellationToken: ct);
 
                 if (job == null)
                 {
                     throw new BadRequestException(ServiceErrorMessages.JobNotFound); 
                 }
 
-                var jobSequences = job.NextJobSequences.Concat(job.PreviousJobSequences);
+                var jobSequences = job.NextJobSequences.Concat(job.PreviousJobSequences).ToList();
                 var assignments = job.Assignments.ToList();
                 var activities = assignments.SelectMany(a => a.Activities).ToList();
 
@@ -414,7 +414,7 @@ namespace SOUPICore.Services
                 }
 
                 _context.Jobs.Remove(job);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
             }
             catch (Exception ex)
             {
@@ -441,15 +441,15 @@ namespace SOUPICore.Services
             _context.Jobs.Remove(job);
         }
 
-        private async Task CheckIfValidJob(Job job)
+        private async Task CheckIfValidJob(Job job, CancellationToken ct = default)
         {
-            var project = await _context.Projects.FindAsync(job.ProjectId);
-            var creator = await _context.TeamMembers.FindAsync(job.CreatorId);
+            var project = await _context.Projects.FindAsync([job.ProjectId], cancellationToken: ct);
+            var creator = await _context.TeamMembers.FindAsync([job.CreatorId], cancellationToken: ct);
             Job? parentJob = null;
 
             if (job.ParentJobId != null)
             {
-                parentJob = await _context.Jobs.FindAsync(job.ParentJobId);
+                parentJob = await _context.Jobs.FindAsync([job.ParentJobId], cancellationToken: ct);
 
                 if (parentJob == null)
                 {
@@ -478,7 +478,7 @@ namespace SOUPICore.Services
             }
         }
 
-        private async Task CheckIfCyclic(Guid childJobId, Guid? parentJobId)
+        private async Task CheckIfCyclic(Guid childJobId, Guid? parentJobId, CancellationToken ct = default)
         {
             if (parentJobId == null) return; 
 
@@ -508,7 +508,7 @@ namespace SOUPICore.Services
                     var nextJobIds = await _context.Jobs
                         .Where(j => j.ParentJobId == currentJobId)
                         .Select(j => j.Id)
-                        .ToListAsync();
+                        .ToListAsync(ct);
 
                     foreach (var nextId in nextJobIds) 
                     { 

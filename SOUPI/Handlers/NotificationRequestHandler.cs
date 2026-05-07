@@ -23,15 +23,15 @@ namespace SOUPI.Handlers
             _httpClient = httpClient;
         }
 
-        public async Task<IEnumerable<NotificationDisplayDto>> GetByReceiverId(Guid receiverId)
+        public async Task<IEnumerable<NotificationDisplayDto>> GetByReceiverId(Guid receiverId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByReceiverIdUrl}{receiverId}");
+                var response = await _httpClient.GetAsync($"{getByReceiverIdUrl}{receiverId}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var NotificationDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<NotificationDisplayDto>>(newContent, new JsonSerializerOptions
                 {
@@ -47,15 +47,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<NotificationDto> Create(NotificationDto NotificationDto)
+        public async Task<NotificationDto> Create(NotificationDto NotificationDto, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(NotificationDto));
+                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(NotificationDto), ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var newNotificationDto = System.Text.Json.JsonSerializer.Deserialize<NotificationDto>(newContent, new JsonSerializerOptions
                 {
@@ -71,15 +71,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<NotificationDto> AcceptInvite(Guid notificationId)
+        public async Task<NotificationDto> AcceptInvite(Guid notificationId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{acceptInviteUrl}{notificationId}");
+                var response = await _httpClient.GetAsync($"{acceptInviteUrl}{notificationId}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct); 
 
                 var notificationDto = System.Text.Json.JsonSerializer.Deserialize<NotificationDto>(newContent, new JsonSerializerOptions
                 {
@@ -95,15 +95,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<NotificationDto> MarkAsViewed(Guid notificationId)
+        public async Task<NotificationDto> MarkAsViewed(Guid notificationId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{markAsViewedUrl}{notificationId}");
+                var response = await _httpClient.GetAsync($"{markAsViewedUrl}{notificationId}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var notificationDto = System.Text.Json.JsonSerializer.Deserialize<NotificationDto>(newContent, new JsonSerializerOptions
                 {

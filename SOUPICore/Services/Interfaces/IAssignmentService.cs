@@ -5,18 +5,18 @@ namespace SOUPICore.Services.Interfaces
 {
     public interface IAssignmentService
     {
-        public Task<AssignmentDisplayDto> GetById(Guid assignmentId);
+        public Task<AssignmentDisplayDto> GetById(Guid assignmentId, CancellationToken ct = default);
 
-        public Task<IEnumerable<AssignmentDisplayDto>> GetByProjectId(Guid projectId); 
+        public Task<IEnumerable<AssignmentDisplayDto>> GetByProjectId(Guid projectId, CancellationToken ct = default); 
 
-        public Task<IEnumerable<AssignmentDisplayDto>> GetByJobId(Guid jobId); 
+        public Task<IEnumerable<AssignmentDisplayDto>> GetByJobId(Guid jobId, CancellationToken ct = default); 
 
-        public Task<IEnumerable<AssignmentDisplayDto>> GetByUserId(Guid userId); 
+        public Task<IEnumerable<AssignmentDisplayDto>> GetByUserId(Guid userId, CancellationToken ct = default); 
 
-        public Task<AssignmentDto> Create(AssignmentDto newAssignmentDto); 
+        public Task<AssignmentDto> Create(AssignmentDto newAssignmentDto, CancellationToken ct = default); 
 
-        public Task<AssignmentDto> UpdateContent(AssignmentDto updatedAssignmentDto);
+        public Task<AssignmentDto> UpdateContent(AssignmentDto updatedAssignmentDto, CancellationToken ct = default);
 
-        public Task Delete(Guid assignmentId);
+        public Task Delete(Guid assignmentId, CancellationToken ct = default);
     }
 }

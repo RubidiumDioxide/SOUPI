@@ -19,11 +19,11 @@ namespace SOUPICore.Services
             _context = context;
         }
 
-        public async Task<TeamMemberDisplayDto> GetById(Guid teamMemberId)
+        public async Task<TeamMemberDisplayDto> GetById(Guid teamMemberId, CancellationToken ct = default)
         {
             try
             {
-                var teamMember = await _context.TeamMembers.FindAsync(teamMemberId); 
+                var teamMember = await _context.TeamMembers.FindAsync([teamMemberId], cancellationToken: ct); 
 
                 if(teamMember == null)
                 {
@@ -39,12 +39,12 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<IEnumerable<TeamMemberDisplayDto>> GetByJobId(Guid jobId)
+        public async Task<IEnumerable<TeamMemberDisplayDto>> GetByJobId(Guid jobId, CancellationToken ct = default)
         {
             try
             {
-                var job = await _context.Jobs.FindAsync(jobId); 
-                
+                var job = await _context.Jobs.FindAsync([jobId], cancellationToken: ct); 
+
                 if(job == null)
                 {
                     throw new BadRequestException(ServiceErrorMessages.JobNotFound);
@@ -52,7 +52,7 @@ namespace SOUPICore.Services
 
                 var teamMembers = await _context.TeamMembers
                     .Where(tm => tm.ProjectId == job.ProjectId)
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 return teamMembers.Select(tm => new TeamMemberDisplayDto(tm));
             }
@@ -63,11 +63,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<IEnumerable<TeamMemberDisplayDto>> GetByProjectId(Guid projectId)
+        public async Task<IEnumerable<TeamMemberDisplayDto>> GetByProjectId(Guid projectId, CancellationToken ct = default)
         {
             try
             {
-                var project = await _context.Projects.FindAsync(projectId);
+                var project = await _context.Projects.FindAsync([projectId], cancellationToken: ct);
 
                 if (project == null)
                 {
@@ -76,7 +76,7 @@ namespace SOUPICore.Services
 
                 var teamMembers = await _context.TeamMembers
                     .Where(tm => tm.ProjectId == projectId)
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 return teamMembers.Select(tm => new TeamMemberDisplayDto(tm)); 
             }
@@ -87,11 +87,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<TeamMemberDto> Update(TeamMemberDto teamMemberDto)
+        public async Task<TeamMemberDto> Update(TeamMemberDto teamMemberDto, CancellationToken ct = default)
         {
             try
             {
-                var existingTeamMember = await _context.TeamMembers.FirstOrDefaultAsync(tm => tm.UserId == teamMemberDto.UserId && tm.ProjectId == teamMemberDto.ProjectId);
+                var existingTeamMember = await _context.TeamMembers.FirstOrDefaultAsync(tm => tm.UserId == teamMemberDto.UserId && tm.ProjectId == teamMemberDto.ProjectId, ct);
 
                 if (existingTeamMember == null)
                 {
@@ -101,7 +101,7 @@ namespace SOUPICore.Services
                 existingTeamMember.Role = teamMemberDto.Role;
                 existingTeamMember.SupervisorId = teamMemberDto.SupervisorId; 
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
 
                 return new TeamMemberDto(existingTeamMember); 
             }
@@ -112,11 +112,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task DeleteById(Guid id)
+        public async Task DeleteById(Guid id, CancellationToken ct = default)
         {
             try
             {
-                var teamMember = await _context.TeamMembers.FindAsync(id); 
+                var teamMember = await _context.TeamMembers.FindAsync([id], cancellationToken: ct); 
 
                 if(teamMember == null)
                 {
@@ -140,8 +140,8 @@ namespace SOUPICore.Services
                 _context.Assignments.RemoveRange(createdAssignments);
                 _context.Jobs.RemoveRange(jobs);
                 _context.TeamMembers.Remove(teamMember);
-                
-                await _context.SaveChangesAsync(); 
+
+                await _context.SaveChangesAsync(ct); 
             }
             catch(Exception ex)
             {

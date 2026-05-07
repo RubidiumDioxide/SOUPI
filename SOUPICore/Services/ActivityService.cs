@@ -27,7 +27,7 @@ namespace SOUPICore.Services
         /// </summary>
         /// <param name="jobsCommits"></param>
         /// <returns></returns>
-        public async Task CreateSet(ILookup<string, GitHubPushPayload.CommitInfo> jobsCommits)
+        public async Task CreateSet(ILookup<string, GitHubPushPayload.CommitInfo> jobsCommits, CancellationToken ct = default)
         {
             bool hasCorruptedEntries = false;
             List<Activity> activitiesToAdd = new List<Activity>();
@@ -37,7 +37,7 @@ namespace SOUPICore.Services
                 foreach (var jobCommits in jobsCommits)
                 {
                     // search for job by it's title mentioned in commit 
-                    var job = await _context.Jobs.FirstOrDefaultAsync(j => j.Title.ToLower() == jobCommits.Key.ToLower());
+                    var job = await _context.Jobs.FirstOrDefaultAsync(j => j.Title.ToLower() == jobCommits.Key.ToLower(), ct);
 
                     if (job == null)
                     {
@@ -56,7 +56,7 @@ namespace SOUPICore.Services
                         }
 
                         // search for teamMember by login and job.ProjectId 
-                        var teamMember = await _context.TeamMembers.FirstOrDefaultAsync(tm => tm.ProjectId == job.ProjectId && tm.User.Login.ToLower() == commit.Author.Username.ToLower());
+                        var teamMember = await _context.TeamMembers.FirstOrDefaultAsync(tm => tm.ProjectId == job.ProjectId && tm.User.Login.ToLower() == commit.Author.Username.ToLower(), ct);
 
                         if (teamMember == null)
                         {
@@ -64,7 +64,7 @@ namespace SOUPICore.Services
                             continue;
                         }
 
-                        var assignment = await _context.Assignments.FirstOrDefaultAsync(a => a.TeamMemberId == teamMember.Id && a.JobId == job.Id);
+                        var assignment = await _context.Assignments.FirstOrDefaultAsync(a => a.TeamMemberId == teamMember.Id && a.JobId == job.Id, ct);
 
                         if (assignment == null)
                         {
@@ -74,8 +74,8 @@ namespace SOUPICore.Services
                                 JobId = job.Id
                             };
 
-                            await _context.Assignments.AddAsync(assignment);
-                            await _context.SaveChangesAsync();
+                            await _context.Assignments.AddAsync(assignment, ct);
+                            await _context.SaveChangesAsync(ct);
                         }
 
                         var activity = new Activity()
@@ -89,8 +89,8 @@ namespace SOUPICore.Services
                     }
                 }
 
-                await _context.AddRangeAsync(activitiesToAdd);
-                await _context.SaveChangesAsync();
+                await _context.AddRangeAsync(activitiesToAdd, ct);
+                await _context.SaveChangesAsync(ct);
 
                 if (hasCorruptedEntries)
                 {
@@ -104,18 +104,18 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<IEnumerable<ActivityDisplayDto>> GetByAssignmentId(Guid assignmentId)
+        public async Task<IEnumerable<ActivityDisplayDto>> GetByAssignmentId(Guid assignmentId, CancellationToken ct = default)
         {
             try
             {
-                var assignment = await _context.Assignments.FindAsync(assignmentId);
+                var assignment = await _context.Assignments.FindAsync([assignmentId], cancellationToken: ct);
 
                 if (assignment == null)
                 {
                     throw new BadRequestException(ServiceErrorMessages.AssignmentNotFound);
                 }
 
-                var activities = await _context.Activities.Where(a => a.AssignmentId == assignment.Id).ToListAsync();  
+                var activities = await _context.Activities.Where(a => a.AssignmentId == assignment.Id).ToListAsync(ct);  
 
                 return activities.Select(a => new ActivityDisplayDto(a));
             }
@@ -126,18 +126,18 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<IEnumerable<ActivityDisplayDto>> GetByTeamMemberId(Guid teamMemberId)
+        public async Task<IEnumerable<ActivityDisplayDto>> GetByTeamMemberId(Guid teamMemberId, CancellationToken ct = default)
         {
             try
             {
-                var teamMember = await _context.TeamMembers.FindAsync(teamMemberId);
+                var teamMember = await _context.TeamMembers.FindAsync([teamMemberId], cancellationToken: ct);
 
                 if (teamMember == null)
                 {
                     throw new BadRequestException(ServiceErrorMessages.TeamMemberNotFound);
                 }
 
-                var activities = await _context.Activities.Where(a => a.Assignment.TeamMemberId == teamMemberId).ToListAsync();
+                var activities = await _context.Activities.Where(a => a.Assignment.TeamMemberId == teamMemberId).ToListAsync(ct);
 
                 return activities.Select(a => new ActivityDisplayDto(a));
             }
@@ -148,18 +148,18 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<IEnumerable<ActivityDisplayDto>> GetByJobId(Guid jobId)
+        public async Task<IEnumerable<ActivityDisplayDto>> GetByJobId(Guid jobId, CancellationToken ct = default)
         {
             try
             {
-                var job = await _context.Jobs.FindAsync(jobId);
+                var job = await _context.Jobs.FindAsync([jobId], cancellationToken: ct);
 
                 if (job == null)
                 {
                     throw new BadRequestException(ServiceErrorMessages.JobNotFound);
                 }
 
-                var activities = await _context.Activities.Where(a => a.Assignment.JobId == jobId).ToListAsync();
+                var activities = await _context.Activities.Where(a => a.Assignment.JobId == jobId).ToListAsync(ct);
 
                 return activities.Select(a => new ActivityDisplayDto(a));
             }
@@ -170,18 +170,18 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<IEnumerable<ActivityDisplayDto>> GetByProjectId(Guid projectId)
+        public async Task<IEnumerable<ActivityDisplayDto>> GetByProjectId(Guid projectId, CancellationToken ct = default)
         {
             try
             {
-                var project = await _context.Projects.FindAsync(projectId);
+                var project = await _context.Projects.FindAsync([projectId], cancellationToken: ct);
 
                 if (project == null)
                 {
                     throw new BadRequestException(ServiceErrorMessages.ProjectNotFound);
                 }
 
-                var activities = await _context.Activities.Where(a => a.Assignment.Job.ProjectId == projectId).ToListAsync();
+                var activities = await _context.Activities.Where(a => a.Assignment.Job.ProjectId == projectId).ToListAsync(ct);
 
                 return activities.Select(a => new ActivityDisplayDto(a));
             }
@@ -192,7 +192,7 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<ActivityDto> Create(ActivityDto newActivityDto)
+        public async Task<ActivityDto> Create(ActivityDto newActivityDto, CancellationToken ct = default)
         {
             try
             {
@@ -203,10 +203,10 @@ namespace SOUPICore.Services
                     Comment = newActivityDto.Comment
                 };
 
-                await CheckIfValidActivity(newActivity);
+                await CheckIfValidActivity(newActivity, ct);
 
-                await _context.Activities.AddAsync(newActivity);
-                await _context.SaveChangesAsync();
+                await _context.Activities.AddAsync(newActivity, ct);
+                await _context.SaveChangesAsync(ct);
 
                 return new ActivityDto(newActivity); 
             }
@@ -217,11 +217,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<ActivityDto> UpdateContent(ActivityDto updatedActivityDto)
+        public async Task<ActivityDto> UpdateContent(ActivityDto updatedActivityDto, CancellationToken ct = default)
         {
             try
             {
-                var activity = await _context.Activities.FindAsync(updatedActivityDto.Id);
+                var activity = await _context.Activities.FindAsync([updatedActivityDto.Id], cancellationToken: ct);
 
                 if (activity == null)
                 {
@@ -230,7 +230,7 @@ namespace SOUPICore.Services
 
                 activity.CopyContentProperties(updatedActivityDto);
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
 
                 return new ActivityDto(activity); 
             }
@@ -241,11 +241,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task Delete(Guid activityId)
+        public async Task Delete(Guid activityId, CancellationToken ct = default)
         {
             try
             {
-                var activity = await _context.Activities.FindAsync(activityId); 
+                var activity = await _context.Activities.FindAsync([activityId], cancellationToken: ct); 
 
                 if (activity == null)
                 {
@@ -253,7 +253,7 @@ namespace SOUPICore.Services
                 }
 
                 _context.Activities.Remove(activity);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
             }
             catch (Exception ex)
             {
@@ -262,9 +262,9 @@ namespace SOUPICore.Services
             }
         }
         
-        private async Task CheckIfValidActivity(Activity activity)
+        private async Task CheckIfValidActivity(Activity activity, CancellationToken ct = default)
         {
-            var assignment = await _context.Assignments.FindAsync(activity.AssignmentId); 
+            var assignment = await _context.Assignments.FindAsync([activity.AssignmentId], cancellationToken: ct); 
             
             if (assignment == null)
             {
@@ -275,7 +275,7 @@ namespace SOUPICore.Services
             // test extensively 
             var existingActivity = await _context.Activities.FirstOrDefaultAsync(a => 
                 a.AssignmentId == activity.AssignmentId 
-                && ((activity.Commit != null && a.Commit == activity.Commit) || a.Comment == activity.Comment));
+                && ((activity.Commit != null && a.Commit == activity.Commit) || a.Comment == activity.Comment), ct);
 
             if (existingActivity != null)
             {

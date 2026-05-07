@@ -26,15 +26,15 @@ namespace SOUPI.Handlers
             _httpClient = httpClient;
         }
 
-        public async Task<IEnumerable<ProjectDisplayDto>> GetByUserId(Guid userId)
+        public async Task<IEnumerable<ProjectDisplayDto>> GetByUserId(Guid userId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByUserIdUrl}{userId}");
+                var response = await _httpClient.GetAsync($"{getByUserIdUrl}{userId}", ct);
 
                 response.EnsureSuccessStatusCode(); 
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var projectDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<ProjectDisplayDto>>(newContent, new JsonSerializerOptions
                 {
@@ -50,11 +50,11 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<ProjectDisplayDto?> GetById(Guid id)
+        public async Task<ProjectDisplayDto?> GetById(Guid id, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByIdUrl}{id}");
+                var response = await _httpClient.GetAsync($"{getByIdUrl}{id}", ct);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -66,7 +66,7 @@ namespace SOUPI.Handlers
 
                 response.EnsureSuccessStatusCode(); 
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var projectDto = System.Text.Json.JsonSerializer.Deserialize<ProjectDisplayDto>(newContent, new JsonSerializerOptions
                 {
@@ -82,15 +82,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<ProjectDto> Create(ProjectDto projectDto)
+        public async Task<ProjectDto> Create(ProjectDto projectDto, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(projectDto));
+                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(projectDto), ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var newProjectDto = System.Text.Json.JsonSerializer.Deserialize<ProjectDto>(newContent, new JsonSerializerOptions
                 {
@@ -106,17 +106,17 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<ProjectDto> Update(ProjectDto updatedProjectDto)
+        public async Task<ProjectDto> Update(ProjectDto updatedProjectDto, CancellationToken ct = default)
         {
             try
             {
                 var content = JsonContent.Create(updatedProjectDto);
 
-                var response = await _httpClient.PostAsync(updateUrl, content);
+                var response = await _httpClient.PostAsync(updateUrl, content, ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var result = System.Text.Json.JsonSerializer.Deserialize<ProjectDto>(newContent, new JsonSerializerOptions
                 {
@@ -132,17 +132,17 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<ProjectDto> UpdateCreator(ProjectDto updatedProjectDto)
+        public async Task<ProjectDto> UpdateCreator(ProjectDto updatedProjectDto, CancellationToken ct = default)
         {
             try
             {
                 var content = JsonContent.Create(updatedProjectDto);
 
-                var response = await _httpClient.PostAsync(updateCreatorUrl, content);
+                var response = await _httpClient.PostAsync(updateCreatorUrl, content, ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var result = System.Text.Json.JsonSerializer.Deserialize<ProjectDto>(newContent, new JsonSerializerOptions
                 {
@@ -158,15 +158,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<ProjectDto> SetGitHubRepository(Guid projectId, string repositoryName)
+        public async Task<ProjectDto> SetGitHubRepository(Guid projectId, string repositoryName, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{setGitHubRepositoryUrl}{projectId}/{repositoryName}");
+                var response = await _httpClient.GetAsync($"{setGitHubRepositoryUrl}{projectId}/{repositoryName}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var result = System.Text.Json.JsonSerializer.Deserialize<ProjectDto>(newContent, new JsonSerializerOptions
                 {
@@ -182,11 +182,11 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task Delete(Guid projectId)
+        public async Task Delete(Guid projectId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{deleteUrl}{projectId}");
+                var response = await _httpClient.GetAsync($"{deleteUrl}{projectId}", ct);
 
                 response.EnsureSuccessStatusCode();
             }

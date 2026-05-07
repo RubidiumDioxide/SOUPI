@@ -23,15 +23,15 @@ namespace SOUPI.Handlers
             _httpClient = httpClient; 
         }
 
-        public async Task<UserDto> Create(UserDto userDto)
+        public async Task<UserDto> Create(UserDto userDto, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(userDto));
+                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(userDto), ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var newUserDto = System.Text.Json.JsonSerializer.Deserialize<UserDto>(newContent, new JsonSerializerOptions
                 {
@@ -47,15 +47,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<IEnumerable<UserDto>> Get()
+        public async Task<IEnumerable<UserDto>> Get(CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getUrl}");
+                var response = await _httpClient.GetAsync($"{getUrl}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var newUserDto = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<UserDto>>(newContent, new JsonSerializerOptions
                 {
@@ -71,11 +71,11 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<UserDto?> GetById(Guid id)
+        public async Task<UserDto?> GetById(Guid id, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByIdUrl}{id}");
+                var response = await _httpClient.GetAsync($"{getByIdUrl}{id}", ct);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -87,7 +87,7 @@ namespace SOUPI.Handlers
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var newUserDto = System.Text.Json.JsonSerializer.Deserialize<UserDto>(newContent, new JsonSerializerOptions
                 {
@@ -103,11 +103,11 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<UserDto?> GetByLogin(string login)
+        public async Task<UserDto?> GetByLogin(string login, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByLoginUrl}{login}");
+                var response = await _httpClient.GetAsync($"{getByLoginUrl}{login}", ct);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -119,7 +119,7 @@ namespace SOUPI.Handlers
 
                 response.EnsureSuccessStatusCode(); 
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var newUserDto = System.Text.Json.JsonSerializer.Deserialize<UserDto>(newContent, new JsonSerializerOptions
                 {

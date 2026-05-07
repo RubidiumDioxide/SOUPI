@@ -5,10 +5,10 @@ namespace SOUPICore.Services.Interfaces
 {
     public interface IJobSequenceService
     {
-        public Task<IEnumerable<JobSequenceDisplayDto>> GetByProjectId(Guid projectId); 
-        
-        public Task<JobSequenceDto> Create(Guid firstJobId, Guid secondJobId); 
+        public Task<IEnumerable<JobSequenceDisplayDto>> GetByProjectId(Guid projectId, CancellationToken ct = default); 
 
-        public Task Delete(Guid jobSequenceId);
+        public Task<JobSequenceDto> Create(Guid firstJobId, Guid secondJobId, CancellationToken ct = default); 
+
+        public Task Delete(Guid jobSequenceId, CancellationToken ct = default);
     }
 }

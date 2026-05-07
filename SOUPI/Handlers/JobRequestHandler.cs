@@ -29,15 +29,15 @@ namespace SOUPI.Handlers
             _httpClient = httpClient;
         }
 
-        public async Task<JobDisplayDto> GetDisplayById(Guid jobId)
+        public async Task<JobDisplayDto> GetDisplayById(Guid jobId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getDisplayByIdUrl}{jobId}");
+                var response = await _httpClient.GetAsync($"{getDisplayByIdUrl}{jobId}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct); 
 
                 var jobDto = System.Text.Json.JsonSerializer.Deserialize<JobDisplayDto>(newContent, new JsonSerializerOptions
                 {
@@ -53,15 +53,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<IEnumerable<JobDisplayDto>> GetDisplayByProjectId(Guid projectId)
+        public async Task<IEnumerable<JobDisplayDto>> GetDisplayByProjectId(Guid projectId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getDisplayByProjectIdUrl}{projectId}");
+                var response = await _httpClient.GetAsync($"{getDisplayByProjectIdUrl}{projectId}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var jobDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<JobDisplayDto>>(newContent, new JsonSerializerOptions
                 {
@@ -77,15 +77,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<IEnumerable<JobDisplayDto>> GetDisplayByProjectIdParentId(Guid projectId, Guid? parentJobId)
+        public async Task<IEnumerable<JobDisplayDto>> GetDisplayByProjectIdParentId(Guid projectId, Guid? parentJobId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getDisplayByProjectIdParentIdUrl}{projectId}/{parentJobId}"); 
+                var response = await _httpClient.GetAsync($"{getDisplayByProjectIdParentIdUrl}{projectId}/{parentJobId}", ct); 
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var jobDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<JobDisplayDto>>(newContent, new JsonSerializerOptions
                 {
@@ -101,15 +101,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<IEnumerable<JobDisplayDto>> GetDisplayByUserId(Guid userId)
+        public async Task<IEnumerable<JobDisplayDto>> GetDisplayByUserId(Guid userId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getDisplayByUserIdUrl}{userId}");
+                var response = await _httpClient.GetAsync($"{getDisplayByUserIdUrl}{userId}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var jobDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<JobDisplayDto>>(newContent, new JsonSerializerOptions
                 {
@@ -125,15 +125,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<JobDto> GetById(Guid jobId)
+        public async Task<JobDto> GetById(Guid jobId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByIdUrl}{jobId}");
+                var response = await _httpClient.GetAsync($"{getByIdUrl}{jobId}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var jobDto = System.Text.Json.JsonSerializer.Deserialize<JobDto>(newContent, new JsonSerializerOptions
                 {
@@ -149,15 +149,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<IEnumerable<JobDto>> GetByProjectId(Guid projectId)
+        public async Task<IEnumerable<JobDto>> GetByProjectId(Guid projectId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByProjectIdUrl}{projectId}");
+                var response = await _httpClient.GetAsync($"{getByProjectIdUrl}{projectId}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var jobDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<JobDto>>(newContent, new JsonSerializerOptions
                 {
@@ -173,15 +173,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<IEnumerable<JobDto>> GetByProjectIdParentId(Guid projectId, Guid? parentJobId)
+        public async Task<IEnumerable<JobDto>> GetByProjectIdParentId(Guid projectId, Guid? parentJobId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByProjectIdParentIdUrl}{projectId}/{parentJobId}");
+                var response = await _httpClient.GetAsync($"{getByProjectIdParentIdUrl}{projectId}/{parentJobId}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var jobDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<JobDto>>(newContent, new JsonSerializerOptions
                 {
@@ -197,15 +197,15 @@ namespace SOUPI.Handlers
             }
         }   
 
-        public async Task<JobDto> Create(JobDto jobDto)
+        public async Task<JobDto> Create(JobDto jobDto, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(jobDto));
+                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(jobDto), ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var newJobDto = System.Text.Json.JsonSerializer.Deserialize<JobDto>(newContent, new JsonSerializerOptions
                 {
@@ -221,17 +221,17 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<JobDto> UpdateContent(JobDto updatedJobDto)
+        public async Task<JobDto> UpdateContent(JobDto updatedJobDto, CancellationToken ct = default)
         {
             try
             {
                 var content = JsonContent.Create(updatedJobDto);
 
-                var response = await _httpClient.PostAsync(updateContentUrl, content);
+                var response = await _httpClient.PostAsync(updateContentUrl, content, ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var result = System.Text.Json.JsonSerializer.Deserialize<JobDto>(newContent, new JsonSerializerOptions
                 {
@@ -247,16 +247,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<JobDto> UpdateParent(Guid jobId, Guid? newParentJobId)
+        public async Task<JobDto> UpdateParent(Guid jobId, Guid? newParentJobId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync(
-                    ((newParentJobId == null) ? $"{updateParentUrl}{jobId}" : $"{updateParentUrl}{jobId}/{newParentJobId}"));
+                var response = await _httpClient.GetAsync(((newParentJobId == null) ? $"{updateParentUrl}{jobId}" : $"{updateParentUrl}{jobId}/{newParentJobId}"), ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var result = System.Text.Json.JsonSerializer.Deserialize<JobDto>(newContent, new JsonSerializerOptions
                 {
@@ -272,11 +271,11 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task Delete(Guid jobId, bool preserveChildren)
+        public async Task Delete(Guid jobId, bool preserveChildren, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{deleteUrl}{jobId}/{preserveChildren}");
+                var response = await _httpClient.GetAsync($"{deleteUrl}{jobId}/{preserveChildren}", ct);
 
                 response.EnsureSuccessStatusCode();
             }

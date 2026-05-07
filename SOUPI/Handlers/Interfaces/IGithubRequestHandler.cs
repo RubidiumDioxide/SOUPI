@@ -6,24 +6,24 @@ namespace SOUPI.Handlers.Interfaces
 {
     public interface IGitHubRequestHandler
     {
-        public Task<bool> IsAppInstalled(); 
+        public Task<bool> IsAppInstalled(CancellationToken ct = default); 
 
-        public Task<GitHubUserDto> GetCurrentUser();
+        public Task<GitHubUserDto> GetCurrentUser(CancellationToken ct = default);
 
-        public Task<GitHubUserDto> GetUserByLogin(string login);
+        public Task<GitHubUserDto> GetUserByLogin(string login, CancellationToken ct = default);
 
-        public Task<IEnumerable<GitHubUserDto>> GetUsersByLogins(IEnumerable<string> logins);
+        public Task<IEnumerable<GitHubUserDto>> GetUsersByLogins(IEnumerable<string> logins, CancellationToken ct = default);
 
-        public Task<GitHubCommitDto> GetCommitByHash(ProjectDisplayDto project, string hash); 
+        public Task<GitHubCommitDto> GetCommitByHash(ProjectDisplayDto project, string hash, CancellationToken ct = default); 
 
-        public Task<IEnumerable<GitHubRepositoryDto>> GetRepositoriesForCurrentUser();
+        public Task<IEnumerable<GitHubRepositoryDto>> GetRepositoriesForCurrentUser(CancellationToken ct = default);
 
-        public Task<GitHubRepositoryDto> GetRepository(ProjectDisplayDto project);
+        public Task<GitHubRepositoryDto> GetRepository(ProjectDisplayDto project, CancellationToken ct = default);
 
-        public Task<bool> DoesHookExist(ProjectDisplayDto project); 
+        public Task<bool> DoesHookExist(ProjectDisplayDto project, CancellationToken ct = default); 
 
-        public Task CreateHook(ProjectDisplayDto project);
+        public Task CreateHook(ProjectDisplayDto project, CancellationToken ct = default);
 
-        public Task DeleteHook(ProjectDisplayDto project);
+        public Task DeleteHook(ProjectDisplayDto project, CancellationToken ct = default);
     }
 }

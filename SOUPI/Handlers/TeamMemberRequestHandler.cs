@@ -23,15 +23,15 @@ namespace SOUPI.Handlers
             _httpClient = httpClient;
         }
 
-        public async Task<TeamMemberDisplayDto> GetById(Guid teamMemberId)
+        public async Task<TeamMemberDisplayDto> GetById(Guid teamMemberId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByIdUrl}{teamMemberId}");
+                var response = await _httpClient.GetAsync($"{getByIdUrl}{teamMemberId}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var teamMemberDto = System.Text.Json.JsonSerializer.Deserialize<TeamMemberDisplayDto>(newContent, new JsonSerializerOptions
                 {
@@ -47,15 +47,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<IEnumerable<TeamMemberDisplayDto>> GetByProjectId(Guid projectId)
+        public async Task<IEnumerable<TeamMemberDisplayDto>> GetByProjectId(Guid projectId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByProjectIdUrl}{projectId}");
+                var response = await _httpClient.GetAsync($"{getByProjectIdUrl}{projectId}", ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var TeamMemberDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<TeamMemberDisplayDto>>(newContent, new JsonSerializerOptions
                 {
@@ -71,15 +71,15 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<TeamMemberDto> Create(TeamMemberDto TeamMemberDto)
+        public async Task<TeamMemberDto> Create(TeamMemberDto TeamMemberDto, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(TeamMemberDto));
+                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(TeamMemberDto), ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var newTeamMemberDto = System.Text.Json.JsonSerializer.Deserialize<TeamMemberDto>(newContent, new JsonSerializerOptions
                 {
@@ -95,17 +95,17 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<TeamMemberDto> Update(TeamMemberDto updatedTeamMemberDto)
+        public async Task<TeamMemberDto> Update(TeamMemberDto updatedTeamMemberDto, CancellationToken ct = default)
         {
             try
             {
                 var content = JsonContent.Create(updatedTeamMemberDto);
 
-                var response = await _httpClient.PostAsync(updateUrl, content);
+                var response = await _httpClient.PostAsync(updateUrl, content, ct);
 
                 response.EnsureSuccessStatusCode();
 
-                var newContent = await response.Content.ReadAsStringAsync();
+                var newContent = await response.Content.ReadAsStringAsync(ct);
 
                 var result = System.Text.Json.JsonSerializer.Deserialize<TeamMemberDto>(newContent, new JsonSerializerOptions
                 {
@@ -121,11 +121,11 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task Delete(Guid id)
+        public async Task Delete(Guid id, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.DeleteAsync($"{deleteUrl}{id}");
+                var response = await _httpClient.DeleteAsync($"{deleteUrl}{id}", ct);
 
                 response.EnsureSuccessStatusCode();
             }

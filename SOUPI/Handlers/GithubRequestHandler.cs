@@ -26,7 +26,7 @@ namespace SOUPI.Handlers
             _devtunnelUrl = devtunnelUrl;
         }
 
-        public async Task<bool> IsAppInstalled()
+        public async Task<bool> IsAppInstalled(CancellationToken ct = default)
         {
             try
             {
@@ -50,7 +50,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<GitHubUserDto> GetCurrentUser()
+        public async Task<GitHubUserDto> GetCurrentUser(CancellationToken ct = default)
         {
             try
             {
@@ -74,7 +74,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<GitHubUserDto> GetUserByLogin(string login)
+        public async Task<GitHubUserDto> GetUserByLogin(string login, CancellationToken ct = default)
         {
             try
             {
@@ -98,7 +98,7 @@ namespace SOUPI.Handlers
             }
         } 
 
-        public async Task<IEnumerable<GitHubUserDto>> GetUsersByLogins(IEnumerable<string> logins)
+        public async Task<IEnumerable<GitHubUserDto>> GetUsersByLogins(IEnumerable<string> logins, CancellationToken ct = default)
         {
             try
             {
@@ -123,7 +123,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<GitHubCommitDto> GetCommitByHash(ProjectDisplayDto project, string hash)
+        public async Task<GitHubCommitDto> GetCommitByHash(ProjectDisplayDto project, string hash, CancellationToken ct = default)
         {
             try
             {
@@ -147,7 +147,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<IEnumerable<GitHubRepositoryDto>> GetRepositoriesForCurrentUser()
+        public async Task<IEnumerable<GitHubRepositoryDto>> GetRepositoriesForCurrentUser(CancellationToken ct = default)
         {
             try
             {
@@ -171,7 +171,7 @@ namespace SOUPI.Handlers
             }
         }
         
-        public async Task<GitHubRepositoryDto> GetRepository(ProjectDisplayDto project)
+        public async Task<GitHubRepositoryDto> GetRepository(ProjectDisplayDto project, CancellationToken ct = default)
         {
             try
             {
@@ -195,7 +195,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<bool> DoesHookExist(ProjectDisplayDto project)
+        public async Task<bool> DoesHookExist(ProjectDisplayDto project, CancellationToken ct = default)
         {
             try
             {
@@ -246,7 +246,7 @@ namespace SOUPI.Handlers
         /// </param>
         /// <returns></returns>
         /// <exception cref="SoupiException"></exception>
-        public async Task CreateHook(ProjectDisplayDto project) 
+        public async Task CreateHook(ProjectDisplayDto project, CancellationToken ct = default) 
         {
             try
             {
@@ -308,7 +308,7 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task DeleteHook(ProjectDisplayDto project)
+        public async Task DeleteHook(ProjectDisplayDto project, CancellationToken ct = default)
         {
             try
             {

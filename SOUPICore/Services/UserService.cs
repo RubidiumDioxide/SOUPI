@@ -19,11 +19,11 @@ namespace SOUPICore.Services
             _context = context; 
         }
 
-        public async Task<IEnumerable<UserDto>> Get()
+        public async Task<IEnumerable<UserDto>> Get(CancellationToken ct = default)
         {
             try
             { 
-                return await _context.Users.Select(u => new UserDto(u)).ToListAsync(); 
+                return await _context.Users.Select(u => new UserDto(u)).ToListAsync(ct); 
             }
             catch (Exception ex)
             {
@@ -32,11 +32,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<UserDto> GetById(Guid id)
+        public async Task<UserDto> GetById(Guid id, CancellationToken ct = default)
         {
             try
             {
-                var user = await _context.Users.FindAsync(id);
+                var user = await _context.Users.FindAsync([id], cancellationToken: ct);
 
                 if (user == null)
                 {
@@ -52,13 +52,13 @@ namespace SOUPICore.Services
                 _logger.LogError(ex.Message);
                 throw;
             }
-        } 
+        }
 
-        public async Task<UserDto> GetByLogin(string login)
+        public async Task<UserDto> GetByLogin(string login, CancellationToken ct = default)
         {
             try
             {
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.Login == login);
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Login == login, ct);
 
                 if (user == null)
                 {
@@ -76,7 +76,7 @@ namespace SOUPICore.Services
             } 
         }
 
-        public async Task<UserDto> Create(UserDto newUserDto)
+        public async Task<UserDto> Create(UserDto newUserDto, CancellationToken ct = default)
         {
             try
             {
@@ -85,8 +85,8 @@ namespace SOUPICore.Services
                     Login = newUserDto.Login
                 };
 
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
+                await _context.Users.AddAsync(user, ct);
+                await _context.SaveChangesAsync(ct);
 
                 return new UserDto(user);
             }

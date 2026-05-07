@@ -20,13 +20,13 @@ namespace SOUPICore.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<NotificationDisplayDto>> GetByReceiverId(Guid receiverId)
+        public async Task<IEnumerable<NotificationDisplayDto>> GetByReceiverId(Guid receiverId, CancellationToken ct = default)
         {
             try
             {
                 var notifications = await _context.Notifications
                     .Where(n => n.ReceiverId == receiverId)
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 return notifications.Select(p => new NotificationDisplayDto(p));
             }
@@ -37,7 +37,7 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<NotificationDto> Create(NotificationDto newNotificationDto)
+        public async Task<NotificationDto> Create(NotificationDto newNotificationDto, CancellationToken ct = default)
         {
             try
             {
@@ -52,8 +52,8 @@ namespace SOUPICore.Services
                     HasBeenViewed = false
                 }; 
 
-                await _context.Notifications.AddAsync(newNotification);
-                await _context.SaveChangesAsync(); 
+                await _context.Notifications.AddAsync(newNotification, ct);
+                await _context.SaveChangesAsync(ct); 
 
                 return new NotificationDto(newNotification);
             }
@@ -64,11 +64,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<NotificationDto> AcceptInvite(Guid notificationId)
+        public async Task<NotificationDto> AcceptInvite(Guid notificationId, CancellationToken ct = default)
         {
             try
             {
-                var notification = await _context.Notifications.FindAsync(notificationId);
+                var notification = await _context.Notifications.FindAsync([notificationId], cancellationToken: ct);
 
                 if (notification == null)
                 {
@@ -80,15 +80,15 @@ namespace SOUPICore.Services
                     throw new BadRequestException($"Невозмжоно добавить пользователя в команду проекта, т. к. тип найденного приглашения неверный");
                 }
 
-                var user = await _context.Users.FindAsync(notification.ReceiverId);
-                var project = await _context.Projects.FindAsync(notification.ProjectId);
+                var user = await _context.Users.FindAsync([notification.ReceiverId], cancellationToken: ct);
+                var project = await _context.Projects.FindAsync([notification.ProjectId], cancellationToken: ct);
 
                 if (user == null || project == null)
                 {
                     throw new BadRequestException($"Невозмжоно добавить пользователя в команду проекта, т. к. такого проекта и/или пользователя не существует");
                 }
 
-                var existingTeamMember = await _context.TeamMembers.FirstOrDefaultAsync(tm => tm.UserId == notification.ReceiverId && tm.ProjectId == notification.ProjectId);
+                var existingTeamMember = await _context.TeamMembers.FirstOrDefaultAsync(tm => tm.UserId == notification.ReceiverId && tm.ProjectId == notification.ProjectId, ct);
 
                 if (existingTeamMember != null)
                 {
@@ -96,7 +96,7 @@ namespace SOUPICore.Services
                 }
 
                 var supervisor = project.TeamMembers.FirstOrDefault(tm => tm.UserId == project.CreatorId);
-                
+
                 if (supervisor == null)
                 {
                     throw new BadRequestException($"Ошибка при вычислении руководителя в команде проекта {project.Title} для пользователя {user.Login} ");
@@ -110,11 +110,11 @@ namespace SOUPICore.Services
                     SupervisorId = supervisor.Id
                 };
 
-                await _context.TeamMembers.AddAsync(newTeamMember);
+                await _context.TeamMembers.AddAsync(newTeamMember, ct);
 
                 notification.HasBeenViewed = true;
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
 
                 return new NotificationDto(notification);
             }
@@ -125,11 +125,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<NotificationDto> MarkAsViewed(Guid notificationId)
+        public async Task<NotificationDto> MarkAsViewed(Guid notificationId, CancellationToken ct = default)
         {
             try
             {
-                var notification = await _context.Notifications.FindAsync(notificationId);
+                var notification = await _context.Notifications.FindAsync([notificationId], cancellationToken: ct);
 
                 if (notification == null)
                 {
@@ -139,10 +139,8 @@ namespace SOUPICore.Services
                 if (!notification.HasBeenViewed)
                 {
                     notification.HasBeenViewed = true;
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(ct);
                 }
-
-                await _context.SaveChangesAsync();
 
                 return new NotificationDto(notification);
             }

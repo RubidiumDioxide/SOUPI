@@ -20,7 +20,7 @@ namespace SOUPICore.Services
             _context = context;  
         } 
 
-        public async Task<IEnumerable<ProjectDisplayDto>> GetByUserId(Guid userId)
+        public async Task<IEnumerable<ProjectDisplayDto>> GetByUserId(Guid userId, CancellationToken ct = default)
         {
             try
             {
@@ -28,7 +28,7 @@ namespace SOUPICore.Services
                     .Where(p => p.TeamMembers
                     .Select(tm => tm.UserId)
                     .Contains(userId))
-                    .ToListAsync(); 
+                    .ToListAsync(ct); 
 
                 return projects.Select(p => new ProjectDisplayDto(p)); 
             }
@@ -39,11 +39,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<ProjectDisplayDto> GetById(Guid id)
+        public async Task<ProjectDisplayDto> GetById(Guid id, CancellationToken ct = default)
         {
             try
             {
-                var project = await _context.Projects.FindAsync(id);
+                var project = await _context.Projects.FindAsync([id], cancellationToken: ct);
 
                 if (project == null)
                 {
@@ -61,11 +61,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<ProjectDto> Create(ProjectDto newProjectDto)
+        public async Task<ProjectDto> Create(ProjectDto newProjectDto, CancellationToken ct = default)
         {
             try
             {
-                var projects = await _context.Projects.ToListAsync(); 
+                var projects = await _context.Projects.ToListAsync(ct); 
 
                 if(projects.FirstOrDefault(p => p.Title == newProjectDto.Title) != null)
                 {
@@ -86,7 +86,7 @@ namespace SOUPICore.Services
                     CreatorId = newProjectDto.CreatorId, 
                 };
 
-                await _context.Projects.AddAsync(newProject);
+                await _context.Projects.AddAsync(newProject, ct);
 
                 var newTeamMember = new TeamMember()
                 {
@@ -96,8 +96,8 @@ namespace SOUPICore.Services
                     SupervisorId = null
                 };
 
-                await _context.AddAsync(newTeamMember); 
-                await _context.SaveChangesAsync();
+                await _context.TeamMembers.AddAsync(newTeamMember, ct); 
+                await _context.SaveChangesAsync(ct);
 
                 return new ProjectDto(newProject);
             }
@@ -108,11 +108,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<ProjectDto> Update(ProjectDto updatedProjectDto)
+        public async Task<ProjectDto> Update(ProjectDto updatedProjectDto, CancellationToken ct = default)
         {
             try
             {
-                var project = await _context.Projects.FindAsync(updatedProjectDto.Id);
+                var project = await _context.Projects.FindAsync([updatedProjectDto.Id], cancellationToken: ct);
 
                 if (project == null)
                 {
@@ -122,7 +122,7 @@ namespace SOUPICore.Services
                 project.Title = updatedProjectDto.Title;
                 project.Description = updatedProjectDto.Description; 
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
 
                 return new ProjectDto(project);
             }
@@ -133,11 +133,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<ProjectDto> UpdateCreator(ProjectDto updatedProjectDto)
+        public async Task<ProjectDto> UpdateCreator(ProjectDto updatedProjectDto, CancellationToken ct = default)
         {
             try
             {
-                var project = await _context.Projects.FindAsync(updatedProjectDto.Id);
+                var project = await _context.Projects.FindAsync([updatedProjectDto.Id], cancellationToken: ct);
 
                 if (project == null)
                 {
@@ -145,9 +145,9 @@ namespace SOUPICore.Services
                 }
 
                 var previousCreatorTeamMember = await _context.TeamMembers
-                    .FirstOrDefaultAsync(tm => tm.ProjectId == project.Id && tm.UserId == project.CreatorId);
+                    .FirstOrDefaultAsync(tm => tm.ProjectId == project.Id && tm.UserId == project.CreatorId, ct);
                 var newCreatorTeamMember = await _context.TeamMembers
-                    .FirstOrDefaultAsync(tm => tm.ProjectId == project.Id && tm.UserId == updatedProjectDto.CreatorId);
+                    .FirstOrDefaultAsync(tm => tm.ProjectId == project.Id && tm.UserId == updatedProjectDto.CreatorId, ct);
 
                 if (previousCreatorTeamMember == null || newCreatorTeamMember == null)
                 {
@@ -161,7 +161,7 @@ namespace SOUPICore.Services
                 newCreatorTeamMember.SupervisorId = null; 
                 project.CreatorId = newCreatorTeamMember.UserId; 
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
 
                 return new ProjectDto(project);
             }
@@ -172,7 +172,7 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<ProjectDto> SetGitHubRepository(Guid projectId, string repositoryName)
+        public async Task<ProjectDto> SetGitHubRepository(Guid projectId, string repositoryName, CancellationToken ct = default)
         {
             try
             {
@@ -181,7 +181,7 @@ namespace SOUPICore.Services
                     throw new BadRequestException(ServiceErrorMessages.RepositoryNameNotValid);
                 }
 
-                var project = await _context.Projects.FindAsync(projectId);
+                var project = await _context.Projects.FindAsync([projectId], cancellationToken: ct);
 
                 if (project == null)
                 {
@@ -193,16 +193,16 @@ namespace SOUPICore.Services
                     throw new BadRequestException(ServiceErrorMessages.ProjectAlreadyHasRepository);
                 }
 
-                var projects = await _context.Projects.ToListAsync(); 
+                var projects = await _context.Projects.ToListAsync(ct); 
 
                 if( projects.FirstOrDefault(p => p.GithubRepository == repositoryName) != null)
                 {
                     throw new BadRequestException(ServiceErrorMessages.RepositoryAlreadyLinkedToProject);
                 }
-               
+
                 project.GithubRepository = repositoryName; 
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(ct);
 
                 return new ProjectDto(project);
             }
@@ -213,11 +213,11 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task Delete(Guid id)
+        public async Task Delete(Guid id, CancellationToken ct = default)
         {
             try
             {
-                var project = await _context.Projects.FindAsync(id);
+                var project = await _context.Projects.FindAsync([id], cancellationToken: ct);
 
                 if (project == null)
                 {
@@ -238,7 +238,8 @@ namespace SOUPICore.Services
                 _context.Notifications.RemoveRange(notifications);
                 _context.TeamMembers.RemoveRange(teamMembers);
                 _context.Projects.Remove(project);
-                _context.SaveChanges();
+                
+                await _context.SaveChangesAsync(ct);
             }
             catch (Exception ex)
             {
