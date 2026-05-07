@@ -35,14 +35,6 @@ else
 
         <MudDivider Class="mb-4 mt-8" />
 
-        @* transfer ownership *@
-        <ChangeCreatorForm Creator="@Creator"
-                           Project="@Project"
-                           AvailibleCreators="@availibleCreators" 
-                           ProjectUpdated="ProjectUpdated" />
-
-        <MudDivider Class="mb-4 mt-8" />
-
         @* delete project *@
        <DeleteProjectForm Project="@Project"/>
     </MudContainer>

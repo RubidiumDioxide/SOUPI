@@ -67,11 +67,6 @@
                                           AlignItems="AlignItems.Center"
                                           Justify="Justify.SpaceBetween">
                                     <MudStack Row="true" Spacing="1">
-                                        <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
-                                                       Color="Color.Success"
-                                                       Href=@($"/activity/{context.Id}")
-                                                       Size="Size.Medium" />
-                                        
                                         <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                                        Color="Color.Error"
                                                        OnClick=@(() => DeleteActivity.InvokeAsync(context.Id))
