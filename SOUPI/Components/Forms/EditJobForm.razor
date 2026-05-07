@@ -16,25 +16,29 @@ else
                           For="@(() => Job.Title)"
                           Label="Название задачи"
                           Variant="Variant.Outlined"
-                          Margin="Margin.Normal" />
+                          Margin="Margin.Normal" 
+                          Disabled="IsContentEditable" />
 
             <MudTextField @bind-Value=@Job.Body
                           For="@(() => Job.Body)"
                           Label="Описание задачи"
                           Variant="Variant.Outlined"
                           Lines="3"
-                          Margin="Margin.Normal" />
+                          Margin="Margin.Normal" 
+                          Disabled="IsContentEditable" />
 
             <div class="d-flex gap-4">
                 <MudDatePicker @bind-Date=@startDateTime
                                Label="Дата начала"
                                Variant="Variant.Outlined"
-                               Editable="true" />
+                               Editable="true" 
+                               Disabled="IsContentEditable" />
 
                 <MudDatePicker @bind-Date=@endDateTime
                                Label="Дата завершения"
                                Variant="Variant.Outlined"
-                               Editable="true" />
+                               Editable="true" 
+                               Disabled="IsContentEditable" />
             </div>
 
             <MudSlider @bind-Value="Job.Progress"
@@ -45,16 +49,16 @@ else
             </MudSlider>
 
             <div class="d-flex justify-end mt-4">
-                <MudButton ButtonType="ButtonType.Submit"
-                           Variant="Variant.Filled"
-                           Color="Color.Primary">
-                    Сохранить
-                </MudButton>
                 <MudButton OnClick="ResetForm"
                            Variant="Variant.Text"
                            Color="Color.Default">
                     Сбросить
                 </MudButton> 
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary">
+                    Сохранить
+                </MudButton>
             </div>
         </EditForm>
     </MudContainer>
@@ -70,6 +74,8 @@ else
     public IEnumerable<JobDto>? ProjectJobs { get; set; }
     [Parameter, EditorRequired]
     public EventCallback SelectedJobUpdated { get; set; }
+    [Parameter]
+    public bool IsContentEditable { get; set; } = false; // content = title/description/dates/etc. progress doesnt count since it's required for completion
 
     public JobDto? jobBackup { get; set; } = new(); 
     private DateTime? startDateTime = DateTime.Today;

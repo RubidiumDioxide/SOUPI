@@ -6,6 +6,7 @@ using SOUPIShared.Models;
 using SOUPIShared.Resources;
 using SOUPIShared.Extensions;
 using SOUPIShared.Dtos.SOUPIDtos;
+using MudBlazor.Extensions;
 
 
 namespace SOUPICore.Services
@@ -167,7 +168,11 @@ namespace SOUPICore.Services
                     throw new BadRequestException(ServiceErrorMessages.AssignmentNotFound);
                 }
 
+                var activities = assignment.Activities.ToList(); 
+
+                _context.Activities.RemoveRange(activities); 
                 _context.Assignments.Remove(assignment);
+
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)

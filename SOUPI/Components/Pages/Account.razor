@@ -1,6 +1,4 @@
 ﻿@page "/"
-@inject NavigationManager NavigationManager 
-@inject IUserRequestHandler userRequestHandler 
 @inject ISnackbar Snackbar 
 @attribute [Authorize]
 
@@ -24,7 +22,11 @@
                 <!-- User Name -->
                 <MudText Typo="Typo.h6" Class="text-center">
                     @GitHubUser.Name
-                    <MudIcon Color="Color.Primary" Icon=@Icons.Custom.Brands.GitHub Size="Size.Small" @onclick="GoToGitHubUserProfile"/>
+                    <MudIconButton Color="Color.Primary" 
+                             Icon=@Icons.Custom.Brands.GitHub 
+                             Size="Size.Small" 
+                             Href="@GitHubUser.HtmlUrl" 
+                             Target="_blank"/>
                 </MudText> 
                 <MudText Typo="Typo.body2" Class="text-center">@GitHubUser.Login</MudText>
 
@@ -47,10 +49,5 @@
     [CascadingParameter]
     private UserDto? User { get; set; }
     [CascadingParameter]
-    private GitHubUserDto? GitHubUser { get; set; }
-
-    private void GoToGitHubUserProfile()
-    {
-        NavigationManager.NavigateTo(GitHubUser!.HtmlUrl); 
-    }
+    private GitHubUserDto? GitHubUser { get; set; } 
 }

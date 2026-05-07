@@ -6,6 +6,8 @@
 @inject IDialogService DialogService
 
 
+<PageTitle>Назначенные мне задачи </PageTitle>
+
 @if (User == null || GitHubUser == null || jobs == null || jobsAssignments == null)
 {
     <LoadingPlaceholder />

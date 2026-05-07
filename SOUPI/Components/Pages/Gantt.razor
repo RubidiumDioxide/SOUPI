@@ -21,13 +21,13 @@
     }
     else
     {
-        @if (User == null || GitHubUser == null || project == null || projectJobs == null || currentLevelJobs == null || ganttJobs == null || jobAssignments == null || teamMember == null || teamMembers == null || teamMemberGitHubUsers == null || (parentJobId != null && parentJob == null))
+        @if (User == null || GitHubUser == null || project == null || projectJobs == null || currentLevelJobs == null || ganttJobs == null || jobAssignments == null || teamMember == null || teamMembers == null || subservientTeamMembers == null || teamMemberGitHubUsers == null || (parentJobId != null && parentJob == null))
         {
-            <LoadingPlaceholder />
+            <LoadingPlaceholder /> 
         }
-        else
+        else 
         {
-            @if (!teamMembers.Select(tm => tm.UserId).Contains(User.Id))
+            @if (!isTeamMember)
             {
                 <UnauthorizedPlaceholder />
             }
@@ -44,12 +44,12 @@
                                     </MudAlert>
                                 }
                                 else {
-                                    <MudStack Row="true" 
-                                              AlignItems="AlignItems.Center" 
+                                    <MudStack Row="true"
+                                              Class="ma-4"
                                               Justify="Justify.SpaceBetween" 
-                                              Class="ma-4">      
-
-                                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center"> 
+                                              AlignItems="AlignItems.Center">
+                                        <MudStack Row="true" 
+                                                  AlignItems="AlignItems.Center">
                                             <MudText Typo="Typo.h6">Задача @selectedJob.Title</MudText>
             
                                             <MudChip T="string"
@@ -59,19 +59,19 @@
                                                      Class="mt-1">
                                                 @selectedJob.Status.TranslateStatus()
                                             </MudChip>
-   
-                                            <MudStack Row="true" Spacing="1">
-                                                <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
-                                                               Color="Color.Success"
-                                                               Href="@($"/job/{selectedJob.Id}")" />
+                                        </MudStack>   
 
-                                                <MudIconButton Icon="@Icons.Material.Filled.Close"
-                                                               Color="Color.Default"
-                                                               OnClick="@(() => isEditDrawerOpen = false)" />
-                                            </MudStack>
+                                        <MudStack Row="true" Spacing="1">
+                                            <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
+                                                           Color="Color.Success"
+                                                           Href="@($"/job/{selectedJob.Id}")" />
+
+                                            <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                                           Color="Color.Default"
+                                                           OnClick="@(() => isEditDrawerOpen = false)" />
                                         </MudStack>
                                     </MudStack>
-                                               
+                             
                                     <MudTabs ApplyEffectsToContainer="true" 
                                              TabPanelsClass="pa-2 ma-0">
                                         @* general properties *@
@@ -79,23 +79,27 @@
                                             <EditJobForm Job=@selectedJob
                                                          Project=@project
                                                          SelectedJobUpdated="JobsUpdated"
-                                                         ProjectJobs="projectJobs" />
+                                                         ProjectJobs="projectJobs" 
+                                                         IsContentEditable="@(!isCreator)"/>
                                         </MudTabPanel>
 
                                         @* links & dependencies *@
-                                        <MudTabPanel Text="Связи ">
-                                            <JobLinksEditor Job="selectedJob"
-                                                            Project="project"
-                                                            ProjectJobs="projectJobs"
-                                                            CurrentLevelJobs="currentLevelJobs"
-                                                            SelectedJobUpdated="JobsUpdated" />
-                                        </MudTabPanel> 
+                                        @if (isCreator)
+                                        {
+                                            <MudTabPanel Text="Связи ">
+                                                <JobLinksEditor Job="selectedJob"
+                                                                Project="project"
+                                                                ProjectJobs="projectJobs"
+                                                                CurrentLevelJobs="currentLevelJobs"
+                                                                SelectedJobUpdated="JobsUpdated" />
+                                            </MudTabPanel>   
+                                        }
                                         
                                         @* assignments *@
                                         <MudTabPanel Text="Исполнители "> 
-                                            <AssignmentsEditor Job="selectedJob"
-                                                               TeamMembers="teamMembers"
-                                                               TeamMemberGitHubUsers="teamMemberGitHubUsers" />
+                                            <AssignmentsEditor Job="@selectedJob" 
+                                                             SubservientTeamMembers="@subservientTeamMembers"
+                                                               TeamMemberGitHubUsers="@teamMemberGitHubUsers" />
                                         </MudTabPanel> 
                                     </MudTabs>
                                 }
@@ -110,7 +114,8 @@
                                         OnAddButtonClicked="@(() => OpenAddDialog(null))"
                                         OnSaveButtonClicked="SaveChangesToJobs" 
                                         OnGoOneLevelUpButtonClicked="GoOneLevelUp"
-                                        OnGoToLevelZeroButtonClicked="GoToLevelZero" />
+                                        OnGoToLevelZeroButtonClicked="GoToLevelZero"
+                                        IsReadonly="@(!isCreator)"/>
                         </div>
                     </MudDrawerContainer>
                 </MudPaper>
@@ -120,16 +125,20 @@
 </MudContainer>
 
 <MudMenu @ref="jobMenu" Style=@jobMenuStyle>
-    <MudMenuItem OnClick="SelectJob">Редактировать</MudMenuItem> 
-    <MudMenuItem OnClick="DeleteJob">Удалить</MudMenuItem> 
+    <MudMenuItem OnClick="SelectJob">Открыть в редакторе</MudMenuItem> 
+    
+    @if (isCreator)
+    {
+        <MudMenuItem OnClick="DeleteJob">Удалить</MudMenuItem>
 
-    @if (selectedJob!= null && selectedJob.HasChildren)
-    {
-        <MudMenuItem OnClick="GoToChildren">Перейти к подзадачам</MudMenuItem>
-    }
-    else
-    {
-        <MudMenuItem OnClick="@(() => OpenAddDialog(selectedJob))">Создать новую подзадачу</MudMenuItem>
+        @if (selectedJob != null && selectedJob.HasChildren)
+        {
+            <MudMenuItem OnClick="GoToChildren">Перейти к подзадачам</MudMenuItem>
+        }
+        else
+        {
+            <MudMenuItem OnClick="@(() => OpenAddDialog(selectedJob))">Создать новую подзадачу</MudMenuItem>
+        }
     }
 </MudMenu>
 
@@ -151,8 +160,9 @@
     private ILookup<Guid, AssignmentDisplayDto>? jobAssignments { get; set; }
     private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; } 
     private TeamMemberDisplayDto? teamMember { get; set; }
-    private IDictionary<string, GitHubUserDto>? teamMemberGitHubUsers { get; set; }
-    private IEnumerable<GanttJobDto>? ganttJobs { get; set; }
+    private IDictionary<string, GitHubUserDto>? teamMemberGitHubUsers { get; set; } 
+    private IEnumerable<TeamMemberDisplayDto>? subservientTeamMembers { get; set; }
+    private IEnumerable<GanttJobDto>? ganttJobs { get; set; } 
     private Guid? selectedJobId { get; set; }
     private JobDto? parentJob { get; set; } 
     private JobDto? selectedJob { get; set; }
@@ -162,6 +172,9 @@
     private GanttChart ganttChart { get; set; }
 
     private bool isEditDrawerOpen { get; set; } = false; 
+
+    private bool isCreator { get; set; } = false; 
+    private bool isTeamMember { get; set; } = false; 
 
     private string? error { get; set; } = null;
     private Severity severity { get; set; } = Severity.Warning;
@@ -176,7 +189,10 @@
                 await LoadJobs();  
                 await LoadJobAssignments();  
                 await LoadTeamMembers();               
-                await LoadTeamMemberGithubUsers();
+                await LoadTeamMemberGithubUsers(); 
+
+                isCreator = (project!.CreatorId == User.Id); 
+                isTeamMember = teamMembers!.Select(tm => tm.UserId).Contains(User.Id); 
             }
             catch (SoupiException ex)
             {
@@ -236,11 +252,13 @@
         teamMembers = await teamMemberRequestHandler.GetByProjectId(projectId); 
 
         teamMember = teamMembers.FirstOrDefault(tm => tm.UserId == User!.Id); 
+
+        subservientTeamMembers = GetAllSubservients(teamMember!, teamMembers); 
     } 
 
     private async Task LoadTeamMemberGithubUsers()
     {
-        var githubUsers = await gitHubRequestHandler.GetUsersByLogins(teamMembers.Select(tm => tm.UserLogin));
+        var githubUsers = await gitHubRequestHandler.GetUsersByLogins(teamMembers!.Select(tm => tm.UserLogin));
 
         teamMemberGitHubUsers = githubUsers.ToDictionary(gu => gu.Login);
     }
@@ -381,5 +399,23 @@
         StateHasChanged();
         
         Snackbar.Add("Задачи были успешно сохранены ", Severity.Success); 
+    }
+
+    private IEnumerable<TeamMemberDisplayDto> GetAllSubservients(TeamMemberDisplayDto currentTeamMember, IEnumerable<TeamMemberDisplayDto> teamMembers)
+    {
+        var result = new List<TeamMemberDisplayDto>();
+       
+        result.Add(currentTeamMember);
+        
+        var directSubservients = teamMembers!.Where(tm => tm.SupervisorId == currentTeamMember.Id).ToList();
+
+        result.AddRange(directSubservients);
+
+        foreach (var subservient in directSubservients)
+        {
+            result.AddRange(GetAllSubservients(subservient, teamMembers));
+        }
+
+        return result;
     }
 }

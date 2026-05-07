@@ -19,8 +19,8 @@ namespace SOUPIShared.Dtos.SOUPIDtos
         [ConsistsOfNumbersCyrillicLatin] 
         public string? Role { get; set; } = null;
 
-        public Guid? SupervisorId { get; set; } = null;
-
+        public Guid? SupervisorId { get; set; } = null; 
+        
 
         public TeamMemberDto(TeamMember teamMember)
         {

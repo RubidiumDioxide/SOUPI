@@ -7,7 +7,7 @@
         <MudText Typo="Typo.h5">Назначение нового исполнителя </MudText>           
     </TitleContent>
     <DialogContent>
-        @if (Job == null || Assignments == null || TeamMembers == null || availibleAssignees == null || newAssignment == null)
+        @if (Job == null || Assignments == null || SubservientTeamMembers == null || availibleAssignees == null || newAssignment == null)
         {
             <LoadingPlaceholder/>
         }
@@ -56,21 +56,31 @@
     [Parameter, EditorRequired]
     public IEnumerable<AssignmentDisplayDto>? Assignments { get; set; }
     [Parameter, EditorRequired]
-    public IEnumerable<TeamMemberDisplayDto>? TeamMembers { get; set; }
-    [Parameter, EditorRequired]
-    public IEnumerable<TeamMemberDisplayDto>? availibleAssignees { get; set; }
+    public IEnumerable<TeamMemberDisplayDto>? SubservientTeamMembers { get; set; }
+
+    private IEnumerable<TeamMemberDisplayDto>? availibleAssignees { get; set; }
 
     private AssignmentDto newAssignment = new AssignmentDto(); 
     private string? newAssigneeLogin { get; set; }
 
     protected override void OnParametersSet()
     {
-        if(Job != null && Assignments != null && TeamMembers != null)
+        if (Job != null && Assignments != null && SubservientTeamMembers != null)
         {
-            ResetForm();            
-            
-            availibleAssignees = TeamMembers.Where(tm => !Assignments.Select(a => a.TeamMemberId)
-                                                                      .Contains(tm.Id)); 
+            try
+            {
+                ResetForm();
+
+                availibleAssignees = SubservientTeamMembers; 
+            }
+            catch (SoupiException ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+            }
         }
     }
 
@@ -91,7 +101,7 @@
     {
         try
         {
-            var assignee = TeamMembers!.FirstOrDefault(tm => tm.UserLogin == newAssigneeLogin); 
+            var assignee = SubservientTeamMembers!.FirstOrDefault(tm => tm.UserLogin == newAssigneeLogin); 
 
             if(assignee == null)
             {
@@ -123,19 +133,16 @@
         }
     }
 
-    // TO-DO 
-    // modify so that it only returns subordinates 
-    // service-level, probably (fetch only subordinates)
     private async Task<IEnumerable<string>> AutocompleteAssignees(string query, CancellationToken cancellationToken)
     {
-        @if (TeamMembers != null)
+        @if (availibleAssignees != null)
         {
             if (string.IsNullOrEmpty(query))
             {
-                return availibleAssignees.Select(tm => tm.UserLogin);
+                return availibleAssignees!.Select(tm => tm.UserLogin);
             }
 
-            return availibleAssignees.Where(tm => tm.UserLogin.Contains(query)).Select(tm => tm.UserLogin);
+            return availibleAssignees!.Where(tm => tm.UserLogin.Contains(query)).Select(tm => tm.UserLogin);
         }
         else
         {

@@ -18,61 +18,69 @@
     }
     else
     {
-        @if (User == null || job == null || project == null || assignments == null || assignmentsActivities == null || activitiesCommits == null || assignmentsTeamMembers == null || creatorTeamMember == null || creatorTeamMemberGitHubUser == null || assignmentsTeamMemberGitHubUsers == null)
+        @if (User == null || job == null || project == null || teamMembers == null || assignments == null || assignmentsActivities == null || activitiesCommits == null || assignmentsTeamMembers == null || creatorTeamMember == null || creatorTeamMemberGitHubUser == null || assignmentsTeamMemberGitHubUsers == null)
         {
             <LoadingPlaceholder />
         }
         else
         {
-            <MudTabs ApplyEffectsToContainer="true" 
+            @if (!isTeamMember)
+            {
+                <UnauthorizedPlaceholder />
+            }
+            else
+            {
+               <MudTabs ApplyEffectsToContainer="true" 
                      TabPanelsClass="pa-2 ma-0"
                      Centered="true">
-                @* general *@
-                <MudTabPanel Text="Общее ">
-                     <JobDisplay Job="@job"
-                                 Creator="@creatorTeamMember"
-                                 CreatorGitHubUser="@creatorTeamMemberGitHubUser"/>
-                </MudTabPanel>
+                    @* general *@
+                    <MudTabPanel Text="Общее ">
+                         <JobDisplay Job="@job"
+                                     Creator="@creatorTeamMember"
+                                     CreatorGitHubUser="@creatorTeamMemberGitHubUser"/>
+                    </MudTabPanel>
 
-                @* assignments & activities *@
-                <MudTabPanel Text="Исполнители и действия ">
-                    @if (assignments.Count() == 0)
-                    {
-                        <MudAlert Severity="Severity.Info" Class="ma-4">
-                            У этой задачи пока нет исполнителей и действий
-                        </MudAlert>
-                    }
-                    else
-                    {
-                        @foreach (var assignment in assignments)
+                    @* assignments & activities *@
+                    <MudTabPanel Text="Исполнители и действия ">
+                        @if (assignments.Count() == 0)
                         {
-                            <AssignmentWithActivities Assignment="@assignment"
-                                                      Project="@project"
-                                                      TeamMember="@assignmentsTeamMembers[assignment.Id]"
-                                                      TeamMemberGitHubUser="@assignmentsTeamMemberGitHubUsers[assignment.Id]"
-                                                      Activities="@assignmentsActivities[assignment.Id]"
-                                                      ActivitiesCommits="activitiesCommits" />
+                            <MudAlert Severity="Severity.Info" Class="ma-4">
+                                У этой задачи пока нет исполнителей и действий
+                            </MudAlert>
                         }
-                    }
-                </MudTabPanel>
+                        else
+                        {
+                            @foreach (var assignment in assignments)
+                            {
+                                <AssignmentWithActivities Assignment="@assignment"
+                                                          Project="@project"
+                                                          TeamMember="@assignmentsTeamMembers[assignment.Id]"
+                                                          TeamMemberGitHubUser="@assignmentsTeamMemberGitHubUsers[assignment.Id]"
+                                                          Activities="@assignmentsActivities[assignment.Id]"
+                                                          ActivitiesCommits="activitiesCommits"  
+                                                            IsDeletable="false"/> 
+                            }
+                        }
+                    </MudTabPanel>
 
-                @* staticstics *@
-                <MudTabPanel Text="Статистика ">
-                    @if (assignments.Count() == 0)
-                    {
-                        <MudAlert Severity="Severity.Info" Class="ma-4">
-                            У этой задачи пока нет исполнителей, действий, и соответственно, данных для статистики 
-                        </MudAlert>
-                    }
-                    else
-                    {
-                        <JobStatistics Job="@job"
-                                       AssignmentsActivities="@assignmentsActivities" 
-                                       AssignmentsTeamMembers="@assignmentsTeamMembers"
-                                       AssignmentsTeamMemberGitHubUsers="@assignmentsTeamMemberGitHubUsers" />
-                    }
-                </MudTabPanel>
-            </MudTabs>
+                    @* staticstics *@
+                    <MudTabPanel Text="Статистика ">
+                        @if (assignments.Count() == 0)
+                        {
+                            <MudAlert Severity="Severity.Info" Class="ma-4">
+                                У этой задачи пока нет исполнителей, действий, и соответственно, данных для статистики 
+                            </MudAlert>
+                        }
+                        else
+                        {
+                            <JobStatistics Job="@job"
+                                           AssignmentsActivities="@assignmentsActivities" 
+                                           AssignmentsTeamMembers="@assignmentsTeamMembers"
+                                           AssignmentsTeamMemberGitHubUsers="@assignmentsTeamMemberGitHubUsers" />
+                        }
+                    </MudTabPanel>
+                </MudTabs>   
+            }
         }
     }
 </MudContainer>
@@ -86,7 +94,8 @@
     public Guid jobId { get; set; }
 
     private JobDisplayDto? job { get; set; } 
-    private ProjectDisplayDto? project { get; set; }
+    private ProjectDisplayDto? project { get; set; } 
+    private IEnumerable<TeamMemberDisplayDto>? teamMembers { get; set; } 
     private IEnumerable<AssignmentDisplayDto>? assignments { get; set; } 
     private ILookup<Guid, ActivityDisplayDto>? assignmentsActivities { get; set; }
     private IDictionary<Guid, GitHubCommitDto>? activitiesCommits { get; set; }
@@ -95,6 +104,8 @@
     private TeamMemberDisplayDto? creatorTeamMember { get; set; }
     private GitHubUserDto? creatorTeamMemberGitHubUser { get; set; }
 
+    private bool isCreator { get; set; } = false; 
+    private bool isTeamMember { get; set; } = false; 
 
     private string? error { get; set; } = null;
     private Severity severity { get; set; } = Severity.Warning;
@@ -106,12 +117,16 @@
             try
             {
                 await LoadJob();
-                await LoadProject();
+                await LoadProject(); 
+                await LoadTeamMembers(); 
                 await LoadAssignments(); 
                 await LoadAssignmentsActivities(); 
                 await LoadActivitiesCommits(); 
                 await LoadAssignmentsTeamMembers(); 
-                await LoadAssignmentsTeamMemberGithubUsers(); 
+                await LoadAssignmentsTeamMemberGithubUsers();  
+
+                isCreator = (project!.CreatorId == User.Id);
+                isTeamMember = teamMembers!.Select(tm => tm.UserId).Contains(User.Id);
             }
             catch (SoupiException ex)
             {
@@ -134,6 +149,11 @@
     private async Task LoadProject()
     {
         project = await projectRequestHandler.GetById(job!.ProjectId);
+    }
+
+    private async Task LoadTeamMembers()
+    {
+        teamMembers = await teamMemberRequestHandler.GetByProjectId(project!.Id);
     }
 
     private async Task LoadAssignments()

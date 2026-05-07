@@ -1,4 +1,4 @@
-﻿<MudContainer MaxWidth="MaxWidth.False" Class="" Style="height:100%; " >
+﻿<MudContainer MaxWidth="MaxWidth.Medium" Style="height:100%; " >
     @if (User == null || Project == null || Assignment == null || Activities == null || ActivitiesCommits == null || TeamMember == null || TeamMemberGitHubUser == null)
     {
         <LoadingPlaceholder />
@@ -39,54 +39,46 @@
                 @foreach (var context in Activities)
                 {
                     <MudPaper Class="pa-2" Elevation="2">
-                        <MudStack Spacing="1">
-                            <MudStack Row="true"
-                                      AlignItems="AlignItems.Center"
-                                      Justify="Justify.SpaceBetween">
-                                <MudStack Spacing="0">
-                                    @if (context.Commit != null)
-                                    {
-                                        <MudText Typo="Typo.body2">
-                                            Коммит
-                                            <MudLink Href="@ActivitiesCommits[context.Id].HtmlUrl"
-                                                     Target="_blank"
-                                                     Underline="Underline.Hover">
-                                                @context.Commit[..7]
-                                            </MudLink>
-                                        </MudText>      
-                                    }
-                                    <MudText Typo="Typo.body2">
-                                        Комментарий: 
-                                        @context.Comment
-                                    </MudText>
-                                
-                                </MudStack>
-
-                                <MudStack Row="true"
-                                          Spacing="1"
-                                          AlignItems="AlignItems.Center"
-                                          Justify="Justify.SpaceBetween">
-                                    <MudStack Row="true" Spacing="1">
-                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                                       Color="Color.Error"
-                                                       OnClick=@(() => DeleteActivity.InvokeAsync(context.Id))
-                                                       Size="Size.Medium" />
-                                    </MudStack>
-                                </MudStack>
-                            </MudStack>
-                            @if (ActivitiesCommits == null)
+                        <MudStack Row="true"
+                                  AlignItems="AlignItems.Center"
+                                  Justify="Justify.SpaceBetween" >
+                       
+                            @if (context.Commit != null)
                             {
-                                <LoadingPlaceholder />
+                                <MudText Typo="Typo.body2">
+                                    Коммит
+                                    <MudLink Href="@ActivitiesCommits[context.Id].HtmlUrl"
+                                             Target="_blank"
+                                             Underline="Underline.Hover">
+                                        @context.Commit[..7]
+                                    </MudLink>,
+                                </MudText>
                             }
-                            else
+
+                            <MudText Typo="Typo.body2">
+                                Комментарий: @context.Comment
+                            </MudText>
+
+                            @if (IsDeletable)
                             {
-                                if (ActivitiesCommits.ContainsKey(context.Id))
-                                {
-                                    <MudDivider />
-                                    <CommitDiff Commit="@ActivitiesCommits[context.Id]" />
-                                }
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               OnClick=@(() => DeleteActivity.InvokeAsync(context.Id))
+                                               Size="Size.Medium" />
                             }
                         </MudStack>
+                        @if (ActivitiesCommits == null)
+                        {
+                            <LoadingPlaceholder />
+                        }
+                        else
+                        {
+                            if (ActivitiesCommits.ContainsKey(context.Id))
+                            {
+                                <MudDivider />
+                                <CommitDiff Commit="@ActivitiesCommits[context.Id]" />
+                            }
+                        }
                     </MudPaper>
                 }
             </MudStack>
@@ -110,7 +102,9 @@
     [Parameter, EditorRequired] 
     public IEnumerable<ActivityDisplayDto>? Activities { get; set; }
     [Parameter, EditorRequired] 
-    public IDictionary<Guid, GitHubCommitDto>? ActivitiesCommits { get; set; }
-    [Parameter, EditorRequired]
-    public EventCallback<Guid> DeleteActivity { get; set; }
+    public IDictionary<Guid, GitHubCommitDto>? ActivitiesCommits { get; set; } 
+    [Parameter] 
+    public bool IsDeletable { get; set; } = false; 
+    [Parameter] 
+    public EventCallback<Guid> DeleteActivity { get; set; } 
 }

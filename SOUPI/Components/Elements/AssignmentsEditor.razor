@@ -3,7 +3,7 @@
 @inject IDialogService DialogService
 
 
-@if (Job == null || TeamMembers == null || TeamMemberGitHubUsers == null || assignments == null)
+@if (Job == null || SubservientTeamMembers == null || TeamMemberGitHubUsers == null || assignments == null)
 {
     <LoadingPlaceholder />
 }
@@ -18,11 +18,11 @@ else {
         else
         {
             <MudStack Spacing="3">
-                @foreach (var context in assignments)
+                @foreach (var assignment in assignments)
                 {
-                    <AssignmentListElement Assignment="context"
-                                           TeamMemberGitHubUser="TeamMemberGitHubUsers[context.TeamMemberLogin]" 
-                                           IsEditable="true" 
+                    <AssignmentListElement Assignment="assignment"
+                                           TeamMemberGitHubUser="TeamMemberGitHubUsers[assignment.TeamMemberLogin]" 
+                                           IsEditable="@(SubservientTeamMembers.Select(tm => tm.Id).Contains(assignment.TeamMemberId))"
                                            OpenEditDialog="OpenEditDialog"
                                            DeleteAssignment="DeleteAssignment"/>
                 }
@@ -45,8 +45,8 @@ else {
 @code {
     [Parameter, EditorRequired]
     public JobDto? Job { get; set; } 
-    [Parameter, EditorRequired]
-    public IEnumerable<TeamMemberDisplayDto>? TeamMembers { get; set; } 
+    [Parameter, EditorRequired] 
+    public IEnumerable<TeamMemberDisplayDto>? SubservientTeamMembers { get; set; }
     [Parameter, EditorRequired]
     public IDictionary<string, GitHubUserDto> TeamMemberGitHubUsers { get; set; }
 
@@ -54,7 +54,7 @@ else {
 
     protected override async Task OnParametersSetAsync()
     {
-        if (Job != null && TeamMembers != null)
+        if (Job != null)
         {
             try
             {
@@ -84,7 +84,7 @@ else {
         {
             { x => x.Job, Job },
             { x => x.Assignments, assignments }, 
-            { x => x.TeamMembers, TeamMembers }
+            { x => x.SubservientTeamMembers, SubservientTeamMembers }
         };
 
         var options = new DialogOptions { CloseOnEscapeKey = true, FullWidth = true, MaxWidth = MaxWidth.Small };

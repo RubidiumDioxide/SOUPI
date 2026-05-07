@@ -7,7 +7,7 @@ import './customstyle.css';
 
 let root: ReturnType<typeof createComponentRoot> | null = null;
 let currentJobs: GanttJob[] = [];    
-let currentViewMode: string = 'Week'; 
+let currentIsReadonly: boolean = true; 
 const ganttComponentRef = React.createRef<any>(); 
 
 function render() {
@@ -18,7 +18,7 @@ function render() {
             <GanttChart
                 ref={ganttComponentRef}
                 jobs={currentJobs}
-                viewMode={currentViewMode} 
+                isReadonly = {currentIsReadonly}
             />
         </React.StrictMode>
     )
@@ -26,10 +26,10 @@ function render() {
 
 export function init(
     jobs: GanttJob[] = [],
-    viewMode: string = 'Week'
+    isReadonly: boolean = true
 ) {
     currentJobs = [...jobs];
-    currentViewMode = viewMode;
+    currentIsReadonly = isReadonly; 
 
     const container = document.getElementById('react-gantt-root');
 
@@ -48,12 +48,6 @@ export function init(
     }
 
     root = createComponentRoot('react-gantt-root');
-    render();
-}
-
-export function setViewMode(viewMode: string) {
-    currentViewMode = viewMode
-    
     render();
 }
 

@@ -6,7 +6,7 @@ import GanttJob from './GanttJob';
 
 const GanttChart = forwardRef((props: {
     jobs: GanttJob[];
-    viewMode: string;
+    isReadonly: boolean; 
 }, ref) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const ganttRef = useRef<any>(null);
@@ -36,11 +36,13 @@ const GanttChart = forwardRef((props: {
             const custom_padding = 10; 
             const custom_upper_header_height = 45; 
             const calculated_container_height = (props.jobs.length * (custom_bar_height + custom_padding)) + custom_upper_header_height + 200; 
-            const custom_container_height = (calculated_container_height > 600) ? "auto" : calculated_container_height;
+            const custom_container_height = (calculated_container_height > 600) ? "auto" : calculated_container_height; 
 
             ganttRef.current = new GanttConstructor(containerRef.current,
                 props.jobs as GanttJob[], {
-                    view_mode: props.viewMode,
+                    readonly: props.isReadonly,
+                    today_button: true, 
+                    view_mode_select: true, 
                     onprogress_change: function (task: GanttJob, progress: number) {
                         const updatedTasks = ganttRef.current.tasks.map((job : GanttJob) => {
                             if (job.id === task.id) {
@@ -109,12 +111,6 @@ const GanttChart = forwardRef((props: {
             ganttRef.current.refresh(props.jobs);
         }
     }, [props.jobs]);
-
-    useEffect(() => {
-        if (ganttRef.current) {
-            ganttRef.current.change_view_mode(props.viewMode);
-        }
-    }, [props.viewMode]);
 
     return <div ref={containerRef} className="gantt-target"></div>;
 }); 

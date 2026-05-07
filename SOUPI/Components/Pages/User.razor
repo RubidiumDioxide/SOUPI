@@ -1,5 +1,4 @@
 ﻿@page "/user/{userId:guid}"
-@inject NavigationManager NavigationManager 
 @inject IGitHubRequestHandler gitHubRequestHandler 
 @inject IUserRequestHandler userRequestHandler 
 @inject ISnackbar Snackbar 
@@ -25,7 +24,11 @@
                 <!-- User Name -->
                 <MudText Typo="Typo.h6" Class="text-center">
                     @gitHubUser.Name
-                    <MudIcon Color="Color.Primary" Icon=@Icons.Custom.Brands.GitHub Size="Size.Small" @onclick="GoToGitHubUserProfile"/>
+                    <MudIconButton Color="Color.Primary" 
+                                   Icon=@Icons.Custom.Brands.GitHub 
+                                   Size="Size.Small" 
+                                   Href="@(gitHubUser.HtmlUrl)" 
+                                   Target="_blank"/>
                 </MudText> 
                 <MudText Typo="Typo.body2" Class="text-center">@gitHubUser.Login</MudText>
 
@@ -82,9 +85,5 @@
         {
             throw new SoupiException("Пользователь не найден :( ");
         }
-    }
-
-    private void GoToGitHubUserProfile(){
-        NavigationManager.NavigateTo(gitHubUser!.HtmlUrl); 
     }
 }

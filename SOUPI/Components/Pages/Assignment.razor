@@ -22,29 +22,39 @@
             <LoadingPlaceholder />
         }
         else
-        {      
-            <MudStack AlignItems="AlignItems.Center">
-                <MudText Align="Align.Center"
-                         Typo="Typo.body2"
-                         Class="mud-text-secondary mt-4">
-                    Если к проекту привязан репозиторий GitHub и на нем создан вебхук (создается автоматически в разделе "Настройки" страницы проекта), действия будут добавлять автоматически для кажлого коммита в репозитории, содержащего в тексте комментария к коммиту название задачи в квадратных скобках (например, [задача 1]). Вы также можете добавить действие со ссылкой на коммит вручную - при условии, что коммит существует. Действия без ссылок на коммиты также можно добавить вручную.
-                </MudText>
+        {  
+            @if (!isCreator && !isAssignee)
+            {
+                <UnauthorizedPlaceholder />
+            }
+            else
+            {
+                @if (isAssignee)
+                {
+                    <MudStack AlignItems="AlignItems.Center">
+                        <MudText Align="Align.Center"
+                                 Typo="Typo.body2"
+                                 Class="mud-text-secondary mt-4">
+                            Если к проекту привязан репозиторий GitHub и на нем создан вебхук (создается автоматически в разделе "Настройки" страницы проекта), действия будут добавлять автоматически для кажлого коммита в репозитории, содержащего в тексте комментария к коммиту название задачи в квадратных скобках (например, [задача 1]). Вы также можете добавить действие со ссылкой на коммит вручную - при условии, что коммит существует. Действия без ссылок на коммиты также можно добавить вручную.
+                        </MudText>
 
-                <MudButton onclick="OpenAddDialog"
-                           Color="Color.Success"
-                           Variant="Variant.Filled" 
-                           StartIcon="@Icons.Material.Filled.Add">
-                    Добавить действие
-                </MudButton>
-            </MudStack>
+                        <MudButton onclick="OpenAddDialog"
+                                   Color="Color.Success"
+                                   Variant="Variant.Filled"
+                                   StartIcon="@Icons.Material.Filled.Add">
+                            Добавить действие
+                        </MudButton>
+                    </MudStack>
+                }
 
-           <AssignmentWithActivities Assignment="assignment"
-                                     Project="project"
-                                     TeamMember="teamMember" 
-                                     TeamMemberGitHubUser="teamMemberGitHubUser"
-                                     Activities="activities"
-                                     ActivitiesCommits="activitiesCommits"
-                                     DeleteActivity="OpenDeleteDialog"/>
+                <AssignmentWithActivities Assignment="assignment"
+                                          Project="project"
+                                          TeamMember="teamMember"
+                                          TeamMemberGitHubUser="teamMemberGitHubUser"
+                                          Activities="activities"
+                                          ActivitiesCommits="activitiesCommits"
+                                          DeleteActivity="OpenDeleteDialog" />
+            }
         }
     }
 </MudContainer>
@@ -64,6 +74,9 @@
     private IEnumerable<ActivityDisplayDto>? activities { get; set; }
     private IDictionary<Guid, GitHubCommitDto>? activitiesCommits { get; set; } 
 
+    private bool isCreator { get; set; } = false;
+    private bool isAssignee { get; set; } = false;
+
     private string? error { get; set; } = null;
     private Severity severity { get; set; } = Severity.Warning;
 
@@ -78,7 +91,11 @@
                 await LoadTeamMember();
                 await LoadTeamMemberGithubUser();
                 await LoadActivities(); 
-                await LoadActivitiesCommits();
+                await LoadActivitiesCommits(); 
+
+                isCreator = (project!.CreatorId == User.Id);
+                // teamMember is derived from the assignment 
+                isAssignee = teamMember!.UserId == User.Id; 
             }
             catch (SoupiException ex)
             {
