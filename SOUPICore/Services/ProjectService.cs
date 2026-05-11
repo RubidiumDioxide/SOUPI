@@ -1,9 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
-using SOUPIShared.Exceptions;
-using SOUPIShared.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging; 
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos.SOUPIDtos;
+using SOUPIShared.Exceptions;
+using SOUPIShared.Models;
 using SOUPIShared.Resources;
 
 
@@ -11,24 +11,27 @@ namespace SOUPICore.Services
 {
     public class ProjectService : IProjectService 
     {
+        private readonly IDbContextFactory<SoupiDbContext> _contextFactory;
         private readonly ILogger<ProjectService> _logger;
-        private readonly SoupiDbContext _context;
 
-        public ProjectService(ILogger<ProjectService> logger, SoupiDbContext context)
+        public ProjectService(IDbContextFactory<SoupiDbContext> contextFactory, ILogger<ProjectService> logger)
         {
-            _logger = logger;
-            _context = context;  
+            _contextFactory = contextFactory; 
+            _logger = logger; 
         } 
 
         public async Task<IEnumerable<ProjectDisplayDto>> GetByUserId(Guid userId, CancellationToken ct = default)
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var projects = await _context.Projects
-                    .Where(p => p.TeamMembers
-                    .Select(tm => tm.UserId)
-                    .Contains(userId))
-                    .ToListAsync(ct); 
+                                             .Where(p => p.TeamMembers
+                                                          .Select(tm => tm.UserId)
+                                                          .Contains(userId))
+                                             .Include(p => p.Creator)
+                                             .ToListAsync(ct); 
 
                 return projects.Select(p => new ProjectDisplayDto(p)); 
             }
@@ -39,11 +42,15 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<ProjectDisplayDto> GetById(Guid id, CancellationToken ct = default)
+        public async Task<ProjectDisplayDto> GetById(Guid projectId, CancellationToken ct = default)
         {
             try
             {
-                var project = await _context.Projects.FindAsync([id], cancellationToken: ct);
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
+                var project = await _context.Projects
+                                            .Include(p => p.Creator)
+                                            .FirstOrDefaultAsync(p => p.Id == projectId, cancellationToken: ct);
 
                 if (project == null)
                 {
@@ -65,6 +72,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var projects = await _context.Projects.ToListAsync(ct); 
 
                 if(projects.FirstOrDefault(p => p.Title == newProjectDto.Title) != null)
@@ -112,6 +121,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var project = await _context.Projects.FindAsync([updatedProjectDto.Id], cancellationToken: ct);
 
                 if (project == null)
@@ -137,6 +148,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var project = await _context.Projects.FindAsync([updatedProjectDto.Id], cancellationToken: ct);
 
                 if (project == null)
@@ -176,6 +189,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 if (string.IsNullOrEmpty(repositoryName))
                 {
                     throw new BadRequestException(ServiceErrorMessages.RepositoryNameNotValid);
@@ -213,11 +228,24 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task Delete(Guid id, CancellationToken ct = default)
+        public async Task Delete(Guid projectId, CancellationToken ct = default)
         {
             try
             {
-                var project = await _context.Projects.FindAsync([id], cancellationToken: ct);
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
+                var project = await _context.Projects
+                                            .Include(p => p.TeamMembers)
+                                            .Include(p => p.Notifications)
+                                            .Include(p => p.Jobs)
+                                                .ThenInclude(j => j.PreviousJobSequences) 
+                                            .Include(p => p.Jobs)
+                                                .ThenInclude(j => j.NextJobSequences)
+                                            .Include(p => p.Jobs)
+                                                .ThenInclude(j => j.Assignments)
+                                                    .ThenInclude(a => a.Activities)
+                                            .AsSplitQuery() 
+                                            .FirstOrDefaultAsync(p => p.Id == projectId, cancellationToken: ct);
 
                 if (project == null)
                 {

@@ -14,7 +14,7 @@ namespace SOUPI.Handlers.Interfaces
         public Task<JobDisplayDto> GetDisplayById(Guid jobId, CancellationToken ct = default);
 
         public Task<IEnumerable<JobDto>> GetByProjectId(Guid projectId, CancellationToken ct = default); 
-        
+
         public Task<IEnumerable<JobDto>> GetByProjectIdParentId(Guid projectId, Guid? parentJobId, CancellationToken ct = default);
 
         public Task<JobDto> GetById(Guid jobId, CancellationToken ct = default);

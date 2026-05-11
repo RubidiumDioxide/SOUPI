@@ -1,7 +1,7 @@
 ﻿using SOUPI.Handlers.Interfaces;
+using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos.SOUPIDtos;
 using SOUPIShared.Exceptions;
-using System.Text.Json;
 
 
 namespace SOUPI.Handlers
@@ -9,38 +9,19 @@ namespace SOUPI.Handlers
     public class ActivityRequestHandler : IActivityRequestHandler
     {
         private readonly ILogger<ActivityRequestHandler> _logger;
-        private readonly HttpClient _httpClient;
+        private readonly IActivityService _activityService; 
 
-        private const string getByAssignmentIdUrl = "/api/activity/getbyassignmentid/";
-        private const string getByTeamMemberIdUrl = "/api/activity/getbyteammemberid/";
-        private const string getByJobIdUrl = "/api/activity/getbyjobid/"; 
-        private const string getByProjectIdUrl = "/api/activity/getbyprojectid/"; 
-        private const string createUrl = "/api/activity/create/";
-        private const string updateContentUrl = "/api/activity/updatecontent/";
-        private const string deleteUrl = "/api/activity/delete/";
-
-        public ActivityRequestHandler(ILogger<ActivityRequestHandler> logger, HttpClient httpClient)
+        public ActivityRequestHandler(ILogger<ActivityRequestHandler> logger, IActivityService activityService)
         {
             _logger = logger;
-            _httpClient = httpClient;
+            _activityService = activityService;
         }
 
         public async Task<IEnumerable<ActivityDisplayDto>> GetByAssignmentId(Guid assignmentId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByAssignmentIdUrl}{assignmentId}", ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var activityDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<ActivityDisplayDto>>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return activityDtos!;
+                return await _activityService.GetByAssignmentId(assignmentId, ct);
             }
             catch (Exception ex)
             {
@@ -53,18 +34,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByTeamMemberIdUrl}{teamMemberId}", ct); 
-
-                response.EnsureSuccessStatusCode(); 
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var activityDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<ActivityDisplayDto>>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return activityDtos!;
+                return await _activityService.GetByTeamMemberId(teamMemberId, ct);
             }
             catch (Exception ex)
             {
@@ -77,18 +47,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByJobIdUrl}{jobId}", ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var activityDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<ActivityDisplayDto>>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return activityDtos!;
+                return await _activityService.GetByJobId(jobId, ct); 
             }
             catch (Exception ex)
             {
@@ -101,18 +60,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByProjectIdUrl}{projectId}", ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var activityDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<ActivityDisplayDto>>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return activityDtos!;
+                return await _activityService.GetByProjectId(projectId, ct); 
             }
             catch (Exception ex)
             {
@@ -125,18 +73,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(activityDto), ct); 
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var newActivityDto = System.Text.Json.JsonSerializer.Deserialize<ActivityDto>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return newActivityDto!;
+                return await _activityService.Create(activityDto, ct); 
             }
             catch (Exception ex)
             {
@@ -149,18 +86,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.PostAsync(updateContentUrl, JsonContent.Create(updatedActivityDto), ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var newUpdatedActivityDto = System.Text.Json.JsonSerializer.Deserialize<ActivityDto>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return newUpdatedActivityDto!;
+                return await _activityService.UpdateContent(updatedActivityDto, ct);
             }
             catch (Exception ex)
             {
@@ -173,9 +99,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{deleteUrl}{activityId}", ct);
-
-                response.EnsureSuccessStatusCode();
+                await _activityService.Delete(activityId, ct); 
             }
             catch (Exception ex)
             {

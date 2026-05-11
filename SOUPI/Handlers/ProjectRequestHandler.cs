@@ -1,8 +1,7 @@
 ﻿using SOUPI.Handlers.Interfaces;
 using SOUPIShared.Exceptions;
-using System.Text.Json;
-using System.Net;
 using SOUPIShared.Dtos.SOUPIDtos;
+using SOUPICore.Services.Interfaces;
 
 
 namespace SOUPI.Handlers
@@ -10,38 +9,19 @@ namespace SOUPI.Handlers
     public class ProjectRequestHandler : IProjectRequestHandler 
     {
         private readonly ILogger<ProjectRequestHandler> _logger;
-        private readonly HttpClient _httpClient;
+        private readonly IProjectService _projectService;
 
-        private const string createUrl = "/api/project/create/";
-        private const string getByUserIdUrl = "/api/project/getbyuserid/";
-        private const string getByIdUrl = "/api/project/getbyid/";
-        private const string updateUrl = "/api/project/update/"; 
-        private const string updateCreatorUrl = "/api/project/updateCreator/"; 
-        private const string setGitHubRepositoryUrl = "/api/project/setGitHubRepository/"; 
-        private const string deleteUrl = "/api/project/delete/"; 
-
-        public ProjectRequestHandler(ILogger<ProjectRequestHandler> logger, HttpClient httpClient)
+        public ProjectRequestHandler(ILogger<ProjectRequestHandler> logger, IProjectService projectService)
         {
             _logger = logger;
-            _httpClient = httpClient;
+            _projectService = projectService;
         }
 
         public async Task<IEnumerable<ProjectDisplayDto>> GetByUserId(Guid userId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByUserIdUrl}{userId}", ct);
-
-                response.EnsureSuccessStatusCode(); 
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var projectDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<ProjectDisplayDto>>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return projectDtos!;
+                return await _projectService.GetByUserId(userId, ct); 
             }
             catch (Exception ex)
             {
@@ -54,26 +34,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByIdUrl}{id}", ct);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    if (response.StatusCode == HttpStatusCode.NotFound)
-                    {
-                        return null;
-                    }
-                }
-
-                response.EnsureSuccessStatusCode(); 
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var projectDto = System.Text.Json.JsonSerializer.Deserialize<ProjectDisplayDto>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return projectDto!;
+                return await _projectService.GetById(id, ct);
             }
             catch (Exception ex)
             {
@@ -86,18 +47,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(projectDto), ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var newProjectDto = System.Text.Json.JsonSerializer.Deserialize<ProjectDto>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return newProjectDto!;
+                return await _projectService.Create(projectDto, ct); 
             }
             catch (Exception ex)
             {
@@ -110,20 +60,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var content = JsonContent.Create(updatedProjectDto);
-
-                var response = await _httpClient.PostAsync(updateUrl, content, ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var result = System.Text.Json.JsonSerializer.Deserialize<ProjectDto>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return result!;
+                return await _projectService.Update(updatedProjectDto, ct);
             }
             catch (Exception ex)
             {
@@ -132,48 +69,11 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<ProjectDto> UpdateCreator(ProjectDto updatedProjectDto, CancellationToken ct = default)
-        {
-            try
-            {
-                var content = JsonContent.Create(updatedProjectDto);
-
-                var response = await _httpClient.PostAsync(updateCreatorUrl, content, ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var result = System.Text.Json.JsonSerializer.Deserialize<ProjectDto>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return result!;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Не удалось передать управление проектом: {ex.Message}");
-                throw new SoupiException("Не удалось передать управление проектом ");
-            }
-        }
-
         public async Task<ProjectDto> SetGitHubRepository(Guid projectId, string repositoryName, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{setGitHubRepositoryUrl}{projectId}/{repositoryName}", ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var result = System.Text.Json.JsonSerializer.Deserialize<ProjectDto>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return result!;
+                return await _projectService.SetGitHubRepository(projectId, repositoryName, ct); 
             }
             catch (Exception ex)
             {
@@ -186,9 +86,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{deleteUrl}{projectId}", ct);
-
-                response.EnsureSuccessStatusCode();
+                await _projectService.Delete(projectId, ct); 
             }
             catch (Exception ex)
             {

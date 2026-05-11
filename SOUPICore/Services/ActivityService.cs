@@ -13,12 +13,12 @@ namespace SOUPICore.Services
 {
     public class ActivityService : IActivityService
     {
-        private readonly SoupiDbContext _context;
+        private readonly IDbContextFactory<SoupiDbContext> _contextFactory; 
         private readonly ILogger<ActivityService> _logger;
 
-        public ActivityService(SoupiDbContext context, ILogger<ActivityService> logger)
+        public ActivityService(IDbContextFactory<SoupiDbContext> contextFactory, ILogger<ActivityService> logger)
         {
-            _context = context;
+            _contextFactory = contextFactory; 
             _logger = logger;
         }
 
@@ -34,6 +34,8 @@ namespace SOUPICore.Services
 
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct); 
+
                 foreach (var jobCommits in jobsCommits)
                 {
                     // search for job by it's title mentioned in commit 
@@ -56,7 +58,7 @@ namespace SOUPICore.Services
                         }
 
                         // search for teamMember by login and job.ProjectId 
-                        var teamMember = await _context.TeamMembers.FirstOrDefaultAsync(tm => tm.ProjectId == job.ProjectId && tm.User.Login.ToLower() == commit.Author.Username.ToLower(), ct);
+                        var teamMember = await _context.TeamMembers.Include(tm => tm.User).FirstOrDefaultAsync(tm => tm.ProjectId == job.ProjectId && tm.User.Login.ToLower() == commit.Author.Username.ToLower(), ct);
 
                         if (teamMember == null)
                         {
@@ -108,6 +110,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var assignment = await _context.Assignments.FindAsync([assignmentId], cancellationToken: ct);
 
                 if (assignment == null)
@@ -115,7 +119,12 @@ namespace SOUPICore.Services
                     throw new BadRequestException(ServiceErrorMessages.AssignmentNotFound);
                 }
 
-                var activities = await _context.Activities.Where(a => a.AssignmentId == assignment.Id).ToListAsync(ct);  
+                var activities = await _context.Activities
+                                               .Where(a => a.AssignmentId == assignment.Id)
+                                               .Include(a => a.Assignment)
+                                                   .ThenInclude(a => a.TeamMember)
+                                                       .ThenInclude(tm => tm.User)                          
+                                               .ToListAsync(ct);  
 
                 return activities.Select(a => new ActivityDisplayDto(a));
             }
@@ -130,6 +139,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var teamMember = await _context.TeamMembers.FindAsync([teamMemberId], cancellationToken: ct);
 
                 if (teamMember == null)
@@ -137,7 +148,12 @@ namespace SOUPICore.Services
                     throw new BadRequestException(ServiceErrorMessages.TeamMemberNotFound);
                 }
 
-                var activities = await _context.Activities.Where(a => a.Assignment.TeamMemberId == teamMemberId).ToListAsync(ct);
+                var activities = await _context.Activities
+                                               .Where(a => a.Assignment.TeamMemberId == teamMemberId)
+                                               .Include(a => a.Assignment)
+                                                   .ThenInclude(a => a.TeamMember)
+                                                       .ThenInclude(tm => tm.User)
+                                               .ToListAsync(ct); 
 
                 return activities.Select(a => new ActivityDisplayDto(a));
             }
@@ -152,6 +168,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var job = await _context.Jobs.FindAsync([jobId], cancellationToken: ct);
 
                 if (job == null)
@@ -159,7 +177,12 @@ namespace SOUPICore.Services
                     throw new BadRequestException(ServiceErrorMessages.JobNotFound);
                 }
 
-                var activities = await _context.Activities.Where(a => a.Assignment.JobId == jobId).ToListAsync(ct);
+                var activities = await _context.Activities
+                                               .Where(a => a.Assignment.JobId == jobId)
+                                               .Include(a => a.Assignment)
+                                                   .ThenInclude(a => a.TeamMember)
+                                                       .ThenInclude(tm => tm.User)
+                                               .ToListAsync(ct);
 
                 return activities.Select(a => new ActivityDisplayDto(a));
             }
@@ -174,6 +197,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var project = await _context.Projects.FindAsync([projectId], cancellationToken: ct);
 
                 if (project == null)
@@ -181,7 +206,12 @@ namespace SOUPICore.Services
                     throw new BadRequestException(ServiceErrorMessages.ProjectNotFound);
                 }
 
-                var activities = await _context.Activities.Where(a => a.Assignment.Job.ProjectId == projectId).ToListAsync(ct);
+                var activities = await _context.Activities
+                                               .Where(a => a.Assignment.Job.ProjectId == projectId)
+                                               .Include(a => a.Assignment)
+                                                   .ThenInclude(a => a.TeamMember)
+                                                       .ThenInclude(tm => tm.User)
+                                               .ToListAsync(ct);
 
                 return activities.Select(a => new ActivityDisplayDto(a));
             }
@@ -196,6 +226,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var newActivity = new Activity()
                 {
                     AssignmentId = newActivityDto.AssignmentId,
@@ -221,6 +253,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var activity = await _context.Activities.FindAsync([updatedActivityDto.Id], cancellationToken: ct);
 
                 if (activity == null)
@@ -245,6 +279,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var activity = await _context.Activities.FindAsync([activityId], cancellationToken: ct); 
 
                 if (activity == null)
@@ -264,6 +300,8 @@ namespace SOUPICore.Services
         
         private async Task CheckIfValidActivity(Activity activity, CancellationToken ct = default)
         {
+            using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
             var assignment = await _context.Assignments.FindAsync([activity.AssignmentId], cancellationToken: ct); 
             
             if (assignment == null)

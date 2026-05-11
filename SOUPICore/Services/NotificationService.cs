@@ -11,22 +11,27 @@ namespace SOUPICore.Services
 {
     public class NotificationService : INotificationService
     {
+        private readonly IDbContextFactory<SoupiDbContext> _contextFactory;
         private readonly ILogger<NotificationService> _logger;
-        private readonly SoupiDbContext _context;
 
-        public NotificationService(ILogger<NotificationService> logger, SoupiDbContext context)
+        public NotificationService(IDbContextFactory<SoupiDbContext> contextFactory, ILogger<NotificationService> logger)
         {
+            _contextFactory = contextFactory; 
             _logger = logger;
-            _context = context;
         }
 
         public async Task<IEnumerable<NotificationDisplayDto>> GetByReceiverId(Guid receiverId, CancellationToken ct = default)
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var notifications = await _context.Notifications
-                    .Where(n => n.ReceiverId == receiverId)
-                    .ToListAsync(ct);
+                                                  .Where(n => n.ReceiverId == receiverId)
+                                                  .Include(n => n.Sender) 
+                                                  .Include(n => n.Receiver) 
+                                                  .Include(n => n.Project)
+                                                  .ToListAsync(ct);
 
                 return notifications.Select(p => new NotificationDisplayDto(p));
             }
@@ -41,6 +46,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var newNotification = new Notification()
                 {
                     Message = newNotificationDto.Message,
@@ -68,6 +75,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var notification = await _context.Notifications.FindAsync([notificationId], cancellationToken: ct);
 
                 if (notification == null)
@@ -129,6 +138,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var notification = await _context.Notifications.FindAsync([notificationId], cancellationToken: ct);
 
                 if (notification == null)

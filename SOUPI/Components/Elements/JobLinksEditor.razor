@@ -49,18 +49,17 @@ else {
                 }
                 else
                 {
-                    <MudTable Items="@preceedingJobSequences" Hover="true" Breakpoint="Breakpoint.None" Dense="true">
-                        <HeaderContent>
-                            <MudTh></MudTh>
-                            <MudTh></MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.FirstJobTitle</MudTd>
-                            <MudTd Style="text-align: right;">
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteJobSequence(context.Id))" />
-                            </MudTd>
-                        </RowTemplate>
-                    </MudTable>
+                    <MudStack>
+                        @foreach(var jobSequence in preceedingJobSequences)
+                        {
+                            <MudPaper>
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="ma-2 pa-2">
+                                    <MudText>@jobSequence.FirstJobTitle</MudText>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteJobSequence(jobSequence.Id))" />
+                                </MudStack>
+                            </MudPaper>
+                        }
+                    </MudStack>
                 }
 
                 <MudContainer Class="mt-2" Style="display:flex; flex-direction:row; flex-wrap: nowrap" MaxWidth="MaxWidth.False" Gutters="false">
@@ -96,18 +95,17 @@ else {
                 }
                 else
                 {
-                    <MudTable Items="@subsequentJobSequences" Hover="true" Breakpoint="Breakpoint.None" Dense="true">
-                        <HeaderContent>
-                            <MudTh></MudTh>
-                            <MudTh></MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.SecondJobTitle</MudTd>
-                            <MudTd Style="text-align: right;">
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteJobSequence(context.Id))" />
-                            </MudTd>
-                        </RowTemplate>
-                    </MudTable>
+                    <MudStack>
+                        @foreach (var jobSequence in subsequentJobSequences)
+                        {
+                            <MudPaper>
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="ma-2 pa-2">
+                                    <MudText>@jobSequence.SecondJobTitle</MudText>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteJobSequence(jobSequence.Id))" />
+                                </MudStack>
+                            </MudPaper>
+                        }
+                    </MudStack>
                 }
 
                 <MudContainer Class="mt-2" Style="display:flex; flex-direction:row; flex-wrap: nowrap" MaxWidth="MaxWidth.False" Gutters="false">

@@ -13,6 +13,6 @@ namespace SOUPICore.Services.Interfaces
 
         public Task<TeamMemberDto> Update(TeamMemberDto teamMemberDto, CancellationToken ct = default);
 
-        public Task DeleteById(Guid id, CancellationToken ct = default);
+        public Task Delete(Guid id, CancellationToken ct = default);
     }
 }

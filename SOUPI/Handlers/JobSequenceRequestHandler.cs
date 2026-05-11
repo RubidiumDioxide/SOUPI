@@ -2,40 +2,27 @@
 using SOUPIShared.Dtos.SOUPIDtos;
 using SOUPIShared.Exceptions;
 using System.Text.Json;
+using SOUPICore.Services.Interfaces; 
+
 
 namespace SOUPI.Handlers
 {
     public class JobSequenceRequestHandler : IJobSequenceRequestHandler
     {
         private readonly ILogger<JobSequenceRequestHandler> _logger;
-        private readonly HttpClient _httpClient;
+        private readonly IJobSequenceService _jobSequenceService; 
 
-        private const string getByProjectIdUrl = "/api/jobsequence/getbyprojectid/";
-        private const string createUrl = "/api/jobsequence/create/";
-        private const string deleteUrl = "/api/jobsequence/delete/";
-
-        public JobSequenceRequestHandler(ILogger<JobSequenceRequestHandler> logger, HttpClient httpClient)
+        public JobSequenceRequestHandler(ILogger<JobSequenceRequestHandler> logger, IJobSequenceService jobSequenceService)
         {
             _logger = logger;
-            _httpClient = httpClient;
+            _jobSequenceService = jobSequenceService;
         }
 
         public async Task<IEnumerable<JobSequenceDisplayDto>> GetByProjectId(Guid projectId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByProjectIdUrl}{projectId}", ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var jobSequenceDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<JobSequenceDisplayDto>>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return jobSequenceDtos!;
+                return await _jobSequenceService.GetByProjectId(projectId, ct);
             }
             catch (Exception ex)
             {
@@ -48,18 +35,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{createUrl}{firstJobId}/{secondJobId}", ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var newJobSequenceDto = System.Text.Json.JsonSerializer.Deserialize<JobSequenceDto>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return newJobSequenceDto!;
+               return await _jobSequenceService.Create(firstJobId, secondJobId, ct);
             }
             catch (Exception ex)
             {
@@ -72,9 +48,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{deleteUrl}{jobSequenceId}", ct);
-
-                response.EnsureSuccessStatusCode();
+                await _jobSequenceService.Delete(jobSequenceId, ct); 
             }
             catch (Exception ex)
             {

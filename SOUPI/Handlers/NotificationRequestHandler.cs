@@ -1,8 +1,7 @@
 ﻿using SOUPI.Handlers.Interfaces;
 using SOUPIShared.Exceptions;
-using System.Text.Json;
-using System.Net;
 using SOUPIShared.Dtos.SOUPIDtos;
+using SOUPICore.Services.Interfaces; 
 
 
 namespace SOUPI.Handlers
@@ -10,35 +9,19 @@ namespace SOUPI.Handlers
     public class NotificationRequestHandler : INotificationRequestHandler
     {
         private readonly ILogger<NotificationRequestHandler> _logger;
-        private readonly HttpClient _httpClient;
+        private readonly INotificationService _notificationService;
 
-        private const string getByReceiverIdUrl = "/api/Notification/getbyreceiverid/";
-        private const string createUrl = "/api/Notification/create/";
-        private const string acceptInviteUrl = "/api/Notification/acceptinvite/";
-        private const string markAsViewedUrl = "/api/Notification/markasviewed/";
-
-        public NotificationRequestHandler(ILogger<NotificationRequestHandler> logger, HttpClient httpClient)
+        public NotificationRequestHandler(ILogger<NotificationRequestHandler> logger, INotificationService notificationService)
         {
             _logger = logger;
-            _httpClient = httpClient;
+            _notificationService = notificationService; 
         }
 
         public async Task<IEnumerable<NotificationDisplayDto>> GetByReceiverId(Guid receiverId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByReceiverIdUrl}{receiverId}", ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var NotificationDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<NotificationDisplayDto>>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return NotificationDtos!;
+                return await _notificationService.GetByReceiverId(receiverId, ct); 
             }
             catch (Exception ex)
             {
@@ -51,18 +34,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(NotificationDto), ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var newNotificationDto = System.Text.Json.JsonSerializer.Deserialize<NotificationDto>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return newNotificationDto!;
+                return await _notificationService.Create(NotificationDto, ct);
             }
             catch (Exception ex)
             {
@@ -75,18 +47,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{acceptInviteUrl}{notificationId}", ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct); 
-
-                var notificationDto = System.Text.Json.JsonSerializer.Deserialize<NotificationDto>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return notificationDto!;
+                return await _notificationService.AcceptInvite(notificationId, ct);
             }
             catch (Exception ex)
             {
@@ -99,18 +60,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{markAsViewedUrl}{notificationId}", ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var notificationDto = System.Text.Json.JsonSerializer.Deserialize<NotificationDto>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return notificationDto!;
+                return await _notificationService.MarkAsViewed(notificationId, ct);
             }
             catch (Exception ex)
             {

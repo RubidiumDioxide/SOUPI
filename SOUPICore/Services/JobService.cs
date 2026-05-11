@@ -1,24 +1,24 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging; 
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos.SOUPIDtos;
 using SOUPIShared.Exceptions;
 using SOUPIShared.Extensions;
+using SOUPIShared.Misc;
 using SOUPIShared.Models;
 using SOUPIShared.Resources;
-using SOUPIShared.Misc;
 
 
 namespace SOUPICore.Services
 {
     public class JobService : IJobService
     {
-        private readonly SoupiDbContext _context;
+        private readonly IDbContextFactory<SoupiDbContext> _contextFactory;
         private readonly ILogger<JobService> _logger;
 
-        public JobService(SoupiDbContext context, ILogger<JobService> logger)
+        public JobService(IDbContextFactory<SoupiDbContext> contextFactory, ILogger<JobService> logger)
         {
-            _context = context;
+            _contextFactory = contextFactory; 
             _logger = logger;
         }
 
@@ -26,6 +26,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var project = await _context.Projects.FindAsync([projectId], cancellationToken: ct);
 
                 if (project == null)
@@ -34,8 +36,14 @@ namespace SOUPICore.Services
                 }
 
                 var jobs = await _context.Jobs
-                    .Where(j => j.ProjectId == projectId)
-                    .ToListAsync(ct);
+                                         .Where(j => j.ProjectId == projectId)
+                                         .Include(j => j.Project)
+                                         .Include(j => j.Creator)
+                                            .ThenInclude(c => c.User) 
+                                         .Include(j => j.ParentJob)
+                                         .Include(j => j.PreviousJobSequences)
+                                         .Include(j => j.ChildJobs)
+                                         .ToListAsync(ct);
 
                 return jobs.Select(j => new JobDisplayDto(j)); 
             }
@@ -58,6 +66,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var project = await _context.Projects.FindAsync([projectId], cancellationToken: ct);
 
                 if (project == null)
@@ -77,14 +87,26 @@ namespace SOUPICore.Services
                 if (parentJob != null)
                 {
                     jobs = await _context.Jobs
-                        .Where(j => j.ProjectId == projectId && j.ParentJobId == parentJob.Id)
-                        .ToListAsync(ct);
+                                         .Where(j => j.ProjectId == projectId && j.ParentJobId == parentJob.Id)
+                                         .Include(j => j.Project)
+                                         .Include(j => j.Creator)
+                                            .ThenInclude(c => c.User)
+                                         .Include(j => j.ParentJob)
+                                         .Include(j => j.PreviousJobSequences)
+                                         .Include(j => j.ChildJobs)
+                                         .ToListAsync(ct); 
                 }
                 else
                 {
                     jobs = await _context.Jobs
-                         .Where(j => j.ProjectId == projectId && j.ParentJobId == null)
-                         .ToListAsync(ct);
+                                         .Where(j => j.ProjectId == projectId && j.ParentJobId == null)
+                                         .Include(j => j.Project)
+                                         .Include(j => j.Creator)
+                                            .ThenInclude(c => c.User)
+                                         .Include(j => j.ParentJob)
+                                         .Include(j => j.PreviousJobSequences)
+                                         .Include(j => j.ChildJobs)
+                                         .ToListAsync(ct); 
                 }
 
                 return jobs.Select(j => new JobDisplayDto(j));
@@ -100,6 +122,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var user = await _context.Users.FindAsync([userId], cancellationToken: ct);
 
                 if (user == null)
@@ -107,10 +131,15 @@ namespace SOUPICore.Services
                     throw new BadRequestException(ServiceErrorMessages.UserNotFound);
                 }
 
-                var jobs = await _context.TeamMembers.Where(tm => tm.UserId == userId)
-                                                     .SelectMany(tm => tm.Assignments)
-                                                     .Select(a => a.Job)
-                                                     .ToListAsync(ct); 
+                var jobs = await _context.Jobs
+                                         .Where(j => j.Assignments.Any(a => a.TeamMember.UserId == userId))
+                                         .Include(j => j.Project)
+                                         .Include(j => j.ParentJob)
+                                         .Include(j => j.PreviousJobSequences)
+                                         .Include(j => j.ChildJobs)
+                                         .Include(j => j.Creator)
+                                             .ThenInclude(c => c.User) 
+                                         .ToListAsync(ct); 
 
                 return jobs.Select(j => new JobDisplayDto(j));
             }
@@ -125,7 +154,16 @@ namespace SOUPICore.Services
         {
             try
             {
-                var job = await _context.Jobs.FindAsync([jobId], cancellationToken: ct);
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
+                var job = await _context.Jobs
+                                        .Include(j => j.Project)
+                                        .Include(j => j.ParentJob)
+                                        .Include(j => j.PreviousJobSequences)
+                                        .Include(j => j.ChildJobs)
+                                        .Include(j => j.Creator)
+                                            .ThenInclude(c => c.User)
+                                        .FirstOrDefaultAsync(j => j.Id == jobId, ct);
 
                 if (job == null)
                 {
@@ -147,6 +185,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var project = await _context.Projects.FindAsync([projectId], cancellationToken: ct);
 
                 if (project == null)
@@ -155,8 +195,10 @@ namespace SOUPICore.Services
                 }
 
                 var jobs = await _context.Jobs
-                    .Where(j => j.ProjectId == projectId)
-                    .ToListAsync(ct);
+                                         .Where(j => j.ProjectId == projectId)
+                                         .Include(j => j.PreviousJobSequences)
+                                         .Include(j => j.ChildJobs)
+                                         .ToListAsync(ct);
 
                 return jobs.Select(j => new JobDto(j));
             }
@@ -179,6 +221,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var project = await _context.Projects.FindAsync([projectId], cancellationToken: ct);
 
                 if (project == null)
@@ -198,14 +242,18 @@ namespace SOUPICore.Services
                 if (parentJob != null)
                 {
                     jobs = await _context.Jobs
-                        .Where(j => j.ProjectId == projectId && j.ParentJobId == parentJob.Id)
-                        .ToListAsync(ct);
+                                         .Where(j => j.ProjectId == projectId && j.ParentJobId == parentJob.Id)
+                                         .Include(j => j.PreviousJobSequences)
+                                         .Include(j => j.ChildJobs)
+                                         .ToListAsync(ct);
                 }
                 else
                 {
                     jobs = await _context.Jobs
-                        .Where(j => j.ProjectId == projectId && j.ParentJobId == null)
-                        .ToListAsync(ct);
+                                         .Where(j => j.ProjectId == projectId && j.ParentJobId == null)
+                                         .Include(j => j.PreviousJobSequences)
+                                         .Include(j => j.ChildJobs)
+                                         .ToListAsync(ct); 
                 }
 
                 return jobs.Select(j => new JobDto(j));
@@ -221,7 +269,12 @@ namespace SOUPICore.Services
         {
             try
             {
-                var job = await _context.Jobs.FindAsync([jobId], cancellationToken: ct);
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
+                var job = await _context.Jobs
+                                        .Include(j => j.PreviousJobSequences)
+                                        .Include(j => j.ChildJobs)
+                                        .FirstOrDefaultAsync(j => j.Id == jobId, ct); 
 
                 if (job == null)
                 {
@@ -243,6 +296,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var existingJob = await _context.Jobs.FirstOrDefaultAsync(j => j.Title == newJobDto.Title, ct); 
 
                 if(existingJob != null) 
@@ -269,7 +324,12 @@ namespace SOUPICore.Services
                 await _context.Jobs.AddAsync(newJob, ct);
                 await _context.SaveChangesAsync(ct);
 
-                return new JobDto(newJob);
+                var createdJob = await _context.Jobs
+                                               .Include(j => j.PreviousJobSequences)
+                                               .Include(j => j.ChildJobs)
+                                               .FirstOrDefaultAsync(j => j.Id == newJob.Id, ct);
+
+                return new JobDto(createdJob);
             }
             catch (Exception ex)
             {
@@ -282,7 +342,12 @@ namespace SOUPICore.Services
         {
             try
             {
-                var job = await _context.Jobs.FindAsync([updatedJobDto.Id], cancellationToken: ct);
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
+                var job = await _context.Jobs
+                                        .Include(j => j.PreviousJobSequences)
+                                        .Include(j => j.ChildJobs)
+                                        .FirstOrDefaultAsync(j => j.Id == updatedJobDto.Id, ct); 
 
                 if (job == null)
                 {
@@ -341,7 +406,12 @@ namespace SOUPICore.Services
         {
             try
             {
-                var job = await _context.Jobs.FindAsync([jobId], cancellationToken: ct);
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
+                var job = await _context.Jobs
+                        .Include(j => j.PreviousJobSequences)
+                        .Include(j => j.ChildJobs)
+                        .FirstOrDefaultAsync(j => j.Id == jobId, ct); 
 
                 if (job == null)
                 {
@@ -383,7 +453,14 @@ namespace SOUPICore.Services
         {
             try
             {
-                var job = await _context.Jobs.FindAsync([jobId], cancellationToken: ct);
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
+                var job = await _context.Jobs
+                                        .Include(j => j.NextJobSequences)
+                                        .Include(j => j.PreviousJobSequences)
+                                        .Include(j => j.Assignments)
+                                            .ThenInclude(a => a.Activities) 
+                                        .FirstOrDefaultAsync(j => j.Id == jobId, ct);
 
                 if (job == null)
                 {
@@ -408,7 +485,7 @@ namespace SOUPICore.Services
                         }
                         else
                         {
-                            DeleteChildrenRecursive(j);
+                            await DeleteChildrenRecursive(j, ct);
                         }
                     }   
                 }
@@ -431,11 +508,13 @@ namespace SOUPICore.Services
         /// Не применяет изменения к бд
         /// </summary>
         /// <param name="job"></param>
-        private void DeleteChildrenRecursive(Job job)
+        private async Task DeleteChildrenRecursive(Job job, CancellationToken ct = default)
         {
+            using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
             foreach (var j in job.ChildJobs)
             {
-                DeleteChildrenRecursive(j);
+                await DeleteChildrenRecursive(j, ct);
             }
 
             _context.Jobs.Remove(job);
@@ -443,6 +522,8 @@ namespace SOUPICore.Services
 
         private async Task CheckIfValidJob(Job job, CancellationToken ct = default)
         {
+            using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
             var project = await _context.Projects.FindAsync([job.ProjectId], cancellationToken: ct);
             var creator = await _context.TeamMembers.FindAsync([job.CreatorId], cancellationToken: ct);
             Job? parentJob = null;
@@ -480,6 +561,8 @@ namespace SOUPICore.Services
 
         private async Task CheckIfCyclic(Guid childJobId, Guid? parentJobId, CancellationToken ct = default)
         {
+            using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
             if (parentJobId == null) return; 
 
             var startJobId = childJobId;
@@ -506,9 +589,9 @@ namespace SOUPICore.Services
 
                     // Fetch all sequences where the current job is the 'predecessor' 
                     var nextJobIds = await _context.Jobs
-                        .Where(j => j.ParentJobId == currentJobId)
-                        .Select(j => j.Id)
-                        .ToListAsync(ct);
+                                                   .Where(j => j.ParentJobId == currentJobId)
+                                                   .Select(j => j.Id)
+                                                   .ToListAsync(ct);
 
                     foreach (var nextId in nextJobIds) 
                     { 

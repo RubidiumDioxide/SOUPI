@@ -1,7 +1,7 @@
 ﻿using SOUPI.Handlers.Interfaces;
+using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos.SOUPIDtos;
 using SOUPIShared.Exceptions;
-using System.Text.Json;
 
 
 namespace SOUPI.Handlers
@@ -9,38 +9,19 @@ namespace SOUPI.Handlers
     public class AssignmentRequestHandler : IAssignmentRequestHandler
     {
         private readonly ILogger<AssignmentRequestHandler> _logger;
-        private readonly HttpClient _httpClient;
+        private readonly IAssignmentService _assignmentService; 
 
-        private const string getByIdUrl = "/api/assignment/getbyid/";
-        private const string getByProjectIdUrl = "/api/assignment/getbyprojectid/";
-        private const string getByJobIdUrl = "/api/assignment/getbyjobid/";
-        private const string getByUserIdUrl = "/api/assignment/getbyuserid/";
-        private const string createUrl = "/api/assignment/create/";
-        private const string updateContentUrl = "/api/assignment/updateContent/";
-        private const string deleteUrl = "/api/assignment/delete/";
-
-        public AssignmentRequestHandler(ILogger<AssignmentRequestHandler> logger, HttpClient httpClient)
+        public AssignmentRequestHandler(ILogger<AssignmentRequestHandler> logger, IAssignmentService assignmentService)
         {
             _logger = logger;
-            _httpClient = httpClient;
+            _assignmentService = assignmentService; 
         }
 
         public async Task<AssignmentDisplayDto> GetById(Guid assignmentId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByIdUrl}{assignmentId}", ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var assignmentDto = System.Text.Json.JsonSerializer.Deserialize<AssignmentDisplayDto>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return assignmentDto!;
+                return await _assignmentService.GetById(assignmentId, ct);
             }
             catch (Exception ex)
             {
@@ -53,18 +34,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByProjectIdUrl}{projectId}", ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var assignmentDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<AssignmentDisplayDto>>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return assignmentDtos!;
+                return await _assignmentService.GetByProjectId(projectId, ct);
             }
             catch (Exception ex)
             {
@@ -77,18 +47,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByJobIdUrl}{jobId}", ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var assignmentDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<AssignmentDisplayDto>>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return assignmentDtos!;
+                return await _assignmentService.GetByJobId(jobId, ct); 
             }
             catch (Exception ex)
             {
@@ -101,18 +60,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByUserIdUrl}{userId}", ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var assignmentDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<AssignmentDisplayDto>>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return assignmentDtos!;
+               return await _assignmentService.GetByUserId(userId, ct); 
             }
             catch (Exception ex)
             {
@@ -125,18 +73,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(assignmentDto), ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var newAssignmentDto = System.Text.Json.JsonSerializer.Deserialize<AssignmentDto>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return newAssignmentDto!;
+                return await _assignmentService.Create(assignmentDto, ct);
             }
             catch (Exception ex)
             {
@@ -149,18 +86,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.PostAsync(updateContentUrl, JsonContent.Create(updatedAssignmentDto), ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var newUpdatedAssignmentDto = System.Text.Json.JsonSerializer.Deserialize<AssignmentDto>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return newUpdatedAssignmentDto!;
+                return await _assignmentService.UpdateContent(updatedAssignmentDto, ct);
             }
             catch (Exception ex)
             {
@@ -173,9 +99,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{deleteUrl}{assignmentId}", ct);
-
-                response.EnsureSuccessStatusCode();
+                await _assignmentService.Delete(assignmentId, ct);
             }
             catch (Exception ex)
             {

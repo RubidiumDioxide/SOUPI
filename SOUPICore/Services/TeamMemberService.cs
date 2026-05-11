@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Octokit;
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos.SOUPIDtos;
 using SOUPIShared.Exceptions;
+using SOUPIShared.Models;
 using SOUPIShared.Resources;
 
 
@@ -10,20 +12,26 @@ namespace SOUPICore.Services
 {
     public class TeamMemberService : ITeamMemberService 
     {
+        private readonly IDbContextFactory<SoupiDbContext> _contextFactory;
         private readonly ILogger<TeamMemberService> _logger;
-        private readonly SoupiDbContext _context;
 
-        public TeamMemberService(ILogger<TeamMemberService> logger, SoupiDbContext context)
+        public TeamMemberService(IDbContextFactory<SoupiDbContext> contextFactory, ILogger<TeamMemberService> logger)
         {
+            _contextFactory = contextFactory; 
             _logger = logger;
-            _context = context;
         }
 
         public async Task<TeamMemberDisplayDto> GetById(Guid teamMemberId, CancellationToken ct = default)
         {
             try
             {
-                var teamMember = await _context.TeamMembers.FindAsync([teamMemberId], cancellationToken: ct); 
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
+                var teamMember = await _context.TeamMembers
+                                               .Include(tm => tm.User) 
+                                               .Include(tm => tm.Project) 
+                                               .Include(tm => tm.Supervisor)
+                                               .FirstOrDefaultAsync(tm => tm.Id == teamMemberId, cancellationToken: ct); 
 
                 if(teamMember == null)
                 {
@@ -43,6 +51,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var job = await _context.Jobs.FindAsync([jobId], cancellationToken: ct); 
 
                 if(job == null)
@@ -51,8 +61,11 @@ namespace SOUPICore.Services
                 }
 
                 var teamMembers = await _context.TeamMembers
-                    .Where(tm => tm.ProjectId == job.ProjectId)
-                    .ToListAsync(ct);
+                                               .Where(tm => tm.ProjectId == job.ProjectId)
+                                               .Include(tm => tm.User)
+                                               .Include(tm => tm.Project)
+                                               .Include(tm => tm.Supervisor)
+                                               .ToListAsync(ct);    
 
                 return teamMembers.Select(tm => new TeamMemberDisplayDto(tm));
             }
@@ -67,6 +80,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var project = await _context.Projects.FindAsync([projectId], cancellationToken: ct);
 
                 if (project == null)
@@ -75,8 +90,11 @@ namespace SOUPICore.Services
                 }
 
                 var teamMembers = await _context.TeamMembers
-                    .Where(tm => tm.ProjectId == projectId)
-                    .ToListAsync(ct);
+                                                .Where(tm => tm.ProjectId == projectId)
+                                                .Include(tm => tm.User)
+                                                .Include(tm => tm.Project)
+                                                .Include(tm => tm.Supervisor)
+                                                .ToListAsync(ct);
 
                 return teamMembers.Select(tm => new TeamMemberDisplayDto(tm)); 
             }
@@ -91,6 +109,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var existingTeamMember = await _context.TeamMembers.FirstOrDefaultAsync(tm => tm.UserId == teamMemberDto.UserId && tm.ProjectId == teamMemberDto.ProjectId, ct);
 
                 if (existingTeamMember == null)
@@ -112,11 +132,20 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task DeleteById(Guid id, CancellationToken ct = default)
+        public async Task Delete(Guid teamMemberId, CancellationToken ct = default)
         {
             try
             {
-                var teamMember = await _context.TeamMembers.FindAsync([id], cancellationToken: ct); 
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
+
+                var teamMember = await _context.TeamMembers
+                                               .Include(tm => tm.CreatedJobs)
+                                                   .ThenInclude(j => j.Assignments)
+                                                       .ThenInclude(a => a.Activities)
+                                               .Include(tm => tm.Assignments)
+                                                   .ThenInclude(a => a.Activities)
+                                               .FirstOrDefaultAsync(tm => tm.Id == teamMemberId, cancellationToken: ct);
 
                 if(teamMember == null)
                 {

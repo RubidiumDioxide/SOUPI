@@ -9,8 +9,6 @@ namespace SOUPI.Handlers.Interfaces
 
         public Task<IEnumerable<TeamMemberDisplayDto>> GetByProjectId(Guid projectId, CancellationToken ct = default);
 
-        public Task<TeamMemberDto> Create(TeamMemberDto newTeamMember, CancellationToken ct = default);
-
         public Task<TeamMemberDto> Update(TeamMemberDto teamMemberDto, CancellationToken ct = default);
 
         public Task Delete(Guid id, CancellationToken ct = default); 

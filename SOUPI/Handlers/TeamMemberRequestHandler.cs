@@ -1,7 +1,7 @@
 ﻿using SOUPI.Handlers.Interfaces;
+using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos.SOUPIDtos;
 using SOUPIShared.Exceptions;
-using System.Text.Json;
 
 
 namespace SOUPI.Handlers
@@ -9,36 +9,19 @@ namespace SOUPI.Handlers
     public class TeamMemberRequestHandler : ITeamMemberRequestHandler 
     {
         private readonly ILogger<TeamMemberRequestHandler> _logger;
-        private readonly HttpClient _httpClient;
+        private readonly ITeamMemberService _teamMemberService;
 
-        private const string getByIdUrl = "/api/TeamMember/getbyid/";  
-        private const string getByProjectIdUrl = "/api/TeamMember/getbyprojectid/";  
-        private const string createUrl = "/api/TeamMember/create"; 
-        private const string updateUrl = "/api/TeamMember/update/";
-        private const string deleteUrl = "/api/TeamMember/deleteById/"; 
-
-        public TeamMemberRequestHandler(ILogger<TeamMemberRequestHandler> logger, HttpClient httpClient)
+        public TeamMemberRequestHandler(ILogger<TeamMemberRequestHandler> logger, ITeamMemberService teamMemberService)
         {
             _logger = logger;
-            _httpClient = httpClient;
+            _teamMemberService = teamMemberService;
         }
 
         public async Task<TeamMemberDisplayDto> GetById(Guid teamMemberId, CancellationToken ct = default)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByIdUrl}{teamMemberId}", ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var teamMemberDto = System.Text.Json.JsonSerializer.Deserialize<TeamMemberDisplayDto>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return teamMemberDto!;
+                return await _teamMemberService.GetById(teamMemberId, ct);
             }
             catch (Exception ex)
             {
@@ -51,18 +34,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{getByProjectIdUrl}{projectId}", ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var TeamMemberDtos = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<TeamMemberDisplayDto>>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return TeamMemberDtos!;
+                return await _teamMemberService.GetByProjectId(projectId, ct);
             }
             catch (Exception ex)
             {
@@ -71,48 +43,11 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task<TeamMemberDto> Create(TeamMemberDto TeamMemberDto, CancellationToken ct = default)
-        {
-            try
-            {
-                var response = await _httpClient.PostAsync(createUrl, JsonContent.Create(TeamMemberDto), ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var newTeamMemberDto = System.Text.Json.JsonSerializer.Deserialize<TeamMemberDto>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return newTeamMemberDto!;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Не удалось добавить в команду проекта нового участника. {ex.Message}");
-                throw new SoupiException("Не удалось добавить в команду проекта нового участника. Попробуйте позже или сообщите об ошибке в техподдержку ");
-            }
-        }
-
         public async Task<TeamMemberDto> Update(TeamMemberDto updatedTeamMemberDto, CancellationToken ct = default)
         {
             try
             {
-                var content = JsonContent.Create(updatedTeamMemberDto);
-
-                var response = await _httpClient.PostAsync(updateUrl, content, ct);
-
-                response.EnsureSuccessStatusCode();
-
-                var newContent = await response.Content.ReadAsStringAsync(ct);
-
-                var result = System.Text.Json.JsonSerializer.Deserialize<TeamMemberDto>(newContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-
-                return result!;
+                return await _teamMemberService.Update(updatedTeamMemberDto, ct); 
             }
             catch (Exception ex)
             {
@@ -125,9 +60,7 @@ namespace SOUPI.Handlers
         {
             try
             {
-                var response = await _httpClient.DeleteAsync($"{deleteUrl}{id}", ct);
-
-                response.EnsureSuccessStatusCode();
+                await _teamMemberService.Delete(id, ct);
             }
             catch (Exception ex)
             {

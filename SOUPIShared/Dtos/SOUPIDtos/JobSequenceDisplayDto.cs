@@ -12,12 +12,12 @@ namespace SOUPIShared.Dtos.SOUPIDtos
         public Guid FirstJobId { get; set; }
         [Required]
         [ConsistsOfNumbersCyrillicLatin]
-        public string FirstJobTitle { get; set; }
+        public string FirstJobTitle { get; set; } = default!; 
         [Required]
         public Guid SecondJobId { get; set; }
         [Required]
         [ConsistsOfNumbersCyrillicLatin]
-        public string SecondJobTitle { get; set; }
+        public string SecondJobTitle { get; set; } = default!; 
 
         public JobSequenceDisplayDto (JobSequence jobSequence)
         {

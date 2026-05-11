@@ -1,26 +1,23 @@
-﻿using Microsoft.Extensions.Localization;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Exceptions;
 using SOUPIShared.Models;
 using SOUPIShared.Resources;
 using Microsoft.EntityFrameworkCore;
-using static SOUPIShared.Extensions.JobExtensions;
-using static SOUPIShared.Extensions.JobSequenceExtensions;
+using SOUPIShared.Extensions; 
 using SOUPIShared.Dtos.SOUPIDtos;
-using System.Diagnostics;
 
 
 namespace SOUPICore.Services
 {
     public class JobSequenceService : IJobSequenceService
     {
-        private readonly SoupiDbContext _context;
+        private readonly IDbContextFactory<SoupiDbContext> _contextFactory;
         private readonly ILogger<JobSequenceService> _logger;
 
-        public JobSequenceService(SoupiDbContext context, ILogger<JobSequenceService> logger)
+        public JobSequenceService(IDbContextFactory<SoupiDbContext> contextFactory, ILogger<JobSequenceService> logger)
         {
-            _context = context;
+            _contextFactory = contextFactory; 
             _logger = logger; 
         }
 
@@ -28,6 +25,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var project = await _context.Projects.FindAsync([projectId], cancellationToken: ct);
 
                 if (project == null)
@@ -36,8 +35,10 @@ namespace SOUPICore.Services
                 }
 
                 var jobSequences = await _context.JobSequences
-                    .Where(js => js.FirstJob.ProjectId == projectId)
-                    .ToListAsync(ct);
+                                                 .Where(js => js.FirstJob.ProjectId == projectId)
+                                                 .Include(js => js.FirstJob)
+                                                 .Include(js => js.SecondJob)
+                                                 .ToListAsync(ct);
 
                 return jobSequences.Select(js => new JobSequenceDisplayDto(js));
             }
@@ -52,6 +53,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var newJobSequence = new JobSequence()
                 {
                     FirstJobId = firstJobId, 
@@ -61,9 +64,10 @@ namespace SOUPICore.Services
                 await CheckIfValidJobSequence(newJobSequence, ct);
 
                 var firstJob = await _context.Jobs.FindAsync([firstJobId], cancellationToken: ct);
+               
                 var existingJobSequences = await _context.JobSequences
-                    .Where(js => js.FirstJob.ProjectId == firstJob.ProjectId)
-                    .ToListAsync(ct); 
+                                                         .Where(js => js.FirstJob.ProjectId == firstJob!.ProjectId)
+                                                         .ToListAsync(ct); 
 
                 if(newJobSequence.CheckIfCyclic(existingJobSequences))
                 {
@@ -86,6 +90,8 @@ namespace SOUPICore.Services
         {
             try
             {
+                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
                 var jobSequence = await _context.JobSequences.FindAsync([jobSequenceId], cancellationToken: ct);
 
                 if (jobSequence == null)
@@ -105,6 +111,8 @@ namespace SOUPICore.Services
 
         private async Task CheckIfValidJobSequence(JobSequence jobSequence, CancellationToken ct = default)
         {
+            using var _context = await _contextFactory.CreateDbContextAsync(ct);
+
             var firstJob = await _context.Jobs.FindAsync([jobSequence.FirstJobId], cancellationToken: ct);
             var secondJob = await _context.Jobs.FindAsync([jobSequence.SecondJobId], cancellationToken: ct);
 

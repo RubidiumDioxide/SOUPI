@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Components; 
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using MudBlazor;
 using MudBlazor.Services;
 using SOUPI;
@@ -13,8 +14,8 @@ using SOUPI.Handlers.Interfaces;
 using SOUPICore;
 using SOUPICore.Services;
 using SOUPICore.Services.Interfaces; 
-using System.Security.Claims;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Text.Json;
 
 
@@ -72,14 +73,14 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddDbContext<SoupiDbContext>(
+builder.Services.AddDbContextFactory<SoupiDbContext>(
     options => options
         .UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => { b.MigrationsAssembly("SOUPI"); })
         .UseLazyLoadingProxies()
-    );
+    ); 
 
 builder.Services.AddSingleton<AuthHttpClientFactory>();
-builder.Services.AddScoped<HttpClient>(sp =>
+builder.Services.AddTransient<HttpClient>(sp =>
 {
     var navManager = sp.GetRequiredService<NavigationManager>(); 
     var factory = sp.GetRequiredService<AuthHttpClientFactory>();
@@ -88,7 +89,7 @@ builder.Services.AddScoped<HttpClient>(sp =>
     return client;
 });
 
-builder.Services.AddScoped<IGitHubRequestHandler, GitHubRequestHandler>(sp =>
+builder.Services.AddTransient<IGitHubRequestHandler, GitHubRequestHandler>(sp =>
 {
     var logger = sp.GetRequiredService<ILogger<GitHubRequestHandler>>();
     var contextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
@@ -97,32 +98,30 @@ builder.Services.AddScoped<IGitHubRequestHandler, GitHubRequestHandler>(sp =>
 
     return new GitHubRequestHandler(logger, contextAccessor, keyGenService, devtunnelUrl); 
 }); 
-builder.Services.AddScoped<IUserRequestHandler, UserRequestHandler>();
-builder.Services.AddScoped<IProjectRequestHandler, ProjectRequestHandler>();
-builder.Services.AddScoped<ITeamMemberRequestHandler, TeamMemberRequestHandler>();
-builder.Services.AddScoped<IJobRequestHandler, JobRequestHandler>(); 
-builder.Services.AddScoped<IJobSequenceRequestHandler, JobSequenceRequestHandler>(); 
-builder.Services.AddScoped<INotificationRequestHandler, NotificationRequestHandler>();
-builder.Services.AddScoped<IAssignmentRequestHandler, AssignmentRequestHandler>();
-builder.Services.AddScoped<IActivityRequestHandler, ActivityRequestHandler>(); 
+builder.Services.AddTransient<IUserRequestHandler, UserRequestHandler>();
+builder.Services.AddTransient<IProjectRequestHandler, ProjectRequestHandler>();
+builder.Services.AddTransient<ITeamMemberRequestHandler, TeamMemberRequestHandler>();
+builder.Services.AddTransient<IJobRequestHandler, JobRequestHandler>(); 
+builder.Services.AddTransient<IJobSequenceRequestHandler, JobSequenceRequestHandler>(); 
+builder.Services.AddTransient<INotificationRequestHandler, NotificationRequestHandler>();
+builder.Services.AddTransient<IAssignmentRequestHandler, AssignmentRequestHandler>();
+builder.Services.AddTransient<IActivityRequestHandler, ActivityRequestHandler>(); 
 
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IProjectService, ProjectService>();
-builder.Services.AddScoped<ITeamMemberService, TeamMemberService>(); 
-builder.Services.AddScoped<IJobService, JobService>(); 
-builder.Services.AddScoped<IJobSequenceService, JobSequenceService>(); 
-builder.Services.AddScoped<INotificationService, NotificationService>();
-builder.Services.AddScoped<IAssignmentService, AssignmentService>();
-builder.Services.AddScoped<IActivityService, ActivityService>(); 
-builder.Services.AddScoped<IKeyGenService, KeyGenService>(sp =>
+builder.Services.AddTransient<IUserService, UserService>();
+builder.Services.AddTransient<IProjectService, ProjectService>();
+builder.Services.AddTransient<ITeamMemberService, TeamMemberService>(); 
+builder.Services.AddTransient<IJobService, JobService>(); 
+builder.Services.AddTransient<IJobSequenceService, JobSequenceService>(); 
+builder.Services.AddTransient<INotificationService, NotificationService>();
+builder.Services.AddTransient<IAssignmentService, AssignmentService>();
+builder.Services.AddTransient<IActivityService, ActivityService>(); 
+builder.Services.AddTransient<IKeyGenService, KeyGenService>(sp =>
 {
     var logger = sp.GetRequiredService<ILogger<KeyGenService>>();
     var masterKey = builder.Configuration["masterKey"]; 
 
     return new KeyGenService(logger, masterKey);
 });
-
-builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 builder.Services.AddMudServices(config =>
 {
