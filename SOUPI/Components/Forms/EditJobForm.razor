@@ -50,13 +50,16 @@ else
 
             <div class="d-flex justify-end mt-4">
                 <MudButton OnClick="ResetForm"
-                           Variant="Variant.Text"
-                           Color="Color.Default">
-                    Сбросить
-                </MudButton> 
-                <MudButton ButtonType="ButtonType.Submit"
+                           Color="Color.Secondary"
                            Variant="Variant.Filled"
-                           Color="Color.Primary">
+                           Class="mr-2"
+                           Disabled="@isProcessing">
+                    Сбросить
+                </MudButton>
+                <MudButton ButtonType="ButtonType.Submit"
+                           Color="Color.Primary"
+                           Variant="Variant.Filled"
+                           Disabled="@isProcessing">
                     Сохранить
                 </MudButton>
             </div>
@@ -80,6 +83,8 @@ else
     public JobDto? jobBackup { get; set; } = new(); 
     private DateTime? startDateTime = DateTime.Today;
     private DateTime? endDateTime = DateTime.Today.AddDays(10);
+
+    private bool isProcessing { get; set; } = false;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -106,6 +111,9 @@ else
     {
         try
         {
+            if (isProcessing) return;
+            isProcessing = true;
+
             Job.StartDateTime = startDateTime ?? default;
             Job.EndDateTime = endDateTime ?? default;
 
@@ -123,7 +131,9 @@ else
 
             await SelectedJobUpdated.InvokeAsync(); 
 
-            Snackbar.Add("Задача успешно изменена", Severity.Success);
+            Snackbar.Add("Задача успешно изменена", Severity.Success); 
+
+            isProcessing = false; 
         }
         catch (SoupiException ex)
         {

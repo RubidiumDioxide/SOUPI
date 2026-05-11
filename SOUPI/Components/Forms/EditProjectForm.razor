@@ -26,15 +26,18 @@ else
                           Lines="5" />
 
             <div class="d-flex justify-end mt-4">
-                <MudButton ButtonType="ButtonType.Submit"
-                           Variant="Variant.Filled"
-                           Color="Color.Primary">
-                    Сохранить
-                </MudButton>
                 <MudButton OnClick="ResetForm"
-                           Variant="Variant.Text"
-                           Color="Color.Default">
+                           Color="Color.Secondary"
+                           Variant="Variant.Filled"
+                           Class="mr-2"
+                           Disabled="@isProcessing">
                     Сбросить
+                </MudButton>
+                <MudButton ButtonType="ButtonType.Submit"
+                           Color="Color.Primary"
+                           Variant="Variant.Filled"
+                           Disabled="@isProcessing">
+                    Сохранить
                 </MudButton>
             </div>
         </EditForm>
@@ -52,6 +55,8 @@ else
     public EventCallback ProjectUpdated { get; set; }
 
     public ProjectDto? projectBackup { get; set; } = new();
+
+    private bool isProcessing { get; set; } = false;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -72,6 +77,9 @@ else
     {
         try
         {
+            if (isProcessing) return;
+            isProcessing = true;
+
             var projects = await projectRequestHandler.GetByUserId(User!.Id);
 
             if (projects.Where(p => p.Id != Project!.Id).Select(p => p.Title).Contains(Project!.Title))
@@ -83,7 +91,9 @@ else
 
             Snackbar.Add("Изменения в проекте были успешно сохранены ", Severity.Success); 
 
-            await ProjectUpdated.InvokeAsync();
+            await ProjectUpdated.InvokeAsync(); 
+
+            isProcessing = false; 
         }
         catch (SoupiException ex)
         {

@@ -7,6 +7,7 @@
 @inject IGitHubRequestHandler gitHubRequestHandler 
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@attribute [Authorize]
 
 
 <PageTitle>Проект @((project != null) ? project.Title : string.Empty)</PageTitle>

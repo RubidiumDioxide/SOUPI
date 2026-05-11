@@ -6,6 +6,7 @@
 @inject IGitHubRequestHandler gitHubRequestHandler 
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@attribute [Authorize]
 
 
 <PageTitle>Исполнитель </PageTitle>
@@ -53,7 +54,8 @@
                                           TeamMemberGitHubUser="teamMemberGitHubUser"
                                           Activities="activities"
                                           ActivitiesCommits="activitiesCommits"
-                                          DeleteActivity="OpenDeleteDialog" />
+                                          DeleteActivity="OpenDeleteDialog" 
+                                          IsDeletable="true"/>
             }
         }
     }

@@ -39,7 +39,7 @@ else
                         <MudButton OnClick="CreateHook"
                                    Color="Color.Success"
                                    Variant="Variant.Filled"
-                                   Disabled="@(!shouldCreateWebhook)">
+                                   Disabled="@(!shouldCreateWebhook || isProcessing)">
                             Создать
                         </MudButton>
 
@@ -79,12 +79,14 @@ else
 
                         <MudButton OnClick="LinkGitHubRepository"
                                    Color="Color.Success"
-                                   Variant="Variant.Filled">
+                                   Variant="Variant.Filled" 
+                                   Disabled="@isProcessing">
                             Привязать
                         </MudButton>
 
                         <MudButton OnClick="Reset"
-                                   Variant="Variant.Text">
+                                   Variant="Variant.Text"
+                                   Disabled="@isProcessing">
                             Отмена
                         </MudButton>
                     </MudStack>
@@ -112,6 +114,8 @@ else
     private bool shouldCreateWebhook { get; set; }
     private bool isLinkingGitHubRepository { get; set; }
     private string? linkedRepositoryName = string.Empty;
+
+    private bool isProcessing { get; set; } = false;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -155,6 +159,9 @@ else
         {
             try
             {
+                if (isProcessing) return;
+                isProcessing = true;
+
                 var repositories = await gitHubRequestHandler.GetRepositoriesForCurrentUser();
                 if (!repositories.Select(r => r.Name).Contains(linkedRepositoryName))
                 {
@@ -179,7 +186,9 @@ else
 
                 Reset();
                  
-                await ProjectUpdated.InvokeAsync();
+                await ProjectUpdated.InvokeAsync(); 
+
+                isProcessing = false; 
             }
             catch (SoupiException ex)
             {
@@ -198,13 +207,18 @@ else
         {
             try
             {
+                if (isProcessing) return;
+                isProcessing = true;
+
                 await gitHubRequestHandler.CreateHook(Project);
                 
                 Snackbar.Add("Вебхук успешно создан ", Severity.Success);
 
                 await ProjectUpdated.InvokeAsync();
 
-                Reset();
+                Reset(); 
+
+                isProcessing = false; 
             }
             catch (SoupiException ex)
             {

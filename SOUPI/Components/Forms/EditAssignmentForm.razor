@@ -28,9 +28,24 @@
                               Margin="Margin.Normal" />
 
                 <div class="d-flex justify-end mt-4">
-                    <MudButton OnClick="Cancel" Class="mr-2">Отмена</MudButton>
-                    <MudButton OnClick="ResetForm" Color="Color.Secondary" Variant="Variant.Filled" Class="mr-2">Сбросить</MudButton>
-                    <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled">Сохранить</MudButton>
+                    <MudButton OnClick="Cancel"
+                               Class="mr-2"
+                               Disabled="@isProcessing">
+                        Отмена
+                    </MudButton>
+                    <MudButton OnClick="ResetForm"
+                               Color="Color.Secondary"
+                               Variant="Variant.Filled"
+                               Class="mr-2"
+                               Disabled="@isProcessing">
+                        Сбросить
+                    </MudButton>
+                    <MudButton ButtonType="ButtonType.Submit"
+                               Color="Color.Primary"
+                               Variant="Variant.Filled"
+                               Disabled="@isProcessing">
+                        Сохранить
+                    </MudButton>
                 </div>
             </EditForm>
         }
@@ -45,6 +60,8 @@
     public AssignmentDisplayDto? Assignment { get; set; } 
 
     public AssignmentDto? assignmentBackup { get; set; }
+
+    private bool isProcessing { get; set; } = false; 
 
     protected override void OnParametersSet()
     {
@@ -72,13 +89,18 @@
     {
         try
         {
+            if (isProcessing) return;
+            isProcessing = true;
+
             await assignmentRequestHandler.UpdateContent(new AssignmentDto(Assignment!)); 
 
             ResetForm(); 
 
             Snackbar.Add("Назначение успешно изменено ", Severity.Success);
 
-            MudDialog.Close(DialogResult.Ok(Assignment));
+            MudDialog.Close(DialogResult.Ok(Assignment)); 
+
+            isProcessing = false; 
         }
         catch (SoupiException ex)
         {

@@ -37,9 +37,24 @@
                               Variant="Variant.Outlined" />
                
                 <div class="d-flex justify-end mt-4">
-                    <MudButton OnClick="Cancel" Class="mr-2">Отмена</MudButton>
-                    <MudButton OnClick="ResetForm" Color="Color.Secondary" Variant="Variant.Filled" Class="mr-2">Сбросить</MudButton>
-                    <MudButton OnClick="UpdateTeamMember" Color="Color.Primary" Variant="Variant.Filled">Сохранить</MudButton>
+                    <MudButton OnClick="Cancel"
+                               Class="mr-2"
+                               Disabled="@isProcessing">
+                        Отмена
+                    </MudButton>
+                    <MudButton OnClick="ResetForm"
+                               Color="Color.Secondary"
+                               Variant="Variant.Filled"
+                               Class="mr-2"
+                               Disabled="@isProcessing">
+                        Сбросить
+                    </MudButton>
+                    <MudButton OnClick="UpdateTeamMember"
+                               Color="Color.Primary"
+                               Variant="Variant.Filled"
+                               Disabled="@isProcessing">
+                        Сохранить
+                    </MudButton>
                 </div>
             </MudStack>
         }
@@ -61,6 +76,8 @@
 
     private string? updatedSupervisorLogin { get; set; } = null; 
     private string? updatedRole { get; set; } = string.Empty; 
+
+    private bool isProcessing { get; set; } = false; 
 
     protected override async Task OnParametersSetAsync()
     {
@@ -114,6 +131,9 @@
     {
         try
         {
+            if (isProcessing) return;
+            isProcessing = true;
+
             if (!updatedRole.DoesConsistOfNumbersCyrillicLatin())
             {
                 throw new SoupiException("Новая роль содержит недоспустимые символы "); 
@@ -147,6 +167,8 @@
             MudDialog.Close(DialogResult.Ok(TeamMember));
 
             StateHasChanged(); 
+
+            isProcessing = false; 
         }
         catch (SoupiException ex)
         {

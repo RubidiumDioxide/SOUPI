@@ -39,7 +39,8 @@
             <MudButton OnClick="ResetTeamMember"
                        Color="Color.Secondary"
                        Variant="Variant.Text"
-                       Size="Size.Large">
+                       Size="Size.Large" 
+                       Disabled="@isProcessing">
                 Отмена
             </MudButton>
 
@@ -47,7 +48,8 @@
                        ButtonType="ButtonType.Submit"
                        Color="Color.Primary"
                        Variant="Variant.Filled"
-                       Size="Size.Large">
+                       Size="Size.Large" 
+                       Disabled="@isProcessing">
                 Пригласить
             </MudButton>
         </MudStack>
@@ -69,6 +71,8 @@
     private string? newTeamMemberLogin { get; set; } = string.Empty;
     private string? newTeamMemberRole { get; set; } = string.Empty;
     private string? inviteMessage { get; set; } = string.Empty; 
+
+    private bool isProcessing { get; set; } = false;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -116,6 +120,9 @@
     {
         try
         {
+            if (isProcessing) return;
+            isProcessing = true;
+
             var invitedUser = availibleUsers.FirstOrDefault(u => u.Login == newTeamMemberLogin); 
 
             if(invitedUser == null)
@@ -136,6 +143,8 @@
             Snackbar.Add($"Пользователь {newTeamMemberLogin} приглашен в команду проекта {Project.Title}. Он появится в команде, как только приглашение будет принято ", Severity.Success);
 
             ResetTeamMember(); 
+
+            isProcessing = false;
         }
         catch (SoupiException ex)
         {

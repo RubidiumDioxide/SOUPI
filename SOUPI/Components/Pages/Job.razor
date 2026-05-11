@@ -7,6 +7,7 @@
 @inject IGitHubRequestHandler gitHubRequestHandler 
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@attribute [Authorize]
 
 
 <PageTitle>Задача </PageTitle>
@@ -58,7 +59,7 @@
                                                           TeamMemberGitHubUser="@assignmentsTeamMemberGitHubUsers[assignment.Id]"
                                                           Activities="@assignmentsActivities[assignment.Id]"
                                                           ActivitiesCommits="activitiesCommits"  
-                                                            IsDeletable="false"/> 
+                                                          IsDeletable="false"/> 
                             }
                         }
                     </MudTabPanel>
