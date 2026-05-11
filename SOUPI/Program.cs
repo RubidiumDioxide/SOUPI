@@ -1,13 +1,10 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.AspNetCore.Components; 
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using MudBlazor;
-using MudBlazor.Services;
-using SOUPI;
+using MudBlazor.Services; 
 using SOUPI.Components;
 using SOUPI.Handlers;
 using SOUPI.Handlers.Interfaces; 
@@ -77,26 +74,21 @@ builder.Services.AddDbContextFactory<SoupiDbContext>(
     options => options
         .UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => { b.MigrationsAssembly("SOUPI"); })
         .UseLazyLoadingProxies()
-    ); 
+    );
 
-builder.Services.AddSingleton<AuthHttpClientFactory>();
-builder.Services.AddTransient<HttpClient>(sp =>
-{
-    var navManager = sp.GetRequiredService<NavigationManager>(); 
-    var factory = sp.GetRequiredService<AuthHttpClientFactory>();
-    var client = factory.CreateClient(new Uri(navManager.BaseUri));
-
-    return client;
-});
+builder.Services.AddHttpClient();
 
 builder.Services.AddTransient<IGitHubRequestHandler, GitHubRequestHandler>(sp =>
 {
     var logger = sp.GetRequiredService<ILogger<GitHubRequestHandler>>();
-    var contextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+    var contextAccessor = sp.GetRequiredService<IHttpContextAccessor>(); 
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>(); 
     var keyGenService = sp.GetRequiredService<IKeyGenService>();  
-    var devtunnelUrl = builder.Configuration["VS_TUNNEL_URL"]; 
+    var devtunnelUrl = builder.Configuration["VS_TUNNEL_URL"];
+    var clientId = builder.Configuration["Github:ClientId"];
+    var clientSecret = builder.Configuration["Github:ClientSecret"];
 
-    return new GitHubRequestHandler(logger, contextAccessor, keyGenService, devtunnelUrl); 
+    return new GitHubRequestHandler(logger, contextAccessor, httpClientFactory, keyGenService, devtunnelUrl, clientId, clientSecret); 
 }); 
 builder.Services.AddTransient<IUserRequestHandler, UserRequestHandler>();
 builder.Services.AddTransient<IProjectRequestHandler, ProjectRequestHandler>();
