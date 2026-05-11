@@ -42,9 +42,9 @@
     private string[]? weekLabels { get; set; }
 
     // activities per assignment 
-    private List<ChartSeries<int>>? activitiesPerAssignmentDataSet { get; set; }
-    private List<ChartSeries<int>>? activitiesPerMonthDataSet { get; set; }
-    private List<ChartSeries<int>>? activitiesPerWeekDataSet { get; set; }
+    private List<ChartSeries<double>>? activitiesPerAssignmentDataSet { get; set; }
+    private List<ChartSeries<double>>? activitiesPerMonthDataSet { get; set; }
+    private List<ChartSeries<double>>? activitiesPerWeekDataSet { get; set; }
 
     protected override async Task OnParametersSetAsync() 
     {
@@ -57,7 +57,7 @@
                 activitiesPerAssignmentDataSet = [
                     new() { 
                         Name = "Кол-во действий по исполнителям ", 
-                        Data = new(AssignmentsActivities.Select(a => a.Count()).ToList())       
+                        Data = new(AssignmentsActivities.Select(a => (double)a.Count()).ToList())       
                     }
                 ]; 
             }

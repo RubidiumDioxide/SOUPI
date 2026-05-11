@@ -35,7 +35,7 @@ else
     [Parameter, EditorRequired]
     public string[]? Labels { get; set; }
     [Parameter, EditorRequired]
-    public List<ChartSeries<int>>? DataSet { get; set; }
+    public List<ChartSeries<double>>? DataSet { get; set; }
                 
     private Dictionary<ChartType, string> _menuIcons = new()
     {

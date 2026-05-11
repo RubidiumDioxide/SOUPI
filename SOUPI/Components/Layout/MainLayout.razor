@@ -26,7 +26,7 @@
                 </CascadingValue>
             </CascadingValue>
         }
-        <MudSwitch @bind-Value="@_isDarkMode" Color="Color.Primary" Class="ma-4" T="bool" Label="Toggle Light/Dark Mode" />
+        <MudSwitch @bind-Value="@_isDarkMode" @bind-Value:after="SaveSelectedTheme" Color="Color.Primary" Class="ma-4" T="bool" Label="Toggle Light/Dark Mode" />
     </MudAppBar>
 
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
@@ -96,6 +96,7 @@
 
                     await LoadGithubUser(); 
                     await LoadUser(); 
+                    await LoadAndOrSetTheme(); 
 
                     StateHasChanged(); 
                 }
@@ -119,7 +120,7 @@
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender = true)
+    private async Task LoadAndOrSetTheme()
     {
         var response = await SessionStorage.GetAsync<bool>("isDarkMode");
         if (response.Success)

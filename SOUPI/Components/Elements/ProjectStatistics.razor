@@ -81,13 +81,13 @@
     private string[]? weekLabels { get; set; }
 
     // activities per assignment 
-    private List<ChartSeries<int>>? assignmentsPerTeamMemberDataSet { get; set; }
-    private List<ChartSeries<int>>? activitiesPerTeamMemberDataSet { get; set; }
-    private List<ChartSeries<int>>? completedToUncompletedJobsPerTeamMemberDataSet { get; set; }
-    private List<ChartSeries<int>>? createdAndCompletedJobsPerMonthDataSet { get; set; }
-    private List<ChartSeries<int>>? createdAndCompletedJobsPerWeekDataSet { get; set; }
-    private List<ChartSeries<int>>? activitiesPerMonthDataSet { get; set; }
-    private List<ChartSeries<int>>? activitiesPerWeekDataSet { get; set; }
+    private List<ChartSeries<double>>? assignmentsPerTeamMemberDataSet { get; set; }
+    private List<ChartSeries<double>>? activitiesPerTeamMemberDataSet { get; set; }
+    private List<ChartSeries<double>>? completedToUncompletedJobsPerTeamMemberDataSet { get; set; }
+    private List<ChartSeries<double>>? createdAndCompletedJobsPerMonthDataSet { get; set; }
+    private List<ChartSeries<double>>? createdAndCompletedJobsPerWeekDataSet { get; set; }
+    private List<ChartSeries<double>>? activitiesPerMonthDataSet { get; set; }
+    private List<ChartSeries<double>>? activitiesPerWeekDataSet { get; set; }
 
     protected override async Task OnParametersSetAsync() 
     {
@@ -107,10 +107,9 @@
                 [
                     new() {
                         Name = "Назначения в качестве исполнителя",
-                        Data = new(teamMemberAssignments.Select(g => g.Count()).ToList())
+                        Data = new(teamMemberAssignments.Select(g => (double)g.Count()).ToArray())
                     } 
-                ];
-
+                ]; 
 
                 // activitiesPerTeamMemberDataSet 
                 var teamMemberActivities = Activities.OrderBy(a => a.TeamMemberLogin)
@@ -120,7 +119,7 @@
                 [
                     new() {
                         Name = "Действия",
-                        Data = new(teamMemberActivities.Select(g => g.Count()).ToList())
+                        Data = new(teamMemberActivities.Select(g => (double)g.Count()).ToList())
                     }
                 ];
 
@@ -145,12 +144,12 @@
                 completedToUncompletedJobsPerTeamMemberDataSet = 
                 [
                     new() {
-                        Name = "Назначенные задачи",
-                        Data = new(teamMemberUncompletedJobs.Select(g => g.Count()).ToList())
+                        Name = "Не завершенные задачи",
+                        Data = new(teamMemberUncompletedJobs.Select(g => (double)g.Count()).ToList())
                     }, 
                     new() {
                         Name = "Завершенные задачи",
-                        Data = new(teamMemberCompletedJobs.Select(g => g.Count()).ToList())
+                        Data = new(teamMemberCompletedJobs.Select(g => (double)g.Count()).ToList())
                     }
                 ];
 
@@ -168,11 +167,11 @@
                 [
                     new() {
                         Name = "Созданные задачи ",
-                        Data = new(createdJobsPerMonth.Select(g => g.Count()).ToList())
+                        Data = new(createdJobsPerMonth.Select(g => (double)g.Count()).ToList())
                     },
                     new() {
                         Name = "Заершенные задачи ",
-                        Data = new(completedJobsPerMonth.Select(g => g.Count()).ToList())
+                        Data = new(completedJobsPerMonth.Select(g => (double)g.Count()).ToList())
                     }
                 ];
 
@@ -198,11 +197,11 @@
                 [
                     new() {
                         Name = "Созданные задачи ",
-                        Data = new(createdJobsPerWeek.Select(g => g.Count()).ToList())
+                        Data = new(createdJobsPerWeek.Select(g => (double)g.Count()).ToList())
                     },
                     new() {
                         Name = "Заершенные задачи ",
-                        Data = new(completedJobsPerWeek.Select(g => g.Count()).ToList())
+                        Data = new(completedJobsPerWeek.Select(g => (double)g.Count()).ToList())
                     }
                 ];
 
@@ -215,7 +214,7 @@
                 [
                     new() {
                         Name = "Действия",
-                        Data = new(monthActivities.Select(g => g.Count()).ToList())
+                        Data = new(monthActivities.Select(g => (double)g.Count()).ToList())
                     }
                 ];
 
@@ -232,7 +231,7 @@
                 [
                     new() {
                         Name = "Действия",
-                        Data = new(weekActivities.Select(g => g.Count()).ToList())
+                        Data = new(weekActivities.Select(g => (double)g.Count()).ToList())
                     }
                 ];
 
