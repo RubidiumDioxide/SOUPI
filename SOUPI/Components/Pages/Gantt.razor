@@ -81,7 +81,8 @@
                                                          Project=@project
                                                          SelectedJobUpdated="JobsUpdated"
                                                          ProjectJobs="projectJobs" 
-                                                         IsContentEditable="@(!isCreator)"/>
+                                                         IsContentEditable="@(isCreator)"
+                                                         IsProgressEditable="@(isCreator || isAssigneeForSelectedJob)"/>
                                         </MudTabPanel>
 
                                         @* links & dependencies *@
@@ -99,8 +100,10 @@
                                         @* assignments *@
                                         <MudTabPanel Text="Исполнители "> 
                                             <AssignmentsEditor Job="@selectedJob" 
-                                                             SubservientTeamMembers="@subservientTeamMembers"
-                                                               TeamMemberGitHubUsers="@teamMemberGitHubUsers" />
+                                                               Assignments="@jobAssignments[selectedJobId!.Value]"
+                                                               SubservientTeamMembers="@subservientTeamMembers"
+                                                               TeamMemberGitHubUsers="@teamMemberGitHubUsers" 
+                                                               OnAssignmentsUpdated="AssignmentsUpdated"/>
                                         </MudTabPanel> 
                                     </MudTabs>
                                 }
@@ -111,7 +114,8 @@
                             <GanttChart @ref=ganttChart 
                                         Project="@project"
                                         GanttJobs=@ganttJobs
-                                        OnEditMenuTriggered="OnEditMenuTriggered"
+                                        OnLeftClick="OnLeftClick"
+                                        OnRightClick="OnRightClick"
                                         OnAddButtonClicked="@(() => OpenAddDialog(null))"
                                         OnSaveButtonClicked="SaveChangesToJobs" 
                                         OnGoOneLevelUpButtonClicked="GoOneLevelUp"
@@ -176,6 +180,7 @@
 
     private bool isCreator { get; set; } = false; 
     private bool isTeamMember { get; set; } = false; 
+    private bool isAssigneeForSelectedJob { get; set; } = false; 
 
     private string? error { get; set; } = null;
     private Severity severity { get; set; } = Severity.Warning;
@@ -264,22 +269,36 @@
         teamMemberGitHubUsers = githubUsers.ToDictionary(gu => gu.Login);
     }
 
-    private async Task OnEditMenuTriggered((Guid jobId, MouseEventArgs e) data)
+    private async Task OnLeftClick((Guid jobId, MouseEventArgs e) data)
     {
-        jobMenuStyle = $"position: fixed; left: {data.e.ClientX}px; top: {data.e.ClientY}px;"; 
+        selectedJobId = data.jobId;
 
-        selectedJobId = data.jobId; 
-
+        isAssigneeForSelectedJob = (selectedJobId != null && jobAssignments != null && teamMember != null) ? jobAssignments[selectedJobId.Value].Any(a => a.TeamMemberId == teamMember.Id) : false;
+    
         if (projectJobs != null && selectedJobId != null)
         {
             selectedJob = projectJobs.FirstOrDefault(j => j.Id == selectedJobId);
         }
+    }
+
+    private async Task OnRightClick((Guid jobId, MouseEventArgs e) data)
+    {
+        jobMenuStyle = $"position: fixed; left: {data.e.ClientX}px; top: {data.e.ClientY}px;"; 
+
+        selectedJobId = data.jobId;
+
+        isAssigneeForSelectedJob = (selectedJobId != null && jobAssignments != null && teamMember != null) ? jobAssignments[selectedJobId.Value].Any(a => a.TeamMemberId == teamMember.Id) : false;
 
         await jobMenu.ToggleMenuAsync(data.e);
     }
 
     private async Task SelectJob()
     {
+        if (projectJobs != null && selectedJobId != null)
+        {
+            selectedJob = projectJobs.FirstOrDefault(j => j.Id == selectedJobId);
+        }
+
         isEditDrawerOpen = true; 
     }
 
@@ -343,6 +362,16 @@
     private async Task JobsUpdated()
     {
         await LoadJobs(); 
+        
+        StateHasChanged();
+    }
+
+    private async Task AssignmentsUpdated()
+    {
+        await LoadJobAssignments();
+
+        isAssigneeForSelectedJob = (selectedJobId != null && jobAssignments != null && teamMember != null) ? jobAssignments[selectedJobId.Value].Any(a => a.TeamMemberId == teamMember.Id) : false;
+
         StateHasChanged();
     }
 

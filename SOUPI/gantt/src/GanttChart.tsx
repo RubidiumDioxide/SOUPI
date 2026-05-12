@@ -76,7 +76,25 @@ const GanttChart = forwardRef((props: {
                     upper_header_height: custom_upper_header_height, 
                     container_height: custom_container_height 
             });
-             
+
+            // left-click handler 
+            const handleLeftClick = async (e: MouseEvent) => {
+                const taskBar = (e.target as HTMLElement).closest('.bar-wrapper');
+                if (taskBar) {
+                    e.preventDefault();
+                    const jobId = taskBar.getAttribute('data-id');
+
+                    if (jobId && (window as any).interop) {
+                        const coords = {
+                            clientX: e.clientX,
+                            clientY: e.clientY
+                        };
+
+                        await (window as any).interop.callCSharpMethod('LeftClickJobFromJS', jobId, coords);
+                    }
+                }
+            };
+
             // right-click handler 
             const handleRightClick = async (e: MouseEvent) => {
                 const taskBar = (e.target as HTMLElement).closest('.bar-wrapper');
@@ -97,9 +115,11 @@ const GanttChart = forwardRef((props: {
 
             const el = containerRef.current;
             el.addEventListener('contextmenu', handleRightClick);
+            el.addEventListener('click', handleLeftClick);
 
             return () => {
                 el.removeEventListener('contextmenu', handleRightClick);
+                el.removeEventListener('click', handleLeftClick);
                 if (containerRef.current) containerRef.current.innerHTML = '';
                 ganttRef.current = null;
             };

@@ -73,8 +73,10 @@ else
     public ProjectDisplayDto? Project { get; set; }
     [Parameter, EditorRequired]
     public IEnumerable<GanttJobDto> GanttJobs { get; set; } = default!;
+    [Parameter, EditorRequired]
+    public EventCallback<(Guid, MouseEventArgs)> OnLeftClick { get; set; }
     [Parameter, EditorRequired] 
-    public EventCallback<(Guid, MouseEventArgs)> OnEditMenuTriggered { get; set; }
+    public EventCallback<(Guid, MouseEventArgs)> OnRightClick { get; set; }
     [Parameter, EditorRequired]
     public EventCallback OnAddButtonClicked { get; set; }
     [Parameter, EditorRequired]
@@ -118,9 +120,15 @@ else
     }
 
     [JSInvokable]
+    public async Task LeftClickJobFromJS(string jobId, MouseEventArgs coords)
+    {
+        await OnLeftClick.InvokeAsync((Guid.Parse(jobId), coords));
+    }
+
+    [JSInvokable]
     public async Task RightClickJobFromJS(string jobId, MouseEventArgs coords)
     {
-        await OnEditMenuTriggered.InvokeAsync((Guid.Parse(jobId), coords)); 
+        await OnRightClick.InvokeAsync((Guid.Parse(jobId), coords)); 
     }
 
     public async Task SetGanttJobs()

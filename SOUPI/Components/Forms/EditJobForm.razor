@@ -17,7 +17,7 @@ else
                           Label="Название задачи"
                           Variant="Variant.Outlined"
                           Margin="Margin.Normal" 
-                          Disabled="IsContentEditable" />
+                          Disabled="!IsContentEditable" />
 
             <MudTextField @bind-Value=@Job.Body
                           For="@(() => Job.Body)"
@@ -25,26 +25,27 @@ else
                           Variant="Variant.Outlined"
                           Lines="3"
                           Margin="Margin.Normal" 
-                          Disabled="IsContentEditable" />
+                          Disabled="!IsContentEditable" />
 
             <div class="d-flex gap-4">
                 <MudDatePicker @bind-Date=@startDateTime
                                Label="Дата начала"
                                Variant="Variant.Outlined"
                                Editable="true" 
-                               Disabled="IsContentEditable" />
+                               Disabled="!IsContentEditable" />
 
                 <MudDatePicker @bind-Date=@endDateTime
                                Label="Дата завершения"
                                Variant="Variant.Outlined"
                                Editable="true" 
-                               Disabled="IsContentEditable" />
+                               Disabled="!IsContentEditable" />
             </div>
 
             <MudSlider @bind-Value="Job.Progress"
                        Min="0" Max="100"
                        Color="Color.Primary"
-                       ValueLabel="true">
+                       ValueLabel="true" 
+                       Disabled="!IsProgressEditable">
                 Прогресс (%)
             </MudSlider>
 
@@ -79,6 +80,8 @@ else
     public EventCallback SelectedJobUpdated { get; set; }
     [Parameter]
     public bool IsContentEditable { get; set; } = false; // content = title/description/dates/etc. progress doesnt count since it's required for completion
+    [Parameter]
+    public bool IsProgressEditable { get; set; } = false; 
 
     public JobDto? jobBackup { get; set; } = new(); 
     private DateTime? startDateTime = DateTime.Today;

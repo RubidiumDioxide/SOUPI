@@ -3,13 +3,13 @@
 @inject IDialogService DialogService
 
 
-@if (Job == null || SubservientTeamMembers == null || TeamMemberGitHubUsers == null || assignments == null)
+@if (Job == null || Assignments == null || SubservientTeamMembers == null || TeamMemberGitHubUsers == null)
 {
     <LoadingPlaceholder />
 }
 else {
     <MudContainer Class="ma-1 pa-0" MaxWidth="MaxWidth.False" Gutters="false">
-        @if (assignments.Count() == 0)
+        @if (Assignments.Count() == 0)
         {
             <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
                 У этой задачи нет исполнителей 
@@ -18,7 +18,7 @@ else {
         else
         {
             <MudStack Spacing="3">
-                @foreach (var assignment in assignments)
+                @foreach (var assignment in Assignments)
                 {
                     <AssignmentListElement Assignment="assignment"
                                            TeamMemberGitHubUser="TeamMemberGitHubUsers[assignment.TeamMemberLogin]" 
@@ -46,44 +46,20 @@ else {
     [Parameter, EditorRequired]
     public JobDto? Job { get; set; } 
     [Parameter, EditorRequired] 
+    public IEnumerable<AssignmentDisplayDto>? Assignments { get; set; }
+    [Parameter, EditorRequired] 
     public IEnumerable<TeamMemberDisplayDto>? SubservientTeamMembers { get; set; }
     [Parameter, EditorRequired]
     public IDictionary<string, GitHubUserDto> TeamMemberGitHubUsers { get; set; }
-
-    public IEnumerable<AssignmentDisplayDto>? assignments { get; set; }
-
-    protected override async Task OnParametersSetAsync()
-    {
-        if (Job != null)
-        {
-            try
-            {
-                await LoadAssignments(); 
-            }
-            catch (SoupiException ex)
-            {
-                Snackbar.Add(ex.Message, Severity.Error);
-            }
-            catch (Exception)
-            {
-                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
-            }
-        }
-
-        StateHasChanged();
-    }
-
-    private async Task LoadAssignments()
-    {
-        assignments = await assignmentRequestHandler.GetByJobId(Job!.Id);  
-    }
+    [Parameter, EditorRequired]
+    public EventCallback OnAssignmentsUpdated { get; set; }
 
     private async Task OpenAddDialog()
     {
         var parameters = new DialogParameters<NewAssignmentForm>
         {
             { x => x.Job, Job },
-            { x => x.Assignments, assignments }, 
+            { x => x.Assignments, Assignments }, 
             { x => x.SubservientTeamMembers, SubservientTeamMembers }
         };
 
@@ -94,7 +70,7 @@ else {
 
         if (!result.Canceled)
         {
-            await LoadAssignments(); 
+            await OnAssignmentsUpdated.InvokeAsync();
 
             StateHasChanged(); 
         }
@@ -114,7 +90,7 @@ else {
 
         if (!result.Canceled)
         {
-            await LoadAssignments();
+            await OnAssignmentsUpdated.InvokeAsync();
 
             StateHasChanged();
         }
@@ -126,9 +102,9 @@ else {
         {
             await assignmentRequestHandler.Delete(assignmentId);
 
-            await LoadAssignments();
-
             Snackbar.Add($"Исполнитель успешно удален ", Severity.Success);
+
+            await OnAssignmentsUpdated.InvokeAsync(); 
 
             StateHasChanged();
         }
