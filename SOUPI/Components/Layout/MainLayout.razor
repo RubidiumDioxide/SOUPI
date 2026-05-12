@@ -26,7 +26,14 @@
                 </CascadingValue>
             </CascadingValue>
         }
-        <MudSwitch @bind-Value="@_isDarkMode" @bind-Value:after="SaveSelectedTheme" Color="Color.Primary" Class="ma-4" T="bool" Label="Toggle Light/Dark Mode" />
+
+        <MudToggleIconButton @bind-Toggled="_isDarkMode" 
+                             @bind-Toggled:after="SaveSelectedTheme"
+                             Icon="@Icons.Material.Filled.DarkMode"
+                             Color="@Color.Default"
+                             ToggledIcon="@Icons.Material.Filled.LightMode"
+                             ToggledColor="@Color.Warning" 
+                             Class="ma-4" />
     </MudAppBar>
 
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
