@@ -24,5 +24,12 @@
             console.error(`Error calling C# method "${methodName}":`, error);
             throw error;
         }
-    } 
+    }, 
+    
+    scrollToElement: function (elementId) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
 };

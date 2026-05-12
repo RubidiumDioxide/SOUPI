@@ -1,0 +1,347 @@
+@page "/docs"
+@attribute [Authorize]
+@inject IJSRuntime JS
+
+
+<PageTitle>Справочник</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="pt-8">
+    <MudGrid Spacing="6">
+        <MudItem xs="12">
+            <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">
+                    Справочник SOUPI
+                </MudText>
+                <MudText Typo="Typo.body1" Align="Align.Center" Color="Color.Secondary">
+                    Руководство по использованию системы управления проектами
+                </MudText>
+            </MudStack>
+        </MudItem>
+
+        <MudItem xs="12" md="9">
+            <MudStack Spacing="6"> 
+                <div id="general-concepts" style="scroll-margin-top: 80px;">
+                    <MudPaper Class="pa-6" Elevation="1">
+                        <MudText Typo="Typo.h5" GutterBottom="true">
+                            <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" />
+                            Основные концепции
+                        </MudText>
+                        <MudDivider Class="my-4" />
+                        <MudStack Spacing="4">
+                            <div>
+                                <MudText Typo="Typo.h6" GutterBottom="true">Проект</MudText>
+                                <MudText Typo="Typo.body2">
+                                    Проект - это главная организационная единица в SOUPI. Каждый проект содержит задачи, команду и временную шкалу. Проект управляется его создателем, который может приглашать других участников.
+                                </MudText>
+                            </div>
+
+                            <div>
+                                <MudText Typo="Typo.h6" GutterBottom="true">Задача (Job)</MudText>
+                                <MudText Typo="Typo.body2">
+                                    Задача - это конкретная работа, которую необходимо выполнить в рамках проекта. Каждая задача имеет название, описание, сроки выполнения и может быть разбита на подзадачи (Job Sequences).
+                                </MudText>
+                            </div>
+
+                            <div>
+                                <MudText Typo="Typo.h6" GutterBottom="true">Исполнение (Assignment)</MudText>
+                                <MudText Typo="Typo.body2">
+                                    Исполнение - это назначение конкретной задачи исполнителю (члену команды). Через исполнение отслеживается прогресс работ и добавляются действия.
+                                </MudText>
+                            </div>
+
+                            <div>
+                                <MudText Typo="Typo.h6" GutterBottom="true">Действие (Activity)</MudText>
+                                <MudText Typo="Typo.body2">
+                                    Действие - это запись о проделанной работе. Может быть связано с коммитом из GitHub репозитория или добавлено вручную. Все действия содержат временные метки для отслеживания истории.
+                                </MudText>
+                            </div>
+
+                            <div>
+                                <MudText Typo="Typo.h6" GutterBottom="true">Команда проекта</MudText>
+                                <MudText Typo="Typo.body2">
+                                    Команда проекта - это группа людей, работающих над проектом. Каждый участник имеет определённую роль (создатель, участник и т.д.). Только создатель может добавлять и удалять участников.
+                                </MudText>
+                            </div>
+
+                            <div>
+                                <MudText Typo="Typo.h6" GutterBottom="true">Диаграмма Ганта</MudText>
+                                <MudText Typo="Typo.body2">
+                                    Визуальное представление всех задач проекта на временной шкале. Помогает видеть расписание задач, зависимости и текущий прогресс.
+                                </MudText>
+                            </div>
+                        </MudStack>
+                    </MudPaper>
+                </div>  
+
+                <div id="account" style="scroll-margin-top: 80px;">
+                    <MudPaper Class="pa-6" Elevation="1">
+                        <MudText Typo="Typo.h5" GutterBottom="true">
+                            <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-2" />
+                            Мой аккаунт
+                        </MudText>
+                        <MudDivider Class="my-4" />
+                        <MudStack Spacing="3">
+                            <MudText Typo="Typo.body2">
+                                На странице "Мой аккаунт" находится основная информация о вашем профиле. Здесь вы можете просмотреть:
+                            </MudText>
+                            <MudStack Spacing="2">
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2">Информацию о вашем пользователе</MudText>
+                                </MudStack>
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2">Связанный аккаунт GitHub (если подключен)</MudText>
+                                </MudStack>
+                            </MudStack>
+                        </MudStack>
+                    </MudPaper>
+                </div>
+
+                <div id="projects" style="scroll-margin-top: 80px;">
+                    <MudPaper Class="pa-6" Elevation="1">
+                        <MudText Typo="Typo.h5" GutterBottom="true">
+                            <MudIcon Icon="@Icons.Material.Filled.Folder" Class="mr-2" />
+                            Мои Проекты
+                        </MudText>
+                        <MudDivider Class="my-4" />
+                        <MudStack Spacing="3">
+                            <MudText Typo="Typo.body2">
+                                На этой странице вы можете просмотреть все созданные вами проекты и проекты, в которых вы являетесь участником. 
+                            </MudText>
+
+                            <MudText Typo="Typo.h6" Class="mt-3">Создание проекта</MudText>
+                            <MudText Typo="Typo.body2">
+                                Нажмите кнопку "Новый проект" и заполните следующие поля:
+                            </MudText>
+                            <MudStack Spacing="2" Class="ml-4">
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2"><strong>Название</strong> - название вашего проекта</MudText>
+                                </MudStack>
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2"><strong>Описание</strong> - краткое описание целей и задач проекта</MudText>
+                                </MudStack>
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Custom.Brands.GitHub" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2"><strong>Репозиторий GitHub (опционально)</strong> - репозиторий для синхронизации коммитов. Для работы с вашими репозиториями вам нужно 
+                                        <MudLink Color="Color.Primary"
+                                                 Href="https://github.com/apps/soupigithubapp/installations/new/" 
+                                                 Target="_blank">
+                                            установить приложение SOUPI
+                                        </MudLink>
+                                      в личном кабинете GitHub.</MudText>
+                                </MudStack>
+                            </MudStack>
+
+                            <MudText Typo="Typo.h6" Class="mt-3">Структура проекта</MudText>
+                            <MudText Typo="Typo.body2">
+                                Каждый проект содержит следующие элементы:
+                            </MudText>
+                            <MudStack Spacing="2" Class="ml-4">
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2"><strong>Задачи</strong> - основные работы в рамках проекта</MudText>
+                                </MudStack>
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2"><strong>Команда</strong> - участники проекта с разными ролями</MudText>
+                                </MudStack>
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2"><strong>Диаграмма Ганта</strong> - визуализация временной шкалы проекта</MudText>
+                                </MudStack>
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2"><strong>Статистика</strong> - информация о прогрессе проекта</MudText>
+                                </MudStack>
+                            </MudStack>
+
+                            <MudText Typo="Typo.h6" Class="mt-3">Разрешения и доступ к проекту </MudText>
+                            <MudText Typo="Typo.body2">
+                                Доступ к проекту имеют только его участники. 
+                            </MudText>
+                            <MudText Typo="Typo.body2">
+                                Создавать и управлять задачами, а также управлять структурой команды проекта может только создатель проекта. 
+                            </MudText>
+                            <MudText Typo="Typo.body2">
+                                Участники проекта, не являющиеся создателями, могут просматривать информацию о проекте, включая задачи и диаграмму Ганта, делегировать задачи себе и своим подчиненным, а также выполнять эти задачи.
+                            </MudText>
+                        </MudStack>
+                    </MudPaper>
+                </div>
+
+                <div id="assignments" style="scroll-margin-top: 80px;">
+                    <MudPaper Class="pa-6" Elevation="1">
+                        <MudText Typo="Typo.h5" GutterBottom="true">
+                            <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" />
+                            Назначенные мне задачи
+                        </MudText>
+                        <MudDivider Class="my-4" />
+                        <MudStack Spacing="3">
+                            <MudText Typo="Typo.body2">
+                                На этой странице отображены все задачи, выполнение которых назначено вам. 
+                            </MudText>
+
+                            <MudText Typo="Typo.h6" Class="mt-3">Работа с задачами</MudText>
+                            <MudStack Spacing="2" Class="ml-4">
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2">Нажмите на задачу, чтобы просмотреть её подробную информацию</MudText>
+                                </MudStack>
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2">Добавляйте действия для отслеживания хода выполнения</MudText>
+                                </MudStack>
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2">Отмечайте задачи как завершённые по окончании работы</MudText>
+                                </MudStack>
+                            </MudStack>
+
+                            <MudText Typo="Typo.h6" Class="mt-3">Действия и активности</MudText>
+                            <MudText Typo="Typo.body2">
+                                Действия представляют собой записи о проделанной работе. Они могут быть:
+                            </MudText>
+                            <MudStack Spacing="2" Class="ml-4">
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Custom.Brands.GitHub" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2"><strong>Автоматические</strong> - созданы на основе коммитов GitHub (если репозиторий привязан и на нем создан вебхук)</MudText>
+                                </MudStack>
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2"><strong>Ручные</strong> - добавленные вручную со ссылкой на коммит или без неё</MudText>
+                                </MudStack>
+                            </MudStack>
+                        </MudStack>
+                    </MudPaper>
+                </div>
+
+                <div id="github-integration" style="scroll-margin-top: 80px;">
+                    <MudPaper Class="pa-6" Elevation="1">
+                        <MudText Typo="Typo.h5" GutterBottom="true">
+                            <MudIcon Icon="@Icons.Custom.Brands.GitHub" Class="mr-2" />
+                            Интеграция с GitHub
+                        </MudText>
+                        <MudDivider Class="my-4" />
+                        <MudStack Spacing="3">
+                            <MudText Typo="Typo.body2">
+                                SOUPI имеет встроенную интеграцию с GitHub, которая позволяет автоматически синхронизировать коммиты с действиями в задачах.
+                            </MudText>
+
+                            <MudAlert Severity="Severity.Info" Class="ma-0">
+                                <MudText Typo="Typo.body2">
+                                    <strong>Как это работает:</strong> Когда вы создаёте коммит, содержащий в сообщении название задачи в квадратных скобках (например, [задача 1]), система автоматически создаёт действие для этого коммита.
+                                </MudText>
+                            </MudAlert>
+
+                            <MudText Typo="Typo.h6" Class="mt-3">Настройка интеграции</MudText>
+                            <MudStack Spacing="2" Class="ml-4">
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2">Перейдите в раздел "Настройки" на странице проекта</MudText>
+                                </MudStack>
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2">Выберите репозиторий GitHub для привязки (если еще не привязан) </MudText>
+                                </MudStack>
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2">Поставьте галочку в поле "создать вебхук". После сохранения изменений вебхук будет создан автоматически. </MudText>
+                                </MudStack>
+                            </MudStack>
+
+                            <MudText Typo="Typo.h6" Class="mt-3">Формат комментария коммита</MudText>
+                            <MudText Typo="Typo.body2" Class="mb-2">
+                                Чтобы связать коммит с задачей, используйте следующий формат:
+                            </MudText>
+                            <MudPaper Class="pa-4 mb-4" Style="background-color: #f5f5f5; font-family: monospace; overflow-x: auto;">
+                                <code>Реализовал основную функцию [задача 1]</code><br />
+                                <code>Исправлена ошибка в валидации [задача 2]</code>
+                            </MudPaper>
+
+                            <MudText Typo="Typo.h6" Class="mt-3">Добавление действий вручную</MudText>
+                            <MudText Typo="Typo.body2">
+                                Если произошла ошибка при автоматическом добавлении действий, репозиторий не привязан либо вы не можете создать вебхук, вы всегда можете добавить действие вручную:
+                            </MudText>
+                            <MudStack Spacing="2" Class="ml-4">
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2">Нажмите "Добавить действие" на странице "Исполнитель"</MudText>
+                                </MudStack>
+                                <MudStack Row="true" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2">Введите ссылку на коммит (опционально)</MudText>
+                                </MudStack>
+                            </MudStack>
+                        </MudStack>
+                    </MudPaper>
+                </div>
+
+                <div id="faq" style="scroll-margin-top: 80px;">
+                    <MudPaper Class="pa-6" Elevation="1">
+                        <MudText Typo="Typo.h5" GutterBottom="true">
+                            <MudIcon Icon="@Icons.Material.Filled.Help" Class="mr-2" />
+                            Частые вопросы (FAQ)
+                        </MudText>
+                        <MudDivider Class="my-4" />
+                        <MudStack Spacing="3">
+                            <div>
+                                <MudText Typo="Typo.subtitle2">Q: Могу ли я быть участником нескольких проектов?</MudText>
+                                <MudText Typo="Typo.body2">
+                                    A: Да! Вы можете быть участником любого количества проектов. На странице "Мои проекты" отображаются все проекты, в которых вы участвуете.
+                                </MudText>
+                            </div>
+
+                            <div>
+                                <MudText Typo="Typo.subtitle2">Q: Что будет, если я отмечу задачу как завершённую, но не добавлю действия?</MudText>
+                                <MudText Typo="Typo.body2">
+                                    A: Задача будет отмечена как завершённая, но история действий будет пуста. Рекомендуется добавлять действия для полноты документации.
+                                </MudText>
+                            </div>
+
+                            <div>
+                                <MudText Typo="Typo.subtitle2">Q: Как я могу связать несколько коммитов с одной задачей?</MudText>
+                                <MudText Typo="Typo.body2">
+                                    A: Просто используйте название задачи в сообщении каждого коммита. Все коммиты с соответствующим названием будут автоматически связаны с задачей.
+                                </MudText>
+                            </div>
+                        </MudStack> 
+
+                        <MudDivider Class="my-8" />
+
+                        <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                            <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Secondary">
+                                Нужна дополнительная помощь? Обратитесь к создателю вашего проекта или в службу техподдержки.
+                            </MudText>
+                        </MudStack>
+                    </MudPaper>
+                </div>
+            </MudStack>
+        </MudItem>
+
+        <MudItem xs="12" md="3">
+            <div style="position: sticky; top: 100px;">
+                <MudText Typo="Typo.h6" Class="mb-3" Style="font-weight: 600;">Содержание</MudText>
+                <MudNavMenu Margin="Margin.Dense" Color="Color.Primary">
+                    <MudNavLink OnClick='@(() => ScrollToSection("general-concepts"))' Icon="@Icons.Material.Filled.Info">Основные концепции</MudNavLink>
+                    <MudNavLink OnClick='@(() => ScrollToSection("account"))' Icon="@Icons.Material.Filled.Home">Мой аккаунт</MudNavLink>
+                    <MudNavLink OnClick='@(() => ScrollToSection("projects"))' Icon="@Icons.Material.Filled.Folder">Мои Проекты</MudNavLink>
+                    <MudNavLink OnClick='@(() => ScrollToSection("assignments"))' Icon="@Icons.Material.Filled.Assignment">Назначенные мне задачи</MudNavLink>
+                    <MudNavLink OnClick='@(() => ScrollToSection("github-integration"))' Icon="@Icons.Custom.Brands.GitHub">Интеграция с GitHub</MudNavLink>
+                    <MudNavLink OnClick='@(() => ScrollToSection("faq"))' Icon="@Icons.Material.Filled.Help">Частые вопросы (FAQ)</MudNavLink>
+                </MudNavMenu>
+            </div>
+        </MudItem>
+
+    </MudGrid>
+</MudContainer>
+
+
+@code {
+    private async Task ScrollToSection(string sectionId)
+    {
+        await JS.InvokeVoidAsync("interop.scrollToElement", sectionId);
+    }
+}
