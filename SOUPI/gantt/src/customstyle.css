@@ -1,4 +1,4 @@
-﻿.gantt-container {
+﻿.gantt-container.dark-theme {
     /* MudBlazor Dark Palette Variables */
     --g-header-background: #1e1e2d; /* Surface */
     --g-row-color: #1a1a27; /* Background */
@@ -9,14 +9,14 @@
     --g-text-dark: #ffffff; /* Primary Text */
     --g-text-muted: #adadb1; /* Secondary Text */
     --g-text-light: #ffffff;
-    --g-bar-color: #776be7; /* MudBlazor Primary */
-    --g-progress-color: #594ae2; /* Darker Primary */
+    --g-bar-color: rgb(255, 167, 36); /* MudBlazor Primary */
+    --g-progress-color: rgb(210, 120, 30); /* Darker Primary */
     --g-bar-border: transparent;
     --g-handle-color: #9a91f0;
     --g-actions-background: #272737; /* Paper */
     --g-popup-actions: #323344;
     --g-arrow-color: #4a4a61;
-    --g-today-highlight: #ff4081; /* MudBlazor Secondary/Pink */
+    --g-today-highlight: rgb(90,75,226);
     --g-weekend-highlight-color: rgba(255, 255, 255, 0.03);
     /* Original structural CSS starts here */
     line-height: 14.5px;

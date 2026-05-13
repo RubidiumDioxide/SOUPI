@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+﻿import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import Gantt from 'frappe-gantt';
 import '../../node_modules/frappe-gantt/dist/frappe-gantt.css';
 import GanttJob from './GanttJob'; 

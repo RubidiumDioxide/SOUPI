@@ -8,7 +8,7 @@
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider /> 
-<MudThemeProvider @ref="_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" />
+<MudThemeProvider Theme="SoupiTheme" @ref="_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" />
 
 <MudLayout>
     <MudAppBar Elevation="1">
@@ -22,7 +22,7 @@
             <MudText Class="ma-4 pa-0">@user.Login</MudText> 
             <CascadingValue Value=@user IsFixed=true>
                 <CascadingValue Value=@gitHubUser IsFixed=true>
-                    <NotificationList />
+                        <NotificationList />
                 </CascadingValue>
             </CascadingValue>
         }
@@ -62,7 +62,9 @@
         {
             <CascadingValue Value=@user IsFixed=true>
                 <CascadingValue Value=@gitHubUser IsFixed=true>
-                    @Body 
+                    <CascadingValue Value="@_isDarkMode">
+                        @Body 
+                    </CascadingValue>
                 </CascadingValue>
             </CascadingValue>
         }

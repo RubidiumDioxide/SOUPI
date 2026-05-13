@@ -69,6 +69,8 @@ else
 
 
 @code {
+    [CascadingParameter]
+    public bool IsDarkMode { get; set; } = false; 
     [Parameter, EditorRequired]
     public ProjectDisplayDto? Project { get; set; }
     [Parameter, EditorRequired]
@@ -87,10 +89,25 @@ else
     public EventCallback OnGoToLevelZeroButtonClicked { get; set; }
     [Parameter] 
     public bool IsReadonly { get; set; } = true; 
- 
+
     private IJSObjectReference? module;
     private DotNetObjectReference<GanttChart>? dotnetRef = null;
+    private bool previousIsDarkMode;
     private bool isInitialized = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (isInitialized && module != null)
+        {
+            await module.InvokeVoidAsync("setJobs", GanttJobs);
+
+            if(previousIsDarkMode != IsDarkMode)
+            {
+                previousIsDarkMode = IsDarkMode;
+                await module.InvokeVoidAsync("setIsDarkMode", IsDarkMode);
+            }
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -104,18 +121,13 @@ else
             await module.InvokeVoidAsync(
                  "init",
                  GanttJobs,
-                 IsReadonly
+                 IsReadonly, 
+                 IsDarkMode
              );
 
-            isInitialized = true;
-        }
-    }
+            await module.InvokeVoidAsync("setIsDarkMode", IsDarkMode);
 
-    protected override async Task OnParametersSetAsync()
-    {
-        if (module != null)
-        {
-            await module.InvokeVoidAsync("setJobs", GanttJobs);
+            isInitialized = true; 
         }
     }
 

@@ -8,6 +8,7 @@ import './customstyle.css';
 let root: ReturnType<typeof createComponentRoot> | null = null;
 let currentJobs: GanttJob[] = [];    
 let currentIsReadonly: boolean = true; 
+let currentIsDarkMode: boolean = false; 
 const ganttComponentRef = React.createRef<any>(); 
 
 function render() {
@@ -26,10 +27,12 @@ function render() {
 
 export function init(
     jobs: GanttJob[] = [],
-    isReadonly: boolean = true
+    isReadonly: boolean = true, 
+    isDarkMode: boolean = false  
 ) {
     currentJobs = [...jobs];
     currentIsReadonly = isReadonly; 
+    currentIsDarkMode = isDarkMode; 
 
     const container = document.getElementById('react-gantt-root');
 
@@ -48,6 +51,7 @@ export function init(
     }
 
     root = createComponentRoot('react-gantt-root');
+
     render();
 }
 
@@ -62,6 +66,26 @@ export function getJobs(): GanttJob[] {
         return ganttComponentRef.current.getInternalJobs();
     }
     return currentJobs; 
+}
+
+export function setIsDarkMode(isDarkMode: boolean) {
+    const container = document.getElementById('react-gantt-root');
+    if (!container) {
+        console.warn("Target container #react-gantt-root not found.");
+        return;
+    }
+
+    const ganttContainer = container.querySelector('.gantt-container');
+    if (ganttContainer) {
+        if (isDarkMode) { 
+            ganttContainer.classList.add('dark-theme');
+        } else {
+            ganttContainer.classList.remove('dark-theme');
+        }
+        currentIsDarkMode = isDarkMode; 
+
+        render();
+    }
 }
 
 export function cleanup() {
