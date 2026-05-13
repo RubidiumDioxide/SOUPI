@@ -3,17 +3,16 @@ using SOUPICore;
 using SOUPIShared.Dtos.SOUPIDtos;
 using SOUPIShared.Misc;
 using SOUPIShared.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 
 namespace SOUPITests.Helpers
 {
     public static class Helpers
     {
-        public static async Task<User> SeedUser(SoupiDbContext _context)
+        public static async Task<User> SeedUser(IDbContextFactory<SoupiDbContext> _contextFactory)
         {
+            using var _context = await _contextFactory.CreateDbContextAsync();
+
             var user = new User 
             {
                 Id = Guid.NewGuid(),
@@ -24,8 +23,10 @@ namespace SOUPITests.Helpers
             return user;
         }
 
-        public static async Task<Project> SeedProject(SoupiDbContext _context, Guid creatorId)
+        public static async Task<Project> SeedProject(IDbContextFactory<SoupiDbContext> _contextFactory, Guid creatorId)
         {
+            using var _context = await _contextFactory.CreateDbContextAsync(); 
+
             var project = new Project
             {
                 Id = Guid.NewGuid(),
@@ -38,16 +39,37 @@ namespace SOUPITests.Helpers
             return project;
         }
 
-        public static async Task<Project> SeedProject(SoupiDbContext _context, Project project, Guid creatorId)
+        public static async Task<Project> SeedProject(IDbContextFactory<SoupiDbContext> _contextFactory, Project project, Guid creatorId)
         {
+            using var _context = await _contextFactory.CreateDbContextAsync();
+
             project.CreatorId = creatorId;
             _context.Projects.Add(project);
             await _context.SaveChangesAsync();
             return project;
         }
 
-        public static async Task<Job> SeedJob(SoupiDbContext _context, Guid projectId, Guid creatorId, Guid? parentId = null)
+        public static async Task<TeamMember> SeedTeamMember(IDbContextFactory<SoupiDbContext> _contextFactory, Guid userId, Guid projectId, Guid? supervisorId)
         {
+            using var _context = await _contextFactory.CreateDbContextAsync();
+
+            var teamMember = new TeamMember
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                ProjectId = projectId,
+                Role = "Test role",
+                SupervisorId = supervisorId
+            }; 
+            _context.TeamMembers.Add(teamMember);
+            await _context.SaveChangesAsync();
+            return teamMember;
+        }
+
+        public static async Task<Job> SeedJob(IDbContextFactory<SoupiDbContext> _contextFactory, Guid projectId, Guid creatorId, Guid? parentId = null)
+        {
+            using var _context = await _contextFactory.CreateDbContextAsync();
+
             var job = new Job
             {
                 Id = Guid.NewGuid(),
@@ -68,8 +90,10 @@ namespace SOUPITests.Helpers
             return job;
         }
 
-        public static async Task<Job> SeedJob(SoupiDbContext _context, Job job, Guid projectId, Guid creatorId, Guid? parentJobId = null)
+        public static async Task<Job> SeedJob(IDbContextFactory<SoupiDbContext> _contextFactory, Job job, Guid projectId, Guid creatorId, Guid? parentJobId = null)
         {
+            using var _context = await _contextFactory.CreateDbContextAsync();
+
             job.ProjectId = projectId;
             job.CreatorId = creatorId;
             job.ParentJobId = parentJobId;
@@ -95,8 +119,10 @@ namespace SOUPITests.Helpers
             return jobDto;
         }
 
-        public static async Task<JobSequence> SeedJobSequence(SoupiDbContext _context, Guid firstJobId, Guid secondJobId)
+        public static async Task<JobSequence> SeedJobSequence(IDbContextFactory<SoupiDbContext> _contextFactory, Guid firstJobId, Guid secondJobId)
         {
+            using var _context = await _contextFactory.CreateDbContextAsync();
+
             var jobSequence = new JobSequence
             {
                 Id = Guid.NewGuid(),

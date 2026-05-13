@@ -124,6 +124,15 @@ namespace SOUPIShared.Resources {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Прогресс задачи выходит за границы допустимого диапазона (0-100).
+        /// </summary>
+        public static string JobProgressOutOfRange {
+            get {
+                return ResourceManager.GetString("JobProgressOutOfRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Задачи находятся на разных уровнях .
         /// </summary>
         public static string JobsDifferentLevels {

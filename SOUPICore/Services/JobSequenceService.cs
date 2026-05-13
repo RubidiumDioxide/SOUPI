@@ -53,7 +53,7 @@ namespace SOUPICore.Services
         {
             try
             {
-                using var _context = await _contextFactory.CreateDbContextAsync(ct);
+                using var _context = await _contextFactory.CreateDbContextAsync(ct); 
 
                 var newJobSequence = new JobSequence()
                 {

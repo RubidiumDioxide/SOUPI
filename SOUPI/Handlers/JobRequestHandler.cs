@@ -147,11 +147,11 @@ namespace SOUPI.Handlers
             }
         }
 
-        public async Task Delete(Guid jobId, bool preserveChildren, CancellationToken ct = default)
+        public async Task Delete(Guid jobId, CancellationToken ct = default)
         {
             try
             {
-                await _jobService.Delete(jobId, preserveChildren, ct);
+                await _jobService.Delete(jobId, ct);
             }
             catch (Exception ex)
             {

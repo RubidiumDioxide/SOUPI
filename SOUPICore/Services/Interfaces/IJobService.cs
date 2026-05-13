@@ -25,6 +25,6 @@ namespace SOUPICore.Services.Interfaces
 
         public Task<JobDto> UpdateParent(Guid jobId, Guid? newParentJobId, CancellationToken ct = default);
 
-        public Task Delete (Guid jobId, bool preserveChildren, CancellationToken ct = default);
+        public Task Delete (Guid jobId, CancellationToken ct = default);
     }
 }

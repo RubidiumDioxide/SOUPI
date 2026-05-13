@@ -177,4 +177,7 @@
   <data name="RepositoryNameNotValid" xml:space="preserve">
     <value>Некорректное название репозитория </value>
   </data>
+  <data name="JobProgressOutOfRange" xml:space="preserve">
+    <value>Прогресс задачи выходит за границы допустимого диапазона (0-100)</value>
+  </data>
 </root>

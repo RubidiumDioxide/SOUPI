@@ -312,7 +312,7 @@
             {
                 try
                 {
-                    await jobRequestHandler.Delete(selectedJobId.Value, true);
+                    await jobRequestHandler.Delete(selectedJobId.Value);
 
                     await LoadJobs(); 
 

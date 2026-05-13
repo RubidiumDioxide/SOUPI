@@ -410,6 +410,7 @@ namespace SOUPICore.Services
 
                 var job = await _context.Jobs
                         .Include(j => j.PreviousJobSequences)
+                        .Include(j => j.NextJobSequences)
                         .Include(j => j.ChildJobs)
                         .FirstOrDefaultAsync(j => j.Id == jobId, ct); 
 
@@ -449,7 +450,7 @@ namespace SOUPICore.Services
         /// <param name="jobId"></param>
         /// <returns></returns>
         /// <exception cref="BadRequestException"></exception>
-        public async Task Delete(Guid jobId, bool preserveChildren, CancellationToken ct = default)
+        public async Task Delete(Guid jobId, CancellationToken ct = default)
         {
             try
             {
@@ -459,7 +460,8 @@ namespace SOUPICore.Services
                                         .Include(j => j.NextJobSequences)
                                         .Include(j => j.PreviousJobSequences)
                                         .Include(j => j.Assignments)
-                                            .ThenInclude(a => a.Activities) 
+                                            .ThenInclude(a => a.Activities)  
+                                        .Include(j => j.ChildJobs)
                                         .FirstOrDefaultAsync(j => j.Id == jobId, ct);
 
                 if (job == null)
@@ -479,15 +481,8 @@ namespace SOUPICore.Services
                 {
                     foreach (var j in job.ChildJobs)
                     {
-                        if (preserveChildren)
-                        {
-                            j.ParentJob = job.ParentJob;
-                        }
-                        else
-                        {
-                            await DeleteChildrenRecursive(j, ct);
-                        }
-                    }   
+                        j.ParentJobId = job.ParentJobId;
+                    }
                 }
 
                 _context.Jobs.Remove(job);
@@ -502,24 +497,6 @@ namespace SOUPICore.Services
 
 
         // --- HELPERS ---
-
-        /// <summary>
-        /// Рекурсивно удаляет ВСЕ дочерние задачи job 
-        /// Не применяет изменения к бд
-        /// </summary>
-        /// <param name="job"></param>
-        private async Task DeleteChildrenRecursive(Job job, CancellationToken ct = default)
-        {
-            using var _context = await _contextFactory.CreateDbContextAsync(ct);
-
-            foreach (var j in job.ChildJobs)
-            {
-                await DeleteChildrenRecursive(j, ct);
-            }
-
-            _context.Jobs.Remove(job);
-        }
-
         private async Task CheckIfValidJob(Job job, CancellationToken ct = default)
         {
             using var _context = await _contextFactory.CreateDbContextAsync(ct);
@@ -548,7 +525,7 @@ namespace SOUPICore.Services
                 throw new BadRequestException(ServiceErrorMessages.TeamMemberNotFound);
             }
 
-            if(creator.ProjectId != project.Id)
+            if (creator.ProjectId != project.Id)
             {
                 throw new BadRequestException(ServiceErrorMessages.TeamMemberNotFound);
             }
@@ -556,6 +533,11 @@ namespace SOUPICore.Services
             if (job.EndDateTime <= job.StartDateTime)
             {
                 throw new BadRequestException(ServiceErrorMessages.JobIncompatibleEndStartDates);
+            }
+
+            if (job.Progress < 0 || job.Progress > 100)
+            {
+                throw new BadRequestException(ServiceErrorMessages.JobProgressOutOfRange); 
             }
         }
 
