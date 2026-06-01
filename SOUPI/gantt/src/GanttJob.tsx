@@ -4,5 +4,5 @@
     start: string;
     end: string;
     progress: number;
-    dependencies?: string;
+    dependencies?: string[];
 }

@@ -1,0 +1,122 @@
+@page "/"
+@inject NavigationManager NavigationManager
+
+
+<MudContainer Class="d-flex align-center justify-center" 
+              Style="height: 100vh;" 
+              MaxWidth="MaxWidth.Large" >
+    <MudStack AlignItems="AlignItems.Center" Style="width:100%">
+        <MudText Typo="Typo.h2" Class="animated-title">Добро пожаловать в SOUPI</MudText>
+        <MudText Typo="Typo.subtitle1" Class="animated-subtitle">Управление проектами и задачами в одном месте.</MudText>
+
+        <MudStack Row="true">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@GoToProjects" Class="mr-2">Мои проекты</MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="@GoToDocs">Документация</MudButton>
+        </MudStack> 
+
+        <MudCarousel Class="mud-width-full mt-2" Style="height:200px;" ShowArrows="true" ShowBullets="true" EnableSwipeGesture="true" AutoCycle="true" TData="object">
+            <MudCarouselItem Transition="@Transition.Slide" Color="@Color.Primary">
+                <div class="d-flex" style="height:100%">
+                    <div class="mx-auto my-auto text-center">
+                        <MudStack AlignItems="AlignItems.Center" >
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Large" />
+                            <MudText Typo="Typo.h6" Class="mt-1">SOUPI — ваш центр управления проектами</MudText>
+                            <MudText Typo="Typo.caption">Создавайте проекты, назначайте задачи и отслеживайте прогресс в одном месте.</MudText>
+                        </MudStack>
+                    </div>
+                </div>
+            </MudCarouselItem>
+            <MudCarouselItem Transition="@Transition.Slide" Color="@Color.Secondary">
+               <div class="d-flex" style="height:100%">
+                    <div class="mx-auto my-auto text-center">
+                        <MudStack AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@Icons.Material.Filled.Group" Size="Size.Large" />
+                            <MudText Typo="Typo.h6" Class="mt-1">Работайте в команде</MudText>
+                            <MudText Typo="Typo.caption">Обсуждайте задачи, оставляйте комментарии и держите всех участников в курсе.</MudText>
+                        </MudStack>
+                    </div>
+               </div>
+            </MudCarouselItem>
+            <MudCarouselItem Transition="@Transition.Slide" Color="Color.Success">
+                <div class="d-flex" style="height:100%">
+                    <div class="mx-auto my-auto text-center">
+                        <MudStack AlignItems="AlignItems.Center" >
+                            <MudIcon Icon="@Icons.Material.Filled.AutoGraph" Size="Size.Large" />
+                            <MudText Typo="Typo.h6" Class="mt-1">Аналитика и рост</MudText>
+                            <MudText Typo="Typo.caption">Отчёты и метрики помогут принимать решения и улучшать процесс разработки.</MudText>
+                        </MudStack>
+                    </div>
+                </div>
+            </MudCarouselItem>
+            <MudCarouselItem Transition="@Transition.Slide" Color="Color.Info">
+                <div class="d-flex" style="height:100%">
+                    <div class="mx-auto my-auto text-center"> 
+                        <MudStack AlignItems="AlignItems.Center" >
+                            <MudIcon Icon="@Icons.Material.Filled.Lightbulb" Size="Size.Large" />
+                            <MudText Typo="Typo.h6" Class="mt-1">Начните прямо сейчас</MudText>
+                            <MudText Typo="Typo.caption">Создайте первую задачу и посмотрите, как SOUPI упрощает рабочий процесс.</MudText> 
+                        </MudStack>
+                    </div>
+                </div>
+            </MudCarouselItem>
+        </MudCarousel>
+    </MudStack>
+</MudContainer>
+
+<style>
+    .animated-title{
+        font-weight: 700;
+        background: linear-gradient(90deg, rgb(255, 167, 36), rgb(255, 182, 36), rgb(255, 240, 200));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        background-size: 200% 200%;
+        animation: gradientShift 6s ease infinite, floatUp 6s ease-in-out infinite;
+        margin-bottom: 8px;
+    }
+
+    .animated-subtitle{
+        opacity: 0;
+        animation: fadeIn 1.2s ease 0.5s forwards;
+        margin-bottom: 18px;
+    }
+
+    @@keyframes gradientShift{
+        0%{ background-position: 0% 50%; }
+        50%{ background-position: 100% 50%; }
+        100%{ background-position: 0% 50%; }
+    }
+
+    @@keyframes fadeIn{
+        to{ opacity: 1; }
+    }
+
+    @@keyframes fadeInUp{
+        from{ transform: translateY(8px); opacity: 0; }
+        to{ transform: translateY(0); opacity: 1; }
+    }
+
+    @@keyframes floatUp{
+        0%{ transform: translateY(0); }
+        50%{ transform: translateY(-6px); }
+        100%{ transform: translateY(0); }
+    }
+
+    @@keyframes floatCard{
+        0%{ transform: translateY(0); }
+        50%{ transform: translateY(-8px); }
+        100%{ transform: translateY(0); }
+    }
+
+    @@media (max-width: 900px){
+        .hero-content{ flex-direction: column-reverse; text-align: center; }
+        .hero-right{ margin-bottom: 12px; }
+    }
+</style> 
+
+
+@code {
+    void GoToProjects() => NavigationManager.NavigateTo("/myprojects");
+    void GoToDocs() => NavigationManager.NavigateTo("/docs");
+}
+

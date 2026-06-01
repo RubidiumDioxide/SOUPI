@@ -1,0 +1,110 @@
+﻿#react-gantt-root.dark-theme {
+    .gantt-container {
+        /* MudBlazor Dark Palette Variables */
+        --g-header-background: #1e1e2d; /* Surface */
+        --g-row-color: #1a1a27; /* Background */
+        --g-row-border-color: #2d2d3d; /* Lines */
+        --g-border-color: #2d2d3d; /* Lines */
+        --g-tick-color: #2d2d3d;
+        --g-tick-color-thick: #3d3d52;
+        --g-text-dark: #ffffff; /* Primary Text */
+        --g-text-muted: #adadb1; /* Secondary Text */
+        --g-text-light: #ffffff;
+        --g-bar-color: rgb(255, 167, 36); /* MudBlazor Primary */
+        --g-progress-color: rgb(210, 120, 30); /* Darker Primary */
+        --g-bar-border: transparent;
+        --g-handle-color: #9a91f0;
+        --g-actions-background: #272737; /* Paper */
+        --g-popup-actions: #323344;
+        --g-arrow-color: #4a4a61;
+        --g-today-highlight: rgb(90,75,226);
+        --g-weekend-highlight-color: rgba(255, 255, 255, 0.03);
+        /* Original structural CSS starts here */
+        line-height: 14.5px;
+        position: relative;
+        overflow: auto;
+        font-size: 12px;
+        height: var(--gv-grid-height);
+        width: 100%;
+        border-radius: 8px;
+        isolation: isolate;
+        background-color: var(--g-row-color); /* Ensure container is dark */
+
+        & .popup-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: var(--g-actions-background); /* Swapped to 'Paper' */
+            box-shadow: 0px 10px 24px -3px rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 5px;
+            width: max-content;
+            z-index: 1000;
+            border: 1px solid var(--g-border-color);
+
+            & .title {
+                margin-bottom: 2px;
+                color: var(--g-text-dark);
+                font-size: 0.85rem;
+                font-weight: 650;
+                line-height: 15px;
+            }
+
+            & .subtitle {
+                color: var(--g-text-muted); /* Changed to muted */
+                font-size: 0.8rem;
+                margin-bottom: 5px;
+            }
+
+            & .details {
+                color: var(--g-text-muted);
+                font-size: 0.7rem;
+            }
+        }
+
+        & .grid-header {
+            height: calc(var(--gv-lower-header-height) + var(--gv-upper-header-height) + 10px);
+            background-color: var(--g-header-background);
+            position: sticky;
+            top: 0;
+            left: 0;
+            border-bottom: 1px solid var(--g-row-border-color);
+            z-index: 1000;
+        }
+
+        & .lower-text {
+            color: var(--g-text-muted);
+        }
+
+        & .upper-text {
+            color: var(--g-text-dark);
+        }
+
+        & .current-upper {
+            background: var(--g-header-background);
+        }
+    }
+
+    .gantt {
+        /* ... structural styles ... */
+
+        & .grid-row {
+            fill: var(--g-row-color);
+        }
+
+        & .tick {
+            stroke: var(--g-tick-color);
+        }
+
+        & .bar-label {
+            fill: #ffffff; /* Contrast against Primary Bar */
+            font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+
+            &.big {
+                fill: var(--g-text-dark); /* Label outside the bar */
+            }
+        }
+    }
+}
+
+

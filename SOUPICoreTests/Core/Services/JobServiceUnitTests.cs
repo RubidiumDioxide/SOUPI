@@ -35,7 +35,6 @@ namespace SOUPITests.Core.Services
         }
 
 
-        // --- TESTS ---
         // --- GetByProjectId ---
         [Fact]
         public async Task GetByProjectIdParentId_ShouldReturnJobs_WhenProjectHasJobs()
@@ -255,8 +254,8 @@ namespace SOUPITests.Core.Services
                 ProjectId = project.Id, 
                 CreatorId = teamMember.Id, 
                 Title = "Test Job", 
-                StartDateTime = DateTime.UtcNow.AddHours(1), 
-                EndDateTime = DateTime.UtcNow, 
+                StartDateTime = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(1)), 
+                EndDateTime = DateOnly.FromDateTime(DateTime.UtcNow), 
                 Progress = 0, 
                 CreationDateTime = DateTime.UtcNow, 
                 Status = JobStatus.New
@@ -304,8 +303,8 @@ namespace SOUPITests.Core.Services
             var updatedJobDto = new JobDto(job);
             updatedJobDto.Title = "newTitle";
             updatedJobDto.Body = "newBody"; 
-            updatedJobDto.StartDateTime = DateTime.UtcNow.AddDays(10); 
-            updatedJobDto.EndDateTime = DateTime.UtcNow.AddDays(11);
+            updatedJobDto.StartDateTime = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(10)); 
+            updatedJobDto.EndDateTime = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(11));
             updatedJobDto.Progress = 70;
             updatedJobDto.Status = JobStatus.Working; 
 
@@ -340,8 +339,8 @@ namespace SOUPITests.Core.Services
             var updatedJobDto = new JobDto(job);
             updatedJobDto.Title = "newTitle";
             updatedJobDto.Body = "newBody";
-            updatedJobDto.StartDateTime = DateTime.UtcNow.AddDays(10);
-            updatedJobDto.EndDateTime = DateTime.UtcNow.AddDays(11);
+            updatedJobDto.StartDateTime = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(10));
+            updatedJobDto.EndDateTime = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(11));
             updatedJobDto.Progress = 70;
             updatedJobDto.Status = JobStatus.Working;
             string expectedMessage = ServiceErrorMessages.ProjectNotFound;
@@ -365,8 +364,8 @@ namespace SOUPITests.Core.Services
             var updatedJobDto = new JobDto(job);
             updatedJobDto.Title = "newTitle";
             updatedJobDto.Body = "newBody";
-            updatedJobDto.StartDateTime = DateTime.UtcNow.AddDays(10);
-            updatedJobDto.EndDateTime = DateTime.UtcNow.AddDays(11);
+            updatedJobDto.StartDateTime = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(10));
+            updatedJobDto.EndDateTime = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(11));
             updatedJobDto.Progress = 70;
             updatedJobDto.Status = JobStatus.Working;
             string expectedMessage = ServiceErrorMessages.TeamMemberNotFound;
@@ -390,8 +389,8 @@ namespace SOUPITests.Core.Services
             var updatedJobDto = new JobDto(job);
             updatedJobDto.Title = "newTitle";
             updatedJobDto.Body = "newBody";
-            updatedJobDto.StartDateTime = DateTime.UtcNow.AddDays(11);
-            updatedJobDto.EndDateTime = DateTime.UtcNow.AddDays(10);
+            updatedJobDto.StartDateTime = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(11));
+            updatedJobDto.EndDateTime = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(10));
             updatedJobDto.Progress = 70;
             updatedJobDto.Status = JobStatus.Working;
             string expectedMessage = ServiceErrorMessages.JobIncompatibleEndStartDates;

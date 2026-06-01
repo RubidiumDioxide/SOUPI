@@ -82,7 +82,9 @@
                                                          SelectedJobUpdated="JobsUpdated"
                                                          ProjectJobs="projectJobs" 
                                                          IsContentEditable="@(isCreator)"
-                                                         IsProgressEditable="@(isCreator || isAssigneeForSelectedJob)"/>
+                                                         IsProgressEditable="@(isCreator || isAssigneeForSelectedJob)" 
+                                                         IsChildJob="@(selectedJob.ParentJobId != null)"
+                                                         ParentJob="@(projectJobs.FirstOrDefault(j => j.Id == selectedJob.ParentJobId))"/>
                                         </MudTabPanel>
 
                                         @* links & dependencies *@
@@ -113,10 +115,9 @@
                         <div class="pa-2" @oncontextmenu:preventDefault @oncontextmenu:stopPropagation>
                             <GanttChart @ref=ganttChart 
                                         Project="@project"
-                                        GanttJobs=@ganttJobs
-                                        OnLeftClick="OnLeftClick"
+                                        GanttJobs="@ganttJobs" 
                                         OnRightClick="OnRightClick"
-                                        OnAddButtonClicked="@(() => OpenAddDialog(null))"
+                                        OnAddButtonClicked="@(() => OpenAddDialog(parentJob))"
                                         OnSaveButtonClicked="SaveChangesToJobs" 
                                         OnGoOneLevelUpButtonClicked="GoOneLevelUp"
                                         OnGoToLevelZeroButtonClicked="GoToLevelZero"
@@ -129,14 +130,14 @@
     }
 </MudContainer>
 
-<MudMenu @ref="jobMenu" Style=@jobMenuStyle>
+<MudMenu @ref="jobMenu" Style=@jobMenuStyle @bind-Open="isMenuOpen" >
     <MudMenuItem OnClick="SelectJob">Открыть в редакторе</MudMenuItem> 
     
     @if (isCreator)
     {
         <MudMenuItem OnClick="DeleteJob">Удалить</MudMenuItem>
 
-        @if (selectedJob != null && selectedJob.HasChildren)
+        if (previewSelectedJob != null && previewSelectedJob.HasChildren)
         {
             <MudMenuItem OnClick="GoToChildren">Перейти к подзадачам</MudMenuItem>
         }
@@ -170,10 +171,12 @@
     private IEnumerable<GanttJobDto>? ganttJobs { get; set; } 
     private Guid? selectedJobId { get; set; }
     private JobDto? parentJob { get; set; } 
-    private JobDto? selectedJob { get; set; }
+    private JobDto? selectedJob { get; set; } 
+    private JobDto? previewSelectedJob { get; set; }
 
     private MudMenu jobMenu { get; set; } 
-    private string jobMenuStyle { get; set; }
+    private string jobMenuStyle { get; set; } 
+    private bool isMenuOpen { get; set; } 
     private GanttChart ganttChart { get; set; }
 
     private bool isEditDrawerOpen { get; set; } = false; 
@@ -245,7 +248,7 @@
 
         ganttJobs = currentLevelJobs.Select(j => new GanttJobDto(j)); 
     }
-   
+
     private async Task LoadJobAssignments()
     {
         var assignments = await assignmentRequestHandler.GetByProjectId(projectId);
@@ -269,27 +272,22 @@
         teamMemberGitHubUsers = githubUsers.ToDictionary(gu => gu.Login);
     }
 
-    private async Task OnLeftClick((Guid jobId, MouseEventArgs e) data)
-    {
-        selectedJobId = data.jobId;
-
-        isAssigneeForSelectedJob = (selectedJobId != null && jobAssignments != null && teamMember != null) ? jobAssignments[selectedJobId.Value].Any(a => a.TeamMemberId == teamMember.Id) : false;
-    
-        if (projectJobs != null && selectedJobId != null)
-        {
-            selectedJob = projectJobs.FirstOrDefault(j => j.Id == selectedJobId);
-        }
-    }
-
     private async Task OnRightClick((Guid jobId, MouseEventArgs e) data)
     {
-        jobMenuStyle = $"position: fixed; left: {data.e.ClientX}px; top: {data.e.ClientY}px;"; 
+        if (isMenuOpen)
+        {
+            await jobMenu.CloseMenuAsync(); 
+        }
 
-        selectedJobId = data.jobId;
+        jobMenuStyle = $"position: fixed; left: {data.e.ClientX}px; top: {data.e.ClientY}px;";
+
+        selectedJobId = data.jobId; 
+
+        previewSelectedJob = currentLevelJobs!.FirstOrDefault(j => j.Id == selectedJobId);
 
         isAssigneeForSelectedJob = (selectedJobId != null && jobAssignments != null && teamMember != null) ? jobAssignments[selectedJobId.Value].Any(a => a.TeamMemberId == teamMember.Id) : false;
 
-        await jobMenu.ToggleMenuAsync(data.e);
+        await jobMenu.OpenMenuAsync(data.e); 
     }
 
     private async Task SelectJob()
@@ -362,8 +360,8 @@
     private async Task JobsUpdated()
     {
         await LoadJobs(); 
-        
-        StateHasChanged();
+
+        StateHasChanged(); 
     }
 
     private async Task AssignmentsUpdated()
@@ -403,23 +401,58 @@
         {
             try
             {
-                var existingJob = projectJobs!.FirstOrDefault(j => j.    Id == Guid.Parse(gj.id)); 
+                var existingJob = projectJobs!.FirstOrDefault(j => j.Id == Guid.Parse(gj.id)); 
 
                 if (existingJob == null)
                 {
                     throw new Exception();
                 }
 
+                var newStartDateTime = DateOnly.Parse(gj.start);
+                var newEndDateTime = DateOnly.Parse(gj.end);
+                int newDuration = newEndDateTime.DayNumber - newStartDateTime.DayNumber;
+
+                if(existingJob.ParentJobId != null && (newStartDateTime != existingJob.StartDateTime || newEndDateTime != existingJob.EndDateTime)) 
+                {
+                    var foundParentJob = projectJobs.FirstOrDefault(j => j.Id == existingJob.ParentJobId); 
+
+                    if(newStartDateTime < foundParentJob.StartDateTime
+                    || newStartDateTime > foundParentJob.EndDateTime 
+                    || newEndDateTime < foundParentJob.StartDateTime
+                    || newEndDateTime > foundParentJob.EndDateTime)
+                    {
+                        throw new SoupiException($"Временные ограничения дочерних задач должны находиться в рамках родительской задачи. Изменения для задачи '{gj.name}' не будут сохранены ");
+                    }
+                }
+
+                var foundDirectChildren = projectJobs.Where(j => j.ParentJobId == existingJob.Id);
+
+                if(foundDirectChildren.Count() > 0)
+                {
+                    var earliestDate = foundDirectChildren.Select(cj => cj.StartDateTime).Min(); 
+                    var latestDate = foundDirectChildren.Select(cj => cj.EndDateTime).Max(); 
+                    int childrenDuration = latestDate.DayNumber - earliestDate.DayNumber;
+
+                    if(childrenDuration > newDuration)
+                    {
+                        throw new SoupiException($"Временные ограничения дочерних задач должны находиться в рамках родительской задачи. Изменения для задачи '{gj.name}' не будут сохранены "); 
+                    }
+                }
+
                 if (!existingJob.IsEquivalent(gj))
                 {
-                    existingJob.StartDateTime = gj.start; 
-                    existingJob.EndDateTime = gj.end; 
+                    existingJob.StartDateTime = DateOnly.Parse(gj.start);
+                    existingJob.EndDateTime = DateOnly.Parse(gj.end); 
                     existingJob.Progress = gj.progress; 
-                
+
                     await jobRequestHandler.UpdateContent(existingJob); 
                 }
             }
-            catch 
+            catch (SoupiException ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error);
+            }
+            catch (Exception)
             {
                 Snackbar.Add("При сохранении задачи произошла непредвиденная ошибка ", Severity.Error);
             }
@@ -443,7 +476,7 @@
 
         foreach (var subservient in directSubservients)
         {
-            result.AddRange(GetAllSubservients(subservient, teamMembers));
+            result.AddRange(GetAllSubservients(subservient, teamMembers).Where(tm => !result.Contains(tm)));
         }
 
         return result;

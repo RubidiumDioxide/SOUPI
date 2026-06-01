@@ -33,11 +33,15 @@
                     <MudDatePicker @bind-Date=@startDateTime 
                                    Label="Дата начала"
                                    Variant="Variant.Outlined"
+                                   MinDate="@((ParentJob != null)? minDateTime : null)"
+                                   MaxDate="@((ParentJob != null)? maxDateTime : null)"
                                    Editable="true" />
 
                     <MudDatePicker @bind-Date=@endDateTime 
                                    Label="Дата завершения"
                                    Variant="Variant.Outlined"
+                                   MinDate="@((ParentJob != null)? minDateTime : null)"
+                                   MaxDate="@((ParentJob != null)? maxDateTime : null)"
                                    Editable="true" />
                 </div>
 
@@ -84,14 +88,19 @@
     private DateTime? startDateTime { get; set; }
     private DateTime? endDateTime { get; set; }
 
+    private DateTime? minDateTime { get; set; }
+    private DateTime? maxDateTime { get; set; }
+
     private bool isProcessing { get; set; } = false;
 
     protected override void OnParametersSet()
     {
         if (IsChildJob && ParentJob != null)
         {
-            startDateTime = ParentJob.StartDateTime; 
-            endDateTime = startDateTime.Value.AddDays(10); 
+            startDateTime = ParentJob.StartDateTime.ToDateTime(new TimeOnly(0, 0, 0));
+            endDateTime = ParentJob.EndDateTime.ToDateTime(new TimeOnly(0, 0, 0));  
+            minDateTime = startDateTime; 
+            maxDateTime = endDateTime; 
         }
         else
         {
@@ -129,8 +138,8 @@
             if (isProcessing) return;
             isProcessing = true;
 
-            newJob.StartDateTime = startDateTime ?? default; 
-            newJob.EndDateTime = endDateTime ?? default;  
+            newJob.StartDateTime = DateOnly.FromDateTime(startDateTime ?? default); 
+            newJob.EndDateTime = DateOnly.FromDateTime(endDateTime ?? default);
 
             if(newJob.EndDateTime <= newJob.StartDateTime)
             {
@@ -154,10 +163,12 @@
         }
         catch (SoupiException ex)
         {
+            isProcessing = false;
             Snackbar.Add(ex.Message, Severity.Error);
         }
         catch(Exception)
         {
+            isProcessing = false;
             Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);    
         }
     }

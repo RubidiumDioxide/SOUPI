@@ -18,7 +18,7 @@ else
 
         <MudPaper Elevation="2" Class="pa-0 mb-6">
             <div id="gantt-wrapper" style="position: relative;">
-                <div id="react-gantt-root"></div>
+                <div id="react-gantt-root" class="@((IsDarkMode)? "dark-theme" : string.Empty)"></div>
            
                 <div style="position: absolute; bottom: 24px; right: 24px; z-index: 999;">
                     <MudFabMenu StartIcon="@Icons.Material.Outlined.ArrowUpward"
@@ -74,9 +74,7 @@ else
     [Parameter, EditorRequired]
     public ProjectDisplayDto? Project { get; set; }
     [Parameter, EditorRequired]
-    public IEnumerable<GanttJobDto> GanttJobs { get; set; } = default!;
-    [Parameter, EditorRequired]
-    public EventCallback<(Guid, MouseEventArgs)> OnLeftClick { get; set; }
+    public IEnumerable<GanttJobDto> GanttJobs { get; set; } = default!; 
     [Parameter, EditorRequired] 
     public EventCallback<(Guid, MouseEventArgs)> OnRightClick { get; set; }
     [Parameter, EditorRequired]
@@ -92,7 +90,6 @@ else
 
     private IJSObjectReference? module;
     private DotNetObjectReference<GanttChart>? dotnetRef = null;
-    private bool previousIsDarkMode;
     private bool isInitialized = false;
 
     protected override async Task OnParametersSetAsync()
@@ -100,13 +97,7 @@ else
         if (isInitialized && module != null)
         {
             await module.InvokeVoidAsync("setJobs", GanttJobs);
-
-            if(previousIsDarkMode != IsDarkMode)
-            {
-                previousIsDarkMode = IsDarkMode;
-                await module.InvokeVoidAsync("setIsDarkMode", IsDarkMode);
-            }
-        }
+        } 
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -125,16 +116,8 @@ else
                  IsDarkMode
              );
 
-            await module.InvokeVoidAsync("setIsDarkMode", IsDarkMode);
-
             isInitialized = true; 
         }
-    }
-
-    [JSInvokable]
-    public async Task LeftClickJobFromJS(string jobId, MouseEventArgs coords)
-    {
-        await OnLeftClick.InvokeAsync((Guid.Parse(jobId), coords));
     }
 
     [JSInvokable]
@@ -155,7 +138,7 @@ else
     {
         if(module != null)
         {
-            GanttJobs = await module.InvokeAsync<List<GanttJobDto>>("getJobs");
+            GanttJobs = await module.InvokeAsync<List<GanttJobDto>>("getJobs"); 
         }
 
         await OnSaveButtonClicked.InvokeAsync(GanttJobs); 

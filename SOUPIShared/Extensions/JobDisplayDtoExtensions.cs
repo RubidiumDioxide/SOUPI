@@ -26,8 +26,8 @@ namespace SOUPIShared.Extensions
             {
                 return jobDisplayDto.Id == Guid.Parse(ganttJobDto.id) &&
                        jobDisplayDto.Title == ganttJobDto.name &&
-                       jobDisplayDto.StartDateTime == ganttJobDto.start &&
-                       jobDisplayDto.EndDateTime == ganttJobDto.end &&
+                       jobDisplayDto.StartDateTime.ToString() == ganttJobDto.start &&
+                       jobDisplayDto.EndDateTime.ToString() == ganttJobDto.end &&
                        jobDisplayDto.Progress == ganttJobDto.progress &&
                        jobDisplayDto.Dependencies == ganttJobDto.dependencies;
             }

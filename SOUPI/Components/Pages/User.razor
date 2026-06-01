@@ -32,11 +32,11 @@
                 </MudText> 
                 <MudText Typo="Typo.body2" Class="text-center">@gitHubUser.Login</MudText>
 
-                <MudDivider/>
-
                 <!-- User Bio/Description -->
                 @if (!string.IsNullOrEmpty(gitHubUser.Bio))
                 {
+                    <MudDivider />
+
                     <MudText Typo="Typo.body2" Class="text-center mt-2" Color="Color.Secondary">
                         @gitHubUser.Bio
                     </MudText>

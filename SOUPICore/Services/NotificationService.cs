@@ -90,7 +90,9 @@ namespace SOUPICore.Services
                 }
 
                 var user = await _context.Users.FindAsync([notification.ReceiverId], cancellationToken: ct);
-                var project = await _context.Projects.FindAsync([notification.ProjectId], cancellationToken: ct);
+                var project = await _context.Projects
+                                            .Include(p => p.TeamMembers)
+                                            .FirstOrDefaultAsync(p => p.Id == notification.ProjectId, cancellationToken: ct);
 
                 if (user == null || project == null)
                 {

@@ -27,10 +27,10 @@ namespace SOUPIShared.Dtos.SOUPIDtos
         public string? Body { get; set; }
 
         [Required]
-        public DateTime StartDateTime { get; set; } 
+        public DateOnly StartDateTime { get; set; } 
         
         [Required] 
-        public DateTime EndDateTime { get; set; }
+        public DateOnly EndDateTime { get; set; }
 
         [Required]
         [Range(0, 100)]
@@ -47,7 +47,7 @@ namespace SOUPIShared.Dtos.SOUPIDtos
 
         public Guid? ParentJobId { get; set; }
 
-        public string? Dependencies { get; set; } = default!;
+        public List<string>? Dependencies { get; set; } = default!;
 
         public bool HasChildren { get; set; } = default!; 
 
@@ -70,9 +70,9 @@ namespace SOUPIShared.Dtos.SOUPIDtos
             if (job.PreviousJobSequences != null)
             {
                 Dependencies = (job.PreviousJobSequences.Count == 0) ?
-                   null :
-                   string.Join(", ", job.PreviousJobSequences
-                       .Select(js => js.FirstJobId.ToString()));
+                   null : job.PreviousJobSequences
+                             .Select(js => js.FirstJobId.ToString())
+                             .ToList();
             }
 
             HasChildren = job.ChildJobs != null && job.ChildJobs.Count != 0; 
@@ -82,8 +82,8 @@ namespace SOUPIShared.Dtos.SOUPIDtos
         {
             Id = Guid.Parse(ganttJobDto.id); 
             Title = ganttJobDto.name;
-            StartDateTime = ganttJobDto.start;
-            EndDateTime = ganttJobDto.end;
+            StartDateTime = DateOnly.Parse(ganttJobDto.start);
+            EndDateTime = DateOnly.Parse(ganttJobDto.end);
             Progress = ganttJobDto.progress;
             Dependencies = ganttJobDto.dependencies;
         }

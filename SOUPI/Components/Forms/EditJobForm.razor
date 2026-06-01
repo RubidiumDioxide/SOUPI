@@ -24,6 +24,7 @@ else
                           Label="Описание задачи"
                           Variant="Variant.Outlined"
                           Lines="3"
+                          Immediate="true"
                           Margin="Margin.Normal" 
                           Disabled="!IsContentEditable" />
 
@@ -31,12 +32,16 @@ else
                 <MudDatePicker @bind-Date=@startDateTime
                                Label="Дата начала"
                                Variant="Variant.Outlined"
+                               MinDate="@((ParentJob != null)? minDateTime : null)"
+                               MaxDate="@((ParentJob != null)? maxDateTime : null)"
                                Editable="true" 
                                Disabled="!IsContentEditable" />
 
                 <MudDatePicker @bind-Date=@endDateTime
                                Label="Дата завершения"
-                               Variant="Variant.Outlined"
+                               Variant="Variant.Outlined" 
+                               MinDate="@((ParentJob != null)? minDateTime : null)"
+                               MaxDate="@((ParentJob != null)? maxDateTime : null)"
                                Editable="true" 
                                Disabled="!IsContentEditable" />
             </div>
@@ -81,10 +86,17 @@ else
     public bool IsContentEditable { get; set; } = false; // content = title/description/dates/etc. progress doesnt count since it's required for completion
     [Parameter]
     public bool IsProgressEditable { get; set; } = false; 
+    [Parameter, EditorRequired]
+    public JobDto? ParentJob { get; set; }
+    [Parameter, EditorRequired]
+    public bool IsChildJob { get; set; }
 
     public JobDto? jobBackup { get; set; } = new(); 
     private DateTime? startDateTime = DateTime.Today;
     private DateTime? endDateTime = DateTime.Today.AddDays(10);
+
+    private DateTime? minDateTime; 
+    private DateTime? maxDateTime; 
 
     private bool isProcessing { get; set; } = false;
 
@@ -94,8 +106,14 @@ else
         {
             jobBackup.CopyContentProperties(Job); 
 
-            startDateTime = Job.StartDateTime; 
-            endDateTime = Job.EndDateTime; 
+            startDateTime = Job.StartDateTime.ToDateTime(new TimeOnly(0,0,0)); 
+            endDateTime = Job.EndDateTime.ToDateTime(new TimeOnly(0,0,0)); 
+            
+            if (IsChildJob && ParentJob != null)
+            {
+                minDateTime = ParentJob.StartDateTime.ToDateTime(new TimeOnly(0, 0, 0));
+                maxDateTime = ParentJob.EndDateTime.ToDateTime(new TimeOnly(0, 0, 0));
+            }
         }
     }
 
@@ -103,8 +121,8 @@ else
     {
         Job!.CopyContentProperties(jobBackup!);
 
-        startDateTime = Job!.StartDateTime;
-        endDateTime = Job!.EndDateTime;
+        startDateTime = Job!.StartDateTime.ToDateTime(new TimeOnly(0,0,0));
+        endDateTime = Job!.EndDateTime.ToDateTime(new TimeOnly(0, 0, 0));
 
         StateHasChanged();
     }
@@ -116,8 +134,8 @@ else
             if (isProcessing) return;
             isProcessing = true;
 
-            Job.StartDateTime = startDateTime ?? default;
-            Job.EndDateTime = endDateTime ?? default;
+            Job.StartDateTime = DateOnly.FromDateTime(startDateTime ?? default); 
+            Job.EndDateTime = DateOnly.FromDateTime(endDateTime ?? default);
 
             if (Job.EndDateTime <= Job.StartDateTime)
             {

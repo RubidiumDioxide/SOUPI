@@ -22,11 +22,6 @@ namespace SOUPICore.Services
             _logger = logger;
         }
 
-        /// <summary>
-        /// Использовать ТОЛЬКО при обработке поста с вебхуков. НЕ проверяет коммиты на существование (мб доделать) 
-        /// </summary>
-        /// <param name="jobsCommits"></param>
-        /// <returns></returns>
         public async Task CreateSet(ILookup<string, GitHubPushPayload.CommitInfo> jobsCommits, CancellationToken ct = default)
         {
             bool hasCorruptedEntries = false;
@@ -309,8 +304,6 @@ namespace SOUPICore.Services
                 throw new BadRequestException(ServiceErrorMessages.AssignmentNotFound); 
             }
 
-            // TO-DO 
-            // test extensively 
             var existingActivity = await _context.Activities.FirstOrDefaultAsync(a => 
                 a.AssignmentId == activity.AssignmentId 
                 && ((activity.Commit != null && a.Commit == activity.Commit) || a.Comment == activity.Comment), ct);

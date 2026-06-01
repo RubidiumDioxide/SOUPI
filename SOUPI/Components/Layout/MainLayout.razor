@@ -3,6 +3,8 @@
 @inject IGitHubRequestHandler gitHubRequestHandler
 @inject ISnackbar Snackbar 
 @inject ProtectedSessionStorage SessionStorage
+@inject NavigationManager NavigationManager 
+@using Octokit 
 
 
 <MudPopoverProvider />
@@ -109,14 +111,14 @@
 
                     StateHasChanged(); 
                 }
-                else
-                {
-                    Snackbar.Add("Ошибка аутентификации. Попробуйте позже или сообщите об ошибке в техподдержку ", Severity.Error);
-                }
             }
             catch (SoupiException ex)
             {
                 Snackbar.Add(ex.Message, Severity.Error); 
+            }
+            catch (AuthorizationException)
+            {
+                NavigationManager.NavigateTo("api/Auth/Login", forceLoad: true);
             }
             catch (Exception ex)
             {

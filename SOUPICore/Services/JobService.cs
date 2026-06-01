@@ -347,50 +347,97 @@ namespace SOUPICore.Services
                 var job = await _context.Jobs
                                         .Include(j => j.PreviousJobSequences)
                                         .Include(j => j.ChildJobs)
-                                        .FirstOrDefaultAsync(j => j.Id == updatedJobDto.Id, ct); 
+                                        .FirstOrDefaultAsync(j => j.Id == updatedJobDto.Id, ct);
 
                 if (job == null)
                 {
                     throw new BadRequestException(ServiceErrorMessages.JobNotFound);
                 }
 
-                job.CopyContentProperties(updatedJobDto); 
+                var dateOffset = updatedJobDto.StartDateTime.DayNumber - job.StartDateTime.DayNumber;
 
-                if(job.Progress == 0)
+                if (dateOffset != 0)
                 {
-                    job.Status = JobStatus.New; 
+                    await LoadChildTreeAsync(_context, job, ct);
+                    ShiftChildJobsRecursively(job, dateOffset);
+                }
+
+                job.CopyContentProperties(updatedJobDto);
+
+                if (job.Progress == 0)
+                {
+                    job.Status = JobStatus.New;
                     job.IsCompleted = false;
                     job.CompletedDateTime = null;
                 }
-                else if (job.Progress > 0 && job.Progress < 100) 
+                else if (job.Progress > 0 && job.Progress < 100)
                 {
                     job.Status = JobStatus.Working;
                     job.IsCompleted = false;
                     job.CompletedDateTime = null;
                 }
-                else if(job.Progress == 100)
+                else if (job.Progress == 100)
                 {
-                    job.Status = JobStatus.Completed;  
-                    job.IsCompleted = true; 
-                    job.CompletedDateTime = DateTime.Now; 
+                    job.Status = JobStatus.Completed;
+                    job.IsCompleted = true;
+                    job.CompletedDateTime = DateTime.Now;
                 }
                 else // fallback if the job.Progress somehow exceeds 0-100 range 
                 {
                     job.Progress = 0;
-                    job.Status = JobStatus.New; 
+                    job.Status = JobStatus.New;
                     job.IsCompleted = false;
                     job.CompletedDateTime = null;
                 }
 
-                await CheckIfValidJob(job, ct); 
+                await CheckIfValidJob(job, ct);
                 await _context.SaveChangesAsync(ct);
 
-                return new JobDto(job); 
+                return new JobDto(job);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Helper method to recursively eager-load the entire hierarchy of child jobs into the DbContext.
+        /// </summary>
+        private async Task LoadChildTreeAsync(DbContext context, Job job, CancellationToken ct)
+        {
+            // Ensure the ChildJobs collection is explicitly loaded into memory for tracking
+            if (!context.Entry(job).Collection(j => j.ChildJobs).IsLoaded)
+            {
+                await context.Entry(job).Collection(j => j.ChildJobs).LoadAsync(ct);
+            }
+
+            // Traverse down and load subsequent levels
+            if (job.ChildJobs != null)
+            {
+                foreach (var child in job.ChildJobs)
+                {
+                    await LoadChildTreeAsync(context, child, ct);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Helper method to recursively apply the calculated TimeSpan shift to all descendant child jobs.
+        /// </summary>
+        private void ShiftChildJobsRecursively(Job parentJob, int offset)
+        {
+            if (parentJob.ChildJobs == null) return;
+
+            foreach (var child in parentJob.ChildJobs)
+            {
+                // Shift the start date left/right
+                child.StartDateTime = child.StartDateTime.AddDays(offset);
+                child.EndDateTime = child.EndDateTime.AddDays(offset);
+
+                // Recurse deeper into the tree
+                ShiftChildJobsRecursively(child, offset);
             }
         }
 
@@ -442,14 +489,6 @@ namespace SOUPICore.Services
             }
         }
 
-        /// <summary>
-        /// Если есть дочерние задачи и preserveChildren == true, переносятся к родителю 
-        /// Если есть дочерние задачи и preserveChildren == false, удаляются 
-        /// Последовательные связи удаляются 
-        /// </summary>
-        /// <param name="jobId"></param>
-        /// <returns></returns>
-        /// <exception cref="BadRequestException"></exception>
         public async Task Delete(Guid jobId, CancellationToken ct = default)
         {
             try

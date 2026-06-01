@@ -11,9 +11,7 @@ namespace SOUPICore.Services.Interfaces
 
         public Task<ProjectDto> Create(ProjectDto projectDto, CancellationToken ct = default);
 
-        public Task<ProjectDto> Update(ProjectDto changedProjectDto, CancellationToken ct = default);
-
-        public Task<ProjectDto> UpdateCreator(ProjectDto updatedProjectDto, CancellationToken ct = default);
+        public Task<ProjectDto> Update(ProjectDto changedProjectDto, CancellationToken ct = default); 
 
         public Task<ProjectDto> SetGitHubRepository(Guid projectId, string repositoryName, CancellationToken ct = default);
 

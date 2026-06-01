@@ -4,13 +4,12 @@
 
 @if (User != null && GitHubUser != null && notifications != null)
 {
-    <MudMenu Icon=@Icons.Material.Filled.Notifications 
-        MaxHeight="300" 
-        Open="@_open"
-        AnchorOrigin="Origin.BottomCenter" 
-        TransformOrigin="Origin.TopCenter" 
-        FullWidth="false"
-        RelativeWidth="DropdownWidth.Adaptive">
+    <MudMenu MaxHeight="300"
+             Open="@_open"
+             AnchorOrigin="Origin.BottomCenter" 
+             TransformOrigin="Origin.TopRight" 
+             FullWidth="false"
+             RelativeWidth="DropdownWidth.Adaptive">
         <ActivatorContent>
             @if (notifications.Any(n => !n.HasBeenViewed))
             {
@@ -26,57 +25,74 @@
             }
         </ActivatorContent>
         <ChildContent>
-            @foreach (var notification in notifications)
+            @if (notifications.Count() == 0)
             {
-                <MudMenuItem AutoClose="false"
-                             Disabled=@notification.HasBeenViewed
-                             IconColor="@(notification.NotificationType switch
-                             {
-                                 NotificationType.Info => Color.Info,
-                                 NotificationType.Invitation => Color.Success
-                             })"
-                     Icon="@(notification.NotificationType switch
-                     {
-                         NotificationType.Info => Icons.Material.Filled.Message,
-                         NotificationType.Invitation => Icons.Material.Filled.WavingHand
-                     })">
-                    <ChildContent>
-                        <MudText>
-                            @(notification.NotificationType switch
-                            {
-                                NotificationType.Info => $"Сообщение от {notification.SenderLogin} ",
-                                NotificationType.Invitation => $"{notification.SenderLogin} приглашает вас принять участие в проекте {notification.ProjectName} в качестве {notification.Role}"
-                            })
-                        </MudText>
-                        <MudText>
-                            @notification.Message
-                        </MudText>
-                        <MudContainer Class="d-flex justify-end gap-2">
-                            @if (!notification.HasBeenViewed)
-                            {
-                                if (notification.NotificationType == NotificationType.Invitation)
+                <MudText Class="ma-2">У вас пока нет уведомлений </MudText> 
+            }
+            else
+            {
+                @foreach (var notification in notifications)
+                {
+                    <MudMenuItem AutoClose="false"
+                                 Disabled=@notification.HasBeenViewed
+                                 Href=@($"/project/{notification.ProjectId}")>
+                        <ChildContent>
+                            <MudStack>
+                                <MudStack Row="true" AlignItems="AlignItems.Center">
+                                    <MudIcon Color="@(notification.NotificationType switch
+                                             {
+                                                 NotificationType.Info => Color.Info,
+                                                 NotificationType.Invitation => Color.Success
+                                             })" 
+                                             Icon="@(notification.NotificationType switch
+                                             {
+                                                 NotificationType.Info => Icons.Material.Filled.Message,
+                                                 NotificationType.Invitation => Icons.Material.Filled.WavingHand
+                                             })" /> 
+                                    
+                                    <MudText>
+                                        @(notification.NotificationType switch
+                                        {
+                                            NotificationType.Info => "",
+                                            NotificationType.Invitation => $"{notification.SenderLogin} приглашает вас принять участие в проекте {notification.ProjectName} в качестве {notification.Role}"
+                                        })
+                                    </MudText>
+                                    <MudText>
+                                        @notification.Message
+                                    </MudText>
+                                </MudStack> 
+
+                                @if (!notification.HasBeenViewed)
                                 {
-                                    <button @onclick="(async () => await AcceptInvite(notification.Id))"
-                                            class="mud-button mud-button-icon mud-button-text pa-2"
-                                            type="button" style="min-width: auto;">
-                                        <MudIcon Icon=@Icons.Material.Filled.Check Size="Size.Small" Color=Color.Success/>
-                                    </button>
-                                    <button @onclick="(async () => await MarkAsViewed(notification.Id))"
-                                            class="mud-button mud-button-icon mud-button-text pa-2"
-                                            type="button" style="min-width: auto;">
-                                        <MudIcon Icon=@Icons.Material.Filled.Close Size="Size.Small" Color=Color.Error/>
-                                    </button>
+                                    <MudContainer Class="d-flex justify-end gap-2">
+                                        @if (!notification.HasBeenViewed)
+                                        {
+                                            if (notification.NotificationType == NotificationType.Invitation)
+                                            {
+                                                <button @onclick="(async () => await AcceptInvite(notification.Id))"
+                                                        class="mud-button mud-button-icon mud-button-text pa-2"
+                                                        type="button" style="min-width: auto;">
+                                                    <MudIcon Icon=@Icons.Material.Filled.Check Size="Size.Small" Color=Color.Success />
+                                                </button>
+                                                <button @onclick="(async () => await MarkAsViewed(notification.Id))"
+                                                        class="mud-button mud-button-icon mud-button-text pa-2"
+                                                        type="button" style="min-width: auto;">
+                                                    <MudIcon Icon=@Icons.Material.Filled.Close Size="Size.Small" Color=Color.Error />
+                                                </button>
+                                            }
+                                            <button @onclick="(async () => await MarkAsViewed(notification.Id))"
+                                                    @onclick:preventDefault
+                                                    @onclick:stopPropagation
+                                                    class="mud-button mud-button-text pa-2">
+                                                Прочитано
+                                            </button>
+                                        }
+                                    </MudContainer>
                                 }
-                                <button @onclick="(async () => await MarkAsViewed(notification.Id))"
-                                        @onclick:preventDefault
-                                        @onclick:stopPropagation 
-                                        class="mud-button mud-button-text pa-2">
-                                    Прочитано 
-                                </button>
-                            }
-                        </MudContainer>
-                    </ChildContent>
-                </MudMenuItem>
+                            </MudStack>
+                        </ChildContent>
+                    </MudMenuItem>
+                }
             }
         </ChildContent>
     </MudMenu>

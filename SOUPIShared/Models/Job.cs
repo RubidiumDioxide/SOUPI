@@ -26,10 +26,10 @@ namespace SOUPIShared.Models
         public string? Body { get; set; }
 
         [Required]
-        public DateTime StartDateTime { get; set; }
+        public DateOnly StartDateTime { get; set; }
 
         [Required]
-        public DateTime EndDateTime { get; set; }
+        public DateOnly EndDateTime { get; set; }
 
         [Required]
         [Range(0, 100)]

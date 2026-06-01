@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Octokit; 
 using SOUPI.Handlers.Interfaces;
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos.OctokitDtos;
 using SOUPIShared.Dtos.SOUPIDtos;  
 using SOUPIShared.Exceptions;
-using System.Net.Http.Headers;
-using System.Text.Json;
 
 
 namespace SOUPI.Handlers 
@@ -19,25 +18,19 @@ namespace SOUPI.Handlers
         private readonly IKeyGenService _keyGenService;
         private readonly string _devtunnelUrl;
         private readonly string _callbackUrl = "api/webhook/push/"; 
-        private readonly string _clientId;
-        private readonly string _clientSecret;
 
         public GitHubRequestHandler(
             ILogger<GitHubRequestHandler> logger, 
             IHttpContextAccessor httpContextAccessor,
             IHttpClientFactory httpClientFactory, 
             IKeyGenService keyGenService, 
-            string devtunnelUrl, 
-            string clientId, 
-            string clientSecret)
+            string devtunnelUrl)
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor; 
             _httpClientFactory = httpClientFactory; 
             _keyGenService = keyGenService; 
             _devtunnelUrl = devtunnelUrl;
-            _clientId = clientId;
-            _clientSecret = clientSecret;
         }
 
         public async Task<bool> IsAppInstalled(CancellationToken ct = default)
@@ -67,6 +60,7 @@ namespace SOUPI.Handlers
 
                 return new GitHubUserDto(user);
             }
+            catch(AuthorizationException) { throw; }
             catch(Exception ex)
             {
                 _logger.LogError($"Не удалось получить информацию о текущем пользовтеле. {ex.Message}");
@@ -301,60 +295,35 @@ namespace SOUPI.Handlers
         private async Task<GitHubClient> GetClientAsync()
         {
             var httpContext = _httpContextAccessor.HttpContext;
-
-            var accessToken = await httpContext!.GetTokenAsync("access_token");
-            var expiresAtStr = await httpContext!.GetTokenAsync("expires_at");
-
-            if (DateTimeOffset.TryParse(expiresAtStr, out var expiresAt))
+            if (httpContext == null)
             {
-                // If the token expires in less than 5 minutes, refresh it
-                if (expiresAt < DateTimeOffset.UtcNow.AddMinutes(5))
-                {
-                    _logger.LogInformation("GitHub token expiring soon. Refreshing...");
-                    accessToken = await RefreshAccessTokenAsync(httpContext!);
-                }
+                throw new InvalidOperationException("No active HTTP context available.");
             }
 
-            return new GitHubClient(new Octokit.ProductHeaderValue("AspNetCoreGitHubAuth"))
+            var accessToken = await httpContext.GetTokenAsync("access_token");
+
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                throw new AuthorizationException();
+            }
+
+            var client = new GitHubClient(new ProductHeaderValue("AspNetCoreGitHubAuth"))
             {
                 Credentials = new Credentials(accessToken)
             };
-        }
 
-        private async Task<string> RefreshAccessTokenAsync(HttpContext context)
-        {
-            var refreshToken = await context.GetTokenAsync("refresh_token");
-            var client = _httpClientFactory.CreateClient();
-
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://github.com/login/oauth/access_token");
-            var parameters = new Dictionary<string, string>
+            try
             {
-                ["client_id"] = _clientId,
-                ["client_secret"] = _clientSecret,
-                ["grant_type"] = "refresh_token",
-                ["refresh_token"] = refreshToken!
-            };
+                // Verify the token works
+                await client.User.Current();
+            }
+            catch (AuthorizationException)
+            {
+                _logger.LogWarning("GitHub token is invalid or expired.");
+                throw;
+            }
 
-            request.Content = new FormUrlEncodedContent(parameters);
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            var response = await client.SendAsync(request);
-            var content = await response.Content.ReadAsStringAsync();
-            var payload = JsonDocument.Parse(content);
-
-            var newAccessToken = payload.RootElement.GetProperty("access_token").GetString();
-            var newRefreshToken = payload.RootElement.GetProperty("refresh_token").GetString();
-            var expiresIn = payload.RootElement.GetProperty("expires_in").GetInt32();
-
-            // Update the current cookie session so the next request has the new tokens
-            var auth = await context.AuthenticateAsync();
-            auth.Properties!.UpdateTokenValue("access_token", newAccessToken!);
-            auth.Properties!.UpdateTokenValue("refresh_token", newRefreshToken!);
-            auth.Properties!.UpdateTokenValue("expires_at", DateTimeOffset.UtcNow.AddSeconds(expiresIn).ToString("o"));
-
-            await context.SignInAsync(auth.Principal!, auth.Properties);
-
-            return newAccessToken!;
+            return client;
         }
     }
 }

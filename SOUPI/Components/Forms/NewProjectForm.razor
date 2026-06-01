@@ -158,10 +158,12 @@
         catch (SoupiException ex)
         {
             Snackbar.Add(ex.Message, Severity.Error);
+            isProcessing = false; 
         }
         catch (Exception)
         {
-            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error); 
+            isProcessing = false;
         }
     }
 }

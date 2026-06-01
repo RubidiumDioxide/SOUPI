@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Octokit;
+using Microsoft.Extensions.Logging; 
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos.SOUPIDtos;
 using SOUPIShared.Exceptions;
 using SOUPIShared.Extensions;
 using SOUPIShared.Models;
 using SOUPIShared.Resources;
+using SOUPIShared.Misc; 
 
 
 namespace SOUPICore.Services
@@ -29,7 +29,7 @@ namespace SOUPICore.Services
                 using var _context = await _contextFactory.CreateDbContextAsync(ct);
 
                 var assignment = await _context.Assignments
-                                               .Include(a => a.TeamMember)
+                                               .Include(a => a.TeamMember) 
                                                    .ThenInclude(tm => tm.User)
                                                .Include(a => a.Job) 
                                                    .ThenInclude(j => j.Project)
@@ -155,6 +155,28 @@ namespace SOUPICore.Services
                 await CheckIfValidAssignment(newAssignment, ct);
 
                 await _context.Assignments.AddAsync(newAssignment, ct);
+                await _context.SaveChangesAsync(ct);
+
+                var createdAssignment = await _context.Assignments
+                                                      .Include(a => a.TeamMember)
+                                                          .ThenInclude(tm => tm.User)
+                                                      .Include(a => a.Job)
+                                                          .ThenInclude(j => j.Project)
+                                                      .FirstOrDefaultAsync(a => a.Id == newAssignment.Id, ct);
+
+                var newNotification = new Notification()
+                {
+                    Message = $"Вам назначили выполнение задачи {createdAssignment!.Job.Title} в проекте {createdAssignment.Job.Project.Title}",
+                    SenderId = createdAssignment.Job.Project.CreatorId, 
+                    ReceiverId = createdAssignment.TeamMember.User.Id, 
+                    ProjectId = createdAssignment.Job.Project.Id,
+                    NotificationType = NotificationType.Info,
+                    Role = null,
+                    HasBeenViewed = false
+                };
+
+                await _context.Notifications.AddAsync(newNotification, ct); 
+                
                 await _context.SaveChangesAsync(ct);
 
                 return new AssignmentDto(newAssignment);

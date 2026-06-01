@@ -26,6 +26,13 @@ namespace SOUPICore.Services
             {
                 using var _context = await _contextFactory.CreateDbContextAsync(ct);
 
+                var user = await _context.Users.FindAsync([userId], cancellationToken: ct);
+
+                if(user == null)
+                {
+                    throw new BadRequestException(ServiceErrorMessages.UserNotFound);
+                }
+
                 var projects = await _context.Projects
                                              .Where(p => p.TeamMembers
                                                           .Select(tm => tm.UserId)
@@ -141,47 +148,6 @@ namespace SOUPICore.Services
             {
                 _logger.LogError(ex.Message); 
                 throw;    
-            }
-        }
-
-        public async Task<ProjectDto> UpdateCreator(ProjectDto updatedProjectDto, CancellationToken ct = default)
-        {
-            try
-            {
-                using var _context = await _contextFactory.CreateDbContextAsync(ct);
-
-                var project = await _context.Projects.FindAsync([updatedProjectDto.Id], cancellationToken: ct);
-
-                if (project == null)
-                {
-                    throw new BadRequestException(ServiceErrorMessages.ProjectNotFound);
-                }
-
-                var previousCreatorTeamMember = await _context.TeamMembers
-                    .FirstOrDefaultAsync(tm => tm.ProjectId == project.Id && tm.UserId == project.CreatorId, ct);
-                var newCreatorTeamMember = await _context.TeamMembers
-                    .FirstOrDefaultAsync(tm => tm.ProjectId == project.Id && tm.UserId == updatedProjectDto.CreatorId, ct);
-
-                if (previousCreatorTeamMember == null || newCreatorTeamMember == null)
-                {
-                    throw new BadRequestException(ServiceErrorMessages.TeamMemberNotFound);
-                }
-
-                // link all newCreator's subservient to it's supervisor 
-                newCreatorTeamMember.Subservient.Select(tm => tm.SupervisorId = newCreatorTeamMember.SupervisorId);
-                // link all oldCreator's subservient to mewCreator 
-                previousCreatorTeamMember.Subservient.Where(tm => tm.Id != newCreatorTeamMember.Id).Select(tm => tm.SupervisorId = newCreatorTeamMember.Id); 
-                newCreatorTeamMember.SupervisorId = null; 
-                project.CreatorId = newCreatorTeamMember.UserId; 
-
-                await _context.SaveChangesAsync(ct);
-
-                return new ProjectDto(project);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
             }
         }
 

@@ -1,10 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Octokit;
 using SOUPICore.Services.Interfaces;
 using SOUPIShared.Dtos.SOUPIDtos;
-using SOUPIShared.Exceptions;
-using SOUPIShared.Models;
+using SOUPIShared.Exceptions; 
 using SOUPIShared.Resources;
 
 
@@ -145,6 +143,7 @@ namespace SOUPICore.Services
                                                        .ThenInclude(a => a.Activities)
                                                .Include(tm => tm.Assignments)
                                                    .ThenInclude(a => a.Activities)
+                                               .Include(tm => tm.Project)
                                                .FirstOrDefaultAsync(tm => tm.Id == teamMemberId, cancellationToken: ct);
 
                 if(teamMember == null)

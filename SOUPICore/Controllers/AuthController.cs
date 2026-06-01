@@ -31,7 +31,6 @@ namespace SOUPICore.Controllers
             }
         }
 
-        // UNTESTED 
         [Authorize]
         [HttpPost]
         public IActionResult Logout()

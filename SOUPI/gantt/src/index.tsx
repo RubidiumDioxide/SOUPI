@@ -2,13 +2,11 @@
 import { createComponentRoot } from './utils'; 
 import GanttChart from './GanttChart';
 import GanttJob from './GanttJob'; 
-import './customstyle.css'; 
 
 
 let root: ReturnType<typeof createComponentRoot> | null = null;
 let currentJobs: GanttJob[] = [];    
-let currentIsReadonly: boolean = true; 
-let currentIsDarkMode: boolean = false; 
+let currentIsReadonly: boolean = true;
 const ganttComponentRef = React.createRef<any>(); 
 
 function render() {
@@ -27,12 +25,10 @@ function render() {
 
 export function init(
     jobs: GanttJob[] = [],
-    isReadonly: boolean = true, 
-    isDarkMode: boolean = false  
+    isReadonly: boolean = true 
 ) {
     currentJobs = [...jobs];
     currentIsReadonly = isReadonly; 
-    currentIsDarkMode = isDarkMode; 
 
     const container = document.getElementById('react-gantt-root');
 
@@ -50,42 +46,27 @@ export function init(
         root = null;
     }
 
-    root = createComponentRoot('react-gantt-root');
+    root = createComponentRoot('react-gantt-root'); 
 
     render();
 }
 
 export function setJobs(jobs: GanttJob []) {
-    currentJobs = jobs; 
+    if (ganttComponentRef.current && ganttComponentRef.current.haveJobsChanged(jobs)) {
+        currentJobs = jobs; 
 
-    render();
+        console.log("render from setJobs");
+
+        render();  
+    }
 }
 
 export function getJobs(): GanttJob[] {
-    if (ganttComponentRef.current) {
-        return ganttComponentRef.current.getInternalJobs();
+    if (ganttComponentRef.current) { 
+        return ganttComponentRef.current.getInternalJobsForCSharp(); 
     }
+
     return currentJobs; 
-}
-
-export function setIsDarkMode(isDarkMode: boolean) {
-    const container = document.getElementById('react-gantt-root');
-    if (!container) {
-        console.warn("Target container #react-gantt-root not found.");
-        return;
-    }
-
-    const ganttContainer = container.querySelector('.gantt-container');
-    if (ganttContainer) {
-        if (isDarkMode) { 
-            ganttContainer.classList.add('dark-theme');
-        } else {
-            ganttContainer.classList.remove('dark-theme');
-        }
-        currentIsDarkMode = isDarkMode; 
-
-        render();
-    }
 }
 
 export function cleanup() {

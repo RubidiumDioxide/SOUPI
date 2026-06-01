@@ -72,8 +72,7 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddDbContextFactory<SoupiDbContext>(
     options => options
-        .UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => { b.MigrationsAssembly("SOUPI"); })
-        .UseLazyLoadingProxies()
+        .UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => { b.MigrationsAssembly("SOUPI"); }) 
     );
 
 builder.Services.AddHttpClient();
@@ -88,7 +87,7 @@ builder.Services.AddTransient<IGitHubRequestHandler, GitHubRequestHandler>(sp =>
     var clientId = builder.Configuration["Github:ClientId"];
     var clientSecret = builder.Configuration["Github:ClientSecret"];
 
-    return new GitHubRequestHandler(logger, contextAccessor, httpClientFactory, keyGenService, devtunnelUrl, clientId, clientSecret); 
+    return new GitHubRequestHandler(logger, contextAccessor, httpClientFactory, keyGenService, devtunnelUrl); 
 }); 
 builder.Services.AddTransient<IUserRequestHandler, UserRequestHandler>();
 builder.Services.AddTransient<IProjectRequestHandler, ProjectRequestHandler>();

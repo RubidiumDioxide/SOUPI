@@ -58,7 +58,7 @@ namespace SOUPICore.Services
             }
         }
 
-        public async Task<UserDto> GetByLogin(string login, CancellationToken ct = default)
+        public async Task<UserDto?> GetByLogin(string login, CancellationToken ct = default)
         {
             try
             {
@@ -68,7 +68,7 @@ namespace SOUPICore.Services
 
                 if (user == null)
                 {
-                    throw new NotFoundException(); 
+                    return null; 
                 }
                 else
                 {

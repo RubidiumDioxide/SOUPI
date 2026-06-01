@@ -59,7 +59,8 @@ namespace SOUPITests.Helpers
                 UserId = userId,
                 ProjectId = projectId,
                 Role = "Test role",
-                SupervisorId = supervisorId
+                SupervisorId = supervisorId,
+                Subservient = new List<TeamMember>()
             }; 
             _context.TeamMembers.Add(teamMember);
             await _context.SaveChangesAsync();
@@ -76,8 +77,8 @@ namespace SOUPITests.Helpers
                 Title = "Test Job",
                 ProjectId = projectId,
                 CreatorId = creatorId,
-                StartDateTime = DateTime.UtcNow,
-                EndDateTime = DateTime.UtcNow.AddDays(1),
+                StartDateTime = DateOnly.FromDateTime(DateTime.UtcNow),
+                EndDateTime = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
                 Progress = 0,
                 Status = JobStatus.New,
                 ParentJobId = parentId,
@@ -110,8 +111,8 @@ namespace SOUPITests.Helpers
                 Title = "Test Job",
                 ProjectId = projectId,
                 CreatorId = creatorId,
-                StartDateTime = DateTime.UtcNow,
-                EndDateTime = DateTime.UtcNow.AddDays(1),
+                StartDateTime = DateOnly.FromDateTime(DateTime.UtcNow),
+                EndDateTime = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
                 Progress = 0,
                 Status = JobStatus.New,
                 ParentJobId = parentId,
@@ -132,6 +133,60 @@ namespace SOUPITests.Helpers
             _context.JobSequences.Add(jobSequence);
             await _context.SaveChangesAsync();
             return jobSequence;
+        }
+
+        public static async Task<Activity> SeedActivity(IDbContextFactory<SoupiDbContext> _contextFactory, Guid assignmentId, string commit = "defaultCommit", string comment = "defaultComment")
+        {
+            using var _context = await _contextFactory.CreateDbContextAsync();
+
+            var activity = new Activity
+            {
+                Id = Guid.NewGuid(),
+                AssignmentId = assignmentId,
+                Commit = commit,
+                Comment = comment
+            };
+
+            _context.Activities.Add(activity);
+            await _context.SaveChangesAsync();
+            return activity;
+        }
+
+        public static async Task<Assignment> SeedAssignment(IDbContextFactory<SoupiDbContext> _contextFactory, Guid teamMemberId, Guid jobId)
+        {
+            using var _context = await _contextFactory.CreateDbContextAsync();
+
+            var assignment = new Assignment
+            {
+                Id = Guid.NewGuid(),
+                TeamMemberId = teamMemberId,
+                JobId = jobId
+            };
+
+            _context.Assignments.Add(assignment);
+            await _context.SaveChangesAsync();
+            return assignment;
+        }
+
+        public static async Task<Notification> SeedNotification(IDbContextFactory<SoupiDbContext> _contextFactory, Guid receiverId, Guid projectId)
+        {
+            using var _context = await _contextFactory.CreateDbContextAsync();
+
+            var notification = new Notification
+            {
+                Id = Guid.NewGuid(),
+                Message = "Test Notification",
+                SenderId = receiverId,
+                ReceiverId = receiverId,
+                ProjectId = projectId,
+                NotificationType = NotificationType.Invitation,
+                Role = "Test Role",
+                HasBeenViewed = false
+            };
+
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+            return notification;
         }
     }
 }
