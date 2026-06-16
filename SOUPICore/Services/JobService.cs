@@ -642,7 +642,7 @@ namespace SOUPICore.Services
 
             if (parentJob == null)
             {
-                throw new SoupiException(ServiceErrorMessages.JobNotFound);
+                throw new BadRequestException(ServiceErrorMessages.JobNotFound);
             }
 
             var averageProgress = (int)parentJob.ChildJobs.Average(c => c.Progress);

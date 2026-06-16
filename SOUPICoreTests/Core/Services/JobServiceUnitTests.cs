@@ -231,7 +231,7 @@ namespace SOUPITests.Core.Services
             var project = await SeedProject(_contextFactoryMock.Object, user.Id);
             var parentJobId = Guid.NewGuid();  
             var newJobDto = SeedJobDto(project.Id, user.Id, parentJobId);
-            string expectedMessage = ServiceErrorMessages.ParentJobNotFound;
+            string expectedMessage = ServiceErrorMessages.JobNotFound;
 
             // Act
             Func<Task> act = async () => await _service.Create(newJobDto);

@@ -303,15 +303,15 @@
 
     private async Task DeleteJob()
     {
-        if (projectJobs != null && selectedJobId != null)
+        if (projectJobs != null && clickedJobId != null)
         {
-            selectedJob = projectJobs.FirstOrDefault(j => j.Id == selectedJobId);
+            clickedJob = projectJobs.FirstOrDefault(j => j.Id == clickedJobId);
 
-            if (selectedJob != null)
+            if (clickedJob != null)
             {
                 try
                 {
-                    await jobRequestHandler.Delete(selectedJobId.Value);
+                    await jobRequestHandler.Delete(clickedJobId.Value);
 
                     await LoadJobs(); 
 

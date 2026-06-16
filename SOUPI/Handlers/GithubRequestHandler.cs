@@ -266,7 +266,7 @@ namespace SOUPI.Handlers
 
                 var github = await GetClientAsync(); 
 
-                var fullCallbackUrl = $"{_devtunnelUrl}{_callbackUrl}"; 
+                var fullCallbackUrl = $"{_devtunnelUrl.Trim("/")}/{_callbackUrl}"; 
 
                 var repository = await github.Repository.Get(project.CreatorLogin, project.GithubRepository);
 

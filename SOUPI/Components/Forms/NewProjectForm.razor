@@ -107,9 +107,15 @@
     private async Task CreateNewProject()
     {
         newProject.CreatorId = User!.Id;
+        
         if(newProject.GithubRepository != null)
         {
             newProject.GithubRepository = newProject.GithubRepository.Trim();     
+        }
+
+        if(newProject.GithubRepository != null && string.IsNullOrEmpty(newProject.GithubRepository))
+        {
+            newProject.GithubRepository = null;
         }
 
         try
