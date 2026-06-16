@@ -2,48 +2,46 @@
 
 
 <MudContainer Gutters="false" Class="pt-14">
-    @if (User == null || Project == null || Jobs == null || Assignments == null || Activities == null || TeamMembers == null || assignmentsPerTeamMemberDataSet == null || activitiesPerTeamMemberDataSet == null || completedToUncompletedJobsPerTeamMemberDataSet == null || createdAndCompletedJobsPerMonthDataSet == null || createdAndCompletedJobsPerWeekDataSet == null || activitiesPerMonthDataSet == null || activitiesPerWeekDataSet == null)
+    @if (User == null || Project == null || Jobs == null || Assignments == null || 
+         Activities == null || TeamMembers == null || assignmentsPerTeamMemberDataSet == null || 
+         activitiesPerTeamMemberDataSet == null || completedToUncompletedJobsPerTeamMemberDataSet == null || 
+         createdAndCompletedJobsPerMonthDataSet == null || activitiesPerMonthDataSet == null)
     {
         <LoadingPlaceholder />
     }
     else
-    {
-        <MudExpansionPanels>
-            <MudExpansionPanel Text="Количество назначений в качестве исполнителя по участникам команды " Expanded="true">
+    {           
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudText>Количество назначений в качестве исполнителя по участникам команды</MudText>
                 <MixedChart Labels="@teamMemberLabels"
                             DataSet="@assignmentsPerTeamMemberDataSet" />
-            </MudExpansionPanel>
+            </MudItem>
 
-            <MudExpansionPanel Text="Количество действий по участникам команды ">
+            <MudItem xs="12" sm="6">
+                <MudText>Количество действий по участникам команды</MudText>
                 <MixedChart Labels="@teamMemberLabels"
                             DataSet="@activitiesPerTeamMemberDataSet" />
-            </MudExpansionPanel>
-           
-            <MudExpansionPanel Text="Выполненные и невыполненные задачи на участника команды ">
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudText>Выполненные и невыполненные задачи на участника команды</MudText>
                 <MixedChart Labels="@teamMemberLabels"
                             DataSet="@completedToUncompletedJobsPerTeamMemberDataSet" />
-            </MudExpansionPanel>
+            </MudItem>
 
-            <MudExpansionPanel Text="Созданные и завершенные задачи по месяцам ">
+            <MudItem xs="12" sm="6">
+                <MudText>Созданные и завершенные задачи по месяцам</MudText>
                 <MixedChart Labels="@monthLabels"
                             DataSet="@createdAndCompletedJobsPerMonthDataSet" />
-            </MudExpansionPanel>
-        
-            <MudExpansionPanel Text="Созданные и завершенные задачи по неделям ">
-                <MixedChart Labels="@weekLabels"
-                            DataSet="@createdAndCompletedJobsPerWeekDataSet" />
-            </MudExpansionPanel>
+            </MudItem>
 
-            <MudExpansionPanel Text="Количество действий по месяцам ">
+            <MudItem xs="12" sm="6">
+                <MudText>Количество действий по месяцам</MudText>
                 <MixedChart Labels="@monthLabels"
                             DataSet="@activitiesPerMonthDataSet" />
-            </MudExpansionPanel>
-
-            <MudExpansionPanel Text="Количество действий по неделям">
-                <MixedChart Labels="@weekLabels"
-                            DataSet="@activitiesPerWeekDataSet" />
-            </MudExpansionPanel>
-        </MudExpansionPanels>  
+            </MudItem>
+        </MudGrid>
     }
 </MudContainer>
 
@@ -78,25 +76,23 @@
 
     private string[]? teamMemberLabels { get; set; }
     private string[]? monthLabels { get; set; }
-    private string[]? weekLabels { get; set; }
 
     // activities per assignment 
     private List<ChartSeries<double>>? assignmentsPerTeamMemberDataSet { get; set; }
     private List<ChartSeries<double>>? activitiesPerTeamMemberDataSet { get; set; }
     private List<ChartSeries<double>>? completedToUncompletedJobsPerTeamMemberDataSet { get; set; }
-    private List<ChartSeries<double>>? createdAndCompletedJobsPerMonthDataSet { get; set; }
-    private List<ChartSeries<double>>? createdAndCompletedJobsPerWeekDataSet { get; set; }
+    private List<ChartSeries<double>>? createdAndCompletedJobsPerMonthDataSet { get; set; } 
     private List<ChartSeries<double>>? activitiesPerMonthDataSet { get; set; }
-    private List<ChartSeries<double>>? activitiesPerWeekDataSet { get; set; }
 
     protected override async Task OnParametersSetAsync() 
     {
-        if (User != null && Project != null && Jobs != null && Assignments != null && Activities != null && TeamMembers != null)
+        if (User != null && Project != null && Jobs != null && Assignments != null && Activities != null && TeamMembers != null && 
+           (assignmentsPerTeamMemberDataSet == null || activitiesPerTeamMemberDataSet == null || completedToUncompletedJobsPerTeamMemberDataSet == null ||
+           createdAndCompletedJobsPerMonthDataSet == null || activitiesPerMonthDataSet == null))
         {
             try
             {
                 monthLabels = GetPassedMonths(Project.CreationDateTime); 
-                weekLabels = GetPassedWeeks(Project.CreationDateTime); 
 
                 // assignmentsPerTeamMemberDataSet
                 var teamMemberAssignments = Assignments.OrderBy(a => a.TeamMemberLogin)
@@ -176,36 +172,6 @@
                 ];
 
 
-                // createdAndCompletedJobsPerWeekDataSet
-                var createdJobsPerWeek = Jobs.Where(j => j.Status != JobStatus.Completed)
-                                             .OrderBy(j => j.CreationDateTime)
-                                             .ToLookup(j =>
-                                             {
-                                                 int diff = (7 + (j.CreationDateTime.DayOfWeek - DayOfWeek.Monday)) % 7;
-                                                 return j.CreationDateTime.AddDays(-1 * diff).Date;
-                                             });
-
-                var completedJobsPerWeek = Jobs.Where(j => j.Status == JobStatus.Completed && j.IsCompleted && j.CompletedDateTime != null)
-                                               .OrderBy(j => j.CompletedDateTime)
-                                               .ToLookup(j =>
-                                               {
-                                                   int diff = (7 + (j.CompletedDateTime.Value.DayOfWeek - DayOfWeek.Monday)) % 7;
-                                                   return j.CompletedDateTime.Value.AddDays(-1 * diff).Date;
-                                               });
-
-                createdAndCompletedJobsPerWeekDataSet =
-                [
-                    new() {
-                        Name = "Созданные задачи ",
-                        Data = new(createdJobsPerWeek.Select(g => (double)g.Count()).ToList())
-                    },
-                    new() {
-                        Name = "Заершенные задачи ",
-                        Data = new(completedJobsPerWeek.Select(g => (double)g.Count()).ToList())
-                    }
-                ];
-
-
                 // activitiesPerMonthDataSet 
                 var monthActivities = Activities.OrderBy(a => a.CreationDateTime)      
                                                 .ToLookup(a => a.CreationDateTime.ToString("MMMM yyyy"));
@@ -217,24 +183,6 @@
                         Data = new(monthActivities.Select(g => (double)g.Count()).ToList())
                     }
                 ];
-
-
-                // activitiesPerWeekDataSet
-                var weekActivities = Activities.OrderBy(a => a.CreationDateTime)
-                                               .ToLookup(a =>
-                                               {
-                                                    int diff = (7 + (a.CreationDateTime.DayOfWeek - DayOfWeek.Monday)) % 7;
-                                                    return a.CreationDateTime.AddDays(-1 * diff).Date;
-                                               }); 
-
-                activitiesPerWeekDataSet =
-                [
-                    new() {
-                        Name = "Действия",
-                        Data = new(weekActivities.Select(g => (double)g.Count()).ToList())
-                    }
-                ];
-
             }
             catch (SoupiException ex)
             {
@@ -261,24 +209,9 @@
             iterator = iterator.AddMonths(1);
         }
 
+        // add current month 
+        months.Add(iterator.ToString("MMMM yyyy"));
+
         return months.ToArray();
-    }
-
-    public static string[] GetPassedWeeks(DateTime start)
-    {
-        List<string> weeks = new List<string>();
-        var current = DateTime.Now;
-
-        int diff = (7 + (start.DayOfWeek - DayOfWeek.Sunday)) % 7;
-        DateTime iterator = start.AddDays(-1 * diff).Date;
-
-        while (iterator <= current)
-        {
-            weeks.Add($"Week of {iterator.ToString("MMMM dd, yyyy")}"); 
-
-            iterator = iterator.AddDays(7);
-        }
-
-        return weeks.ToArray();
     }
 }

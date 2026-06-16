@@ -10,7 +10,7 @@ namespace SOUPIShared.Attributes
         {
             var stringValue = value as string;
 
-            if (stringValue == null)
+            if (string.IsNullOrEmpty(stringValue))
             {
                 return ValidationResult.Success;
             }

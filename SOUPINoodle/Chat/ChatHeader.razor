@@ -1,0 +1,14 @@
+﻿<div class="chat-header-container">
+    <MudButton OnClick="@OnNewChat" 
+               Variant="Variant.Outlined" 
+               Color="Color.Primary" 
+               StartIcon="@Icons.Material.Filled.Add">
+        Новый чат
+    </MudButton>
+</div>
+
+
+@code {
+    [Parameter, EditorRequired]
+    public EventCallback OnNewChat { get; set; }
+}

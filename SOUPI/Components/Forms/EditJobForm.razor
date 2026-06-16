@@ -46,13 +46,20 @@ else
                                Disabled="!IsContentEditable" />
             </div>
 
-            <MudSlider @bind-Value="Job.Progress"
-                       Min="0" Max="100"
-                       Color="Color.Primary"
-                       ValueLabel="true" 
-                       Disabled="!IsProgressEditable">
-                Прогресс (%)
-            </MudSlider>
+            @if (Job.HasChildren)
+            {
+                <MudText Align="Align.Center">У этой задачи есть дочерние задачи. Ее прогресс будет автоматически приравнен к среднему прогрессу дочерних задач. </MudText>
+            }
+            else
+            {
+                <MudSlider @bind-Value="Job.Progress"
+                           Min="0" Max="100"
+                           Color="Color.Primary"
+                           ValueLabel="true" 
+                           Disabled="!IsProgressEditable">
+                    Прогресс (%)
+                </MudSlider>
+            }
 
             <div class="d-flex justify-end mt-4">
                 <MudButton OnClick="ResetForm"
@@ -157,11 +164,13 @@ else
         }
         catch (SoupiException ex)
         {
-            Snackbar.Add(ex.Message, Severity.Error);
+            Snackbar.Add(ex.Message, Severity.Error); 
+            isProcessing = false;
         }
         catch (Exception)
         {
-            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+            Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error); 
+            isProcessing = false; 
         }
     }
 }

@@ -36,23 +36,23 @@
                             </div>
 
                             <div>
-                                <MudText Typo="Typo.h6" GutterBottom="true">Задача (Job)</MudText>
+                                <MudText Typo="Typo.h6" GutterBottom="true">Задача </MudText>
                                 <MudText Typo="Typo.body2">
-                                    Задача - это конкретная работа, которую необходимо выполнить в рамках проекта. Каждая задача имеет название, описание, сроки выполнения и может быть разбита на подзадачи (Job Sequences).
+                                    Задача - это конкретная работа, которую необходимо выполнить в рамках проекта. Каждая задача имеет название, описание, сроки выполнения и может быть разбита на подзадачи.
                                 </MudText>
                             </div>
 
                             <div>
-                                <MudText Typo="Typo.h6" GutterBottom="true">Исполнение (Assignment)</MudText>
+                                <MudText Typo="Typo.h6" GutterBottom="true">Назначение </MudText>
                                 <MudText Typo="Typo.body2">
-                                    Исполнение - это назначение конкретной задачи исполнителю (члену команды). Через исполнение отслеживается прогресс работ и добавляются действия.
+                                    Назначение - это делегация конкретной задачи исполнителю (члену команды). Через назначение отслеживается прогресс работ и добавляются действия.
                                 </MudText>
                             </div>
 
                             <div>
-                                <MudText Typo="Typo.h6" GutterBottom="true">Действие (Activity)</MudText>
+                                <MudText Typo="Typo.h6" GutterBottom="true">Действие </MudText>
                                 <MudText Typo="Typo.body2">
-                                    Действие - это запись о проделанной работе. Может быть связано с коммитом из GitHub репозитория или добавлено вручную. Все действия содержат временные метки для отслеживания истории.
+                                    Действие - это запись о проделанной работе. Может быть связано с коммитом из репозитория GitHub или добавлено вручную. Все действия содержат временные метки для отслеживания истории.
                                 </MudText>
                             </div>
 
@@ -72,31 +72,6 @@
                         </MudStack>
                     </MudPaper>
                 </div>  
-
-                <div id="account" style="scroll-margin-top: 80px;">
-                    <MudPaper Class="pa-6" Elevation="1">
-                        <MudText Typo="Typo.h5" GutterBottom="true">
-                            <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-2" />
-                            Мой аккаунт
-                        </MudText>
-                        <MudDivider Class="my-4" />
-                        <MudStack Spacing="3">
-                            <MudText Typo="Typo.body2">
-                                На странице "Мой аккаунт" находится основная информация о вашем профиле. Здесь вы можете просмотреть:
-                            </MudText>
-                            <MudStack Spacing="2">
-                                <MudStack Row="true" Spacing="2">
-                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
-                                    <MudText Typo="Typo.body2">Информацию о вашем пользователе</MudText>
-                                </MudStack>
-                                <MudStack Row="true" Spacing="2">
-                                    <MudIcon Icon="@Icons.Material.Filled.ArrowRight" Size="Size.Small" />
-                                    <MudText Typo="Typo.body2">Связанный аккаунт GitHub (если подключен)</MudText>
-                                </MudStack>
-                            </MudStack>
-                        </MudStack>
-                    </MudPaper>
-                </div>
 
                 <div id="projects" style="scroll-margin-top: 80px;">
                     <MudPaper Class="pa-6" Elevation="1">
@@ -326,7 +301,6 @@
                 <MudText Typo="Typo.h6" Class="mb-3" Style="font-weight: 600;">Содержание</MudText>
                 <MudNavMenu Margin="Margin.Dense" Color="Color.Primary">
                     <MudNavLink OnClick='@(() => ScrollToSection("general-concepts"))' Icon="@Icons.Material.Filled.Info">Основные концепции</MudNavLink>
-                    <MudNavLink OnClick='@(() => ScrollToSection("account"))' Icon="@Icons.Material.Filled.Home">Мой аккаунт</MudNavLink>
                     <MudNavLink OnClick='@(() => ScrollToSection("projects"))' Icon="@Icons.Material.Filled.Folder">Мои Проекты</MudNavLink>
                     <MudNavLink OnClick='@(() => ScrollToSection("assignments"))' Icon="@Icons.Material.Filled.Assignment">Назначенные мне задачи</MudNavLink>
                     <MudNavLink OnClick='@(() => ScrollToSection("github-integration"))' Icon="@Icons.Custom.Brands.GitHub">Интеграция с GitHub</MudNavLink>

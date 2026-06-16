@@ -122,7 +122,7 @@ else
         {
             try
             {
-                if(Project.GithubRepository != null)
+                if(!string.IsNullOrEmpty(Project.GithubRepository))
                 {
                     linkedRepository = await gitHubRequestHandler.GetRepository(Project); 
                     isRepositoryLinked = true;  
@@ -191,11 +191,13 @@ else
             }
             catch (SoupiException ex)
             {
-                Snackbar.Add(ex.Message, Severity.Error);
+                Snackbar.Add(ex.Message, Severity.Error); 
+                isProcessing = false;
             }
             catch (Exception)
             {
-                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error); 
+                isProcessing = false; 
             }
         }
     }
@@ -221,11 +223,13 @@ else
             }
             catch (SoupiException ex)
             {
-                Snackbar.Add(ex.Message, Severity.Error);
+                Snackbar.Add(ex.Message, Severity.Error); 
+                isProcessing = false;
             }
             catch (Exception)
             {
-                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error);
+                Snackbar.Add("Произошла неожиданная ошибка. Пожалуйста, сообщите об ошибке в техподдержку ", Severity.Error); 
+                isProcessing = false;
             }
         }
     }

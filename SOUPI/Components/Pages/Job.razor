@@ -63,23 +63,6 @@
                             }
                         }
                     </MudTabPanel>
-
-                    @* staticstics *@
-                    <MudTabPanel Text="Статистика ">
-                        @if (assignments.Count() == 0)
-                        {
-                            <MudAlert Severity="Severity.Info" Class="ma-4">
-                                У этой задачи пока нет исполнителей, действий, и соответственно, данных для статистики 
-                            </MudAlert>
-                        }
-                        else
-                        {
-                            <JobStatistics Job="@job"
-                                           AssignmentsActivities="@assignmentsActivities" 
-                                           AssignmentsTeamMembers="@assignmentsTeamMembers"
-                                           AssignmentsTeamMemberGitHubUsers="@assignmentsTeamMemberGitHubUsers" />
-                        }
-                    </MudTabPanel>
                 </MudTabs>   
             }
         }
@@ -87,7 +70,7 @@
 </MudContainer>
 
 
-    @code {
+@code {
     [CascadingParameter]
     private UserDto? User { get; set; }
 

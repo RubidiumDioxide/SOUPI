@@ -117,7 +117,7 @@
                                         Project="@project"
                                         GanttJobs="@ganttJobs" 
                                         OnRightClick="OnRightClick"
-                                        OnAddButtonClicked="@(() => OpenAddDialog(parentJob))"
+                                        OnAddButtonClicked="@(() => OpenAddDialog(parentJob?.Id))"
                                         OnSaveButtonClicked="SaveChangesToJobs" 
                                         OnGoOneLevelUpButtonClicked="GoOneLevelUp"
                                         OnGoToLevelZeroButtonClicked="GoToLevelZero"
@@ -137,19 +137,17 @@
     {
         <MudMenuItem OnClick="DeleteJob">Удалить</MudMenuItem>
 
-        if (previewSelectedJob != null && previewSelectedJob.HasChildren)
+        if (clickedJob != null && clickedJob.HasChildren)
         {
             <MudMenuItem OnClick="GoToChildren">Перейти к подзадачам</MudMenuItem>
         }
-        else
-        {
-            <MudMenuItem OnClick="@(() => OpenAddDialog(selectedJob))">Создать новую подзадачу</MudMenuItem>
-        }
+
+        <MudMenuItem OnClick="@(() => OpenAddDialog(selectedJobId))">Создать новую подзадачу</MudMenuItem>
     }
 </MudMenu>
 
 
-@code {
+    @code {
     [CascadingParameter]
     private UserDto? User { get; set; }
     [CascadingParameter]
@@ -169,10 +167,11 @@
     private IDictionary<string, GitHubUserDto>? teamMemberGitHubUsers { get; set; } 
     private IEnumerable<TeamMemberDisplayDto>? subservientTeamMembers { get; set; }
     private IEnumerable<GanttJobDto>? ganttJobs { get; set; } 
-    private Guid? selectedJobId { get; set; }
-    private JobDto? parentJob { get; set; } 
+    private Guid? selectedJobId { get; set; } 
+    private Guid? clickedJobId { get; set; } 
     private JobDto? selectedJob { get; set; } 
-    private JobDto? previewSelectedJob { get; set; }
+    private JobDto? clickedJob { get; set; }
+    private JobDto? parentJob { get; set; } 
 
     private MudMenu jobMenu { get; set; } 
     private string jobMenuStyle { get; set; } 
@@ -281,21 +280,23 @@
 
         jobMenuStyle = $"position: fixed; left: {data.e.ClientX}px; top: {data.e.ClientY}px;";
 
-        selectedJobId = data.jobId; 
+        clickedJobId = data.jobId; 
 
-        previewSelectedJob = currentLevelJobs!.FirstOrDefault(j => j.Id == selectedJobId);
-
-        isAssigneeForSelectedJob = (selectedJobId != null && jobAssignments != null && teamMember != null) ? jobAssignments[selectedJobId.Value].Any(a => a.TeamMemberId == teamMember.Id) : false;
+        clickedJob = currentLevelJobs!.FirstOrDefault(j => j.Id == clickedJobId);
 
         await jobMenu.OpenMenuAsync(data.e); 
     }
 
     private async Task SelectJob()
     {
+        selectedJobId = clickedJobId; 
+
         if (projectJobs != null && selectedJobId != null)
         {
             selectedJob = projectJobs.FirstOrDefault(j => j.Id == selectedJobId);
         }
+
+        isAssigneeForSelectedJob = (selectedJobId != null && jobAssignments != null && teamMember != null) ? jobAssignments[selectedJobId.Value].Any(a => a.TeamMemberId == teamMember.Id) : false;
 
         isEditDrawerOpen = true; 
     }
@@ -335,9 +336,9 @@
 
     public async Task GoToChildren()
     {
-        if(project != null && selectedJobId != null && selectedJobId != parentJobId)
+        if(project != null && clickedJobId != null && clickedJobId != parentJobId)
         {
-            NavigationManager.NavigateTo($"gantt/{project.Id}/{selectedJobId}");
+            NavigationManager.NavigateTo($"gantt/{project.Id}/{clickedJobId}");
         }
     }
 
@@ -373,15 +374,22 @@
         StateHasChanged();
     }
 
-    private async Task OpenAddDialog(JobDto? parentJobForNew)
+    private async Task OpenAddDialog(Guid? parentJobId)
     {
+        JobDto? parentJob = null; 
+
+        if (parentJobId != null)
+        {
+            parentJob = projectJobs.FirstOrDefault(j => j.Id == parentJobId);  
+        }
+
         var parameters = new DialogParameters<NewJobForm>
         {
             { x => x.TeamMember, teamMember }, 
             { x => x.Project, project }, 
             { x => x.ProjectJobs, projectJobs }, 
-            { x => x.ParentJob, parentJobForNew }, 
-            { x => x.IsChildJob, (parentJobForNew == null)? false : true }
+            { x => x.ParentJob, parentJob }, 
+            { x => x.IsChildJob, (parentJob == null)? false : true }
         };
 
         var options = new DialogOptions { CloseOnEscapeKey = true, FullWidth = true, MaxWidth = MaxWidth.Small };

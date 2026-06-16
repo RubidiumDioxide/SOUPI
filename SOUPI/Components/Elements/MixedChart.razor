@@ -16,16 +16,26 @@ else
         </MudMenu>
     </MudToolBar>
 
-    @if (Labels == null || DataSet == null)
+    @if (IsData)
     {
-        <LoadingPlaceholder />
+        <MudPaper>
+            <MudContainer Class="pa-2">
+                <MudChart ChartType="chartType"
+                          ChartSeries="@DataSet"
+                          ChartLabels="@Labels"
+                          CanHideSeries
+                          Width="100%"
+                          MatchBoundsToSize />
+            </MudContainer>
+        </MudPaper>
     }
     else
     {
-        <MudChart ChartType="chartType"
-                  ChartSeries="@DataSet"
-                  ChartLabels="@Labels"
-                  Width="100%" Height="400px" CanHideSeries MatchBoundsToSize />
+        <MudPaper>
+            <MudContainer Class="pa-2">
+                <NoDataPlaceholder />
+            </MudContainer>
+        </MudPaper>
     }
 }
 
@@ -36,7 +46,8 @@ else
     public string[]? Labels { get; set; }
     [Parameter, EditorRequired]
     public List<ChartSeries<double>>? DataSet { get; set; }
-                
+    private bool IsData { get; set; }
+
     private Dictionary<ChartType, string> _menuIcons = new()
     {
         { ChartType.Bar, Icons.Material.Filled.BarChart },
@@ -48,5 +59,15 @@ else
         { ChartType.Radar, Icons.Material.Filled.Hub },
     };
 
-    private ChartType chartType = ChartType.StackedBar;
+    private ChartType chartType = ChartType.StackedBar; 
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if(DataSet != null)
+        {
+            IsData = DataSet.Select(ds => ds.Data.Count).Any(c => c != 0);
+            StateHasChanged(); 
+        }
+    }
 }

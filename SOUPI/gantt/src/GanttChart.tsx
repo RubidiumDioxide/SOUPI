@@ -86,7 +86,7 @@ const GanttChart = forwardRef((props: {
                     move_dependencies: false, 
                     scroll_to: 'start',
 
-                    onprogress_change: function (task: GanttJob, progress: number) {
+                    on_progress_change: function (task: GanttJob, progress: number) {
                         // Find the actual internal object reference and update its property
                         const internalJob = ganttRef.current.tasks.find((j: any) => j.id === task.id);
                         if (internalJob) {
@@ -107,11 +107,11 @@ const GanttChart = forwardRef((props: {
                     bar_height: custom_bar_height, 
                     padding: custom_padding, 
                     upper_header_height: custom_upper_header_height, 
-                    container_height: 600, 
+                    container_height: 550, 
             });
 
             // right-click handler 
-            const handleRightClick = async (e: MouseEvent) => {
+            const handleRightClick = async (e: MouseEvent) => { 
                 const taskBar = (e.target as HTMLElement).closest('.bar-wrapper');
                 if (taskBar) {
                     e.preventDefault();

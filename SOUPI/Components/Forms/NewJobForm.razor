@@ -4,7 +4,7 @@
 
 <MudDialog>
     <TitleContent> 
-            <MudText Typo="Typo.h5">@($"Новая {((!IsChildJob)? ("задача ") : ("подзадача "))}")</MudText>           
+        <MudText Typo="Typo.h5">@($"Новая {((!IsChildJob)? ("задача ") : ("подзадача задачи " + ParentJob.Title))}")</MudText>
     </TitleContent>
     <DialogContent>
         @if (TeamMember == null || Project == null || ProjectJobs == null || newJob == null)
@@ -108,7 +108,7 @@
             endDateTime = DateTime.Today.AddDays(10);
         }
 
-        if(TeamMember != null && Project != null)
+        if (TeamMember != null && Project != null)
         {
             ResetForm();       
         }

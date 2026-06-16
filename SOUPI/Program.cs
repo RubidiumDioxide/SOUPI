@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
 using MudBlazor;
 using MudBlazor.Services; 
 using SOUPI.Components;
@@ -14,14 +15,19 @@ using SOUPICore.Services.Interfaces;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Json;
+using OllamaSharp;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+IChatClient chatClient = new OllamaApiClient(new Uri(builder.Configuration["ollamaAddress"]), builder.Configuration["ollamaModel"]);
 
 builder.Services.AddRazorPages(); 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddChatClient(chatClient).UseFunctionInvocation().UseLogging();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddCascadingAuthenticationState(); 

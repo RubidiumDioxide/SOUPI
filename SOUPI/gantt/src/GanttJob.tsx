@@ -4,5 +4,6 @@
     start: string;
     end: string;
     progress: number;
-    dependencies?: string[];
+    dependencies?: string[]; 
+    custom_class?: string; 
 }

@@ -18,7 +18,7 @@ namespace SOUPICore.Services
 
         public JobService(IDbContextFactory<SoupiDbContext> contextFactory, ILogger<JobService> logger)
         {
-            _contextFactory = contextFactory; 
+            _contextFactory = contextFactory;
             _logger = logger;
         }
 
@@ -39,13 +39,13 @@ namespace SOUPICore.Services
                                          .Where(j => j.ProjectId == projectId)
                                          .Include(j => j.Project)
                                          .Include(j => j.Creator)
-                                            .ThenInclude(c => c.User) 
+                                            .ThenInclude(c => c.User)
                                          .Include(j => j.ParentJob)
                                          .Include(j => j.PreviousJobSequences)
                                          .Include(j => j.ChildJobs)
                                          .ToListAsync(ct);
 
-                return jobs.Select(j => new JobDisplayDto(j)); 
+                return jobs.Select(j => new JobDisplayDto(j));
             }
             catch (Exception ex)
             {
@@ -82,7 +82,7 @@ namespace SOUPICore.Services
                     throw new BadRequestException(ServiceErrorMessages.JobNotFound);
                 }
 
-                var jobs = new List<Job>(); 
+                var jobs = new List<Job>();
 
                 if (parentJob != null)
                 {
@@ -94,7 +94,7 @@ namespace SOUPICore.Services
                                          .Include(j => j.ParentJob)
                                          .Include(j => j.PreviousJobSequences)
                                          .Include(j => j.ChildJobs)
-                                         .ToListAsync(ct); 
+                                         .ToListAsync(ct);
                 }
                 else
                 {
@@ -106,7 +106,7 @@ namespace SOUPICore.Services
                                          .Include(j => j.ParentJob)
                                          .Include(j => j.PreviousJobSequences)
                                          .Include(j => j.ChildJobs)
-                                         .ToListAsync(ct); 
+                                         .ToListAsync(ct);
                 }
 
                 return jobs.Select(j => new JobDisplayDto(j));
@@ -138,8 +138,8 @@ namespace SOUPICore.Services
                                          .Include(j => j.PreviousJobSequences)
                                          .Include(j => j.ChildJobs)
                                          .Include(j => j.Creator)
-                                             .ThenInclude(c => c.User) 
-                                         .ToListAsync(ct); 
+                                             .ThenInclude(c => c.User)
+                                         .ToListAsync(ct);
 
                 return jobs.Select(j => new JobDisplayDto(j));
             }
@@ -253,7 +253,7 @@ namespace SOUPICore.Services
                                          .Where(j => j.ProjectId == projectId && j.ParentJobId == null)
                                          .Include(j => j.PreviousJobSequences)
                                          .Include(j => j.ChildJobs)
-                                         .ToListAsync(ct); 
+                                         .ToListAsync(ct);
                 }
 
                 return jobs.Select(j => new JobDto(j));
@@ -274,7 +274,7 @@ namespace SOUPICore.Services
                 var job = await _context.Jobs
                                         .Include(j => j.PreviousJobSequences)
                                         .Include(j => j.ChildJobs)
-                                        .FirstOrDefaultAsync(j => j.Id == jobId, ct); 
+                                        .FirstOrDefaultAsync(j => j.Id == jobId, ct);
 
                 if (job == null)
                 {
@@ -298,11 +298,11 @@ namespace SOUPICore.Services
             {
                 using var _context = await _contextFactory.CreateDbContextAsync(ct);
 
-                var existingJob = await _context.Jobs.FirstOrDefaultAsync(j => j.Title == newJobDto.Title, ct); 
+                var existingJob = await _context.Jobs.FirstOrDefaultAsync(j => j.Title == newJobDto.Title, ct);
 
-                if(existingJob != null) 
+                if (existingJob != null)
                 {
-                    throw new BadRequestException(ServiceErrorMessages.JobTitleNotUnique); 
+                    throw new BadRequestException(ServiceErrorMessages.JobTitleNotUnique);
                 }
 
                 var newJob = new Job()
@@ -314,11 +314,19 @@ namespace SOUPICore.Services
                     StartDateTime = newJobDto.StartDateTime,
                     EndDateTime = newJobDto.EndDateTime,
                     Progress = newJobDto.Progress,
-                    CreationDateTime = newJobDto.CreationDateTime, 
-                    Status = newJobDto.Status,   
-                    ParentJobId = newJobDto.ParentJobId, 
+                    CreationDateTime = newJobDto.CreationDateTime,
+                    Status = newJobDto.Status,
+                    ParentJobId = newJobDto.ParentJobId,
                 };
 
+                AdjustProgress(newJob);
+
+                // check if it is a child job
+                if (newJob.ParentJobId != null)
+                {
+                    await CalculateAverageProgress(_context, newJob, ct);
+                }
+                
                 await CheckIfValidJob(newJob, ct);
 
                 await _context.Jobs.AddAsync(newJob, ct);
@@ -354,40 +362,28 @@ namespace SOUPICore.Services
                     throw new BadRequestException(ServiceErrorMessages.JobNotFound);
                 }
 
-                var dateOffset = updatedJobDto.StartDateTime.DayNumber - job.StartDateTime.DayNumber;
-
-                if (dateOffset != 0)
-                {
-                    await LoadChildTreeAsync(_context, job, ct);
-                    ShiftChildJobsRecursively(job, dateOffset);
-                }
-
                 job.CopyContentProperties(updatedJobDto);
 
-                if (job.Progress == 0)
+                AdjustProgress(job);
+
+                // check if it is a parent job 
+                if (job.ChildJobs.Count != 0)
                 {
-                    job.Status = JobStatus.New;
-                    job.IsCompleted = false;
-                    job.CompletedDateTime = null;
+                    await LoadChildTreeAsync(_context, job, ct);
+
+                    // account for offset 
+                    var dateOffset = updatedJobDto.StartDateTime.DayNumber - job.StartDateTime.DayNumber;
+
+                    if (dateOffset != 0)
+                    {
+                        ShiftChildJobsRecursively(job, dateOffset);
+                    }
                 }
-                else if (job.Progress > 0 && job.Progress < 100)
+
+                // check if it is a child job
+                if (job.ParentJobId != null)
                 {
-                    job.Status = JobStatus.Working;
-                    job.IsCompleted = false;
-                    job.CompletedDateTime = null;
-                }
-                else if (job.Progress == 100)
-                {
-                    job.Status = JobStatus.Completed;
-                    job.IsCompleted = true;
-                    job.CompletedDateTime = DateTime.Now;
-                }
-                else // fallback if the job.Progress somehow exceeds 0-100 range 
-                {
-                    job.Progress = 0;
-                    job.Status = JobStatus.New;
-                    job.IsCompleted = false;
-                    job.CompletedDateTime = null;
+                    await CalculateAverageProgress(_context, job, ct);
                 }
 
                 await CheckIfValidJob(job, ct);
@@ -402,45 +398,7 @@ namespace SOUPICore.Services
             }
         }
 
-        /// <summary>
-        /// Helper method to recursively eager-load the entire hierarchy of child jobs into the DbContext.
-        /// </summary>
-        private async Task LoadChildTreeAsync(DbContext context, Job job, CancellationToken ct)
-        {
-            // Ensure the ChildJobs collection is explicitly loaded into memory for tracking
-            if (!context.Entry(job).Collection(j => j.ChildJobs).IsLoaded)
-            {
-                await context.Entry(job).Collection(j => j.ChildJobs).LoadAsync(ct);
-            }
-
-            // Traverse down and load subsequent levels
-            if (job.ChildJobs != null)
-            {
-                foreach (var child in job.ChildJobs)
-                {
-                    await LoadChildTreeAsync(context, child, ct);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Helper method to recursively apply the calculated TimeSpan shift to all descendant child jobs.
-        /// </summary>
-        private void ShiftChildJobsRecursively(Job parentJob, int offset)
-        {
-            if (parentJob.ChildJobs == null) return;
-
-            foreach (var child in parentJob.ChildJobs)
-            {
-                // Shift the start date left/right
-                child.StartDateTime = child.StartDateTime.AddDays(offset);
-                child.EndDateTime = child.EndDateTime.AddDays(offset);
-
-                // Recurse deeper into the tree
-                ShiftChildJobsRecursively(child, offset);
-            }
-        }
-
+        /// УБРАТЬ
         /// <summary>
         /// Если у задачи есть подзадачи - все переносится вместе с ней 
         /// Если есть связанные задачи - происходит разрыв 
@@ -459,21 +417,21 @@ namespace SOUPICore.Services
                         .Include(j => j.PreviousJobSequences)
                         .Include(j => j.NextJobSequences)
                         .Include(j => j.ChildJobs)
-                        .FirstOrDefaultAsync(j => j.Id == jobId, ct); 
+                        .FirstOrDefaultAsync(j => j.Id == jobId, ct);
 
                 if (job == null)
                 {
-                    throw new BadRequestException(ServiceErrorMessages.JobNotFound); 
+                    throw new BadRequestException(ServiceErrorMessages.JobNotFound);
                 }
 
-                if(job.ParentJobId == newParentJobId)
+                if (job.ParentJobId == newParentJobId)
                 {
-                    return new JobDto(job); 
+                    return new JobDto(job);
                 }
 
                 _context.JobSequences.RemoveRange(job.PreviousJobSequences);
-                _context.JobSequences.RemoveRange(job.NextJobSequences); 
-                job.ParentJobId = newParentJobId; 
+                _context.JobSequences.RemoveRange(job.NextJobSequences);
+                job.ParentJobId = newParentJobId;
 
                 await CheckIfValidJob(job, ct);
                 await CheckIfCyclic(job.Id, job.ParentJobId, ct);
@@ -499,13 +457,13 @@ namespace SOUPICore.Services
                                         .Include(j => j.NextJobSequences)
                                         .Include(j => j.PreviousJobSequences)
                                         .Include(j => j.Assignments)
-                                            .ThenInclude(a => a.Activities)  
+                                            .ThenInclude(a => a.Activities)
                                         .Include(j => j.ChildJobs)
                                         .FirstOrDefaultAsync(j => j.Id == jobId, ct);
 
                 if (job == null)
                 {
-                    throw new BadRequestException(ServiceErrorMessages.JobNotFound); 
+                    throw new BadRequestException(ServiceErrorMessages.JobNotFound);
                 }
 
                 var jobSequences = job.NextJobSequences.Concat(job.PreviousJobSequences).ToList();
@@ -516,7 +474,7 @@ namespace SOUPICore.Services
                 _context.Assignments.RemoveRange(assignments);
                 _context.JobSequences.RemoveRange(jobSequences);
 
-                if(job.ChildJobs.Count != 0)
+                if (job.ChildJobs.Count != 0)
                 {
                     foreach (var j in job.ChildJobs)
                     {
@@ -525,6 +483,13 @@ namespace SOUPICore.Services
                 }
 
                 _context.Jobs.Remove(job);
+
+                // check if it is a child job
+                if (job.ParentJobId != null)
+                {
+                    await CalculateAverageProgress(_context, job, ct);
+                }
+
                 await _context.SaveChangesAsync(ct);
             }
             catch (Exception ex)
@@ -576,7 +541,7 @@ namespace SOUPICore.Services
 
             if (job.Progress < 0 || job.Progress > 100)
             {
-                throw new BadRequestException(ServiceErrorMessages.JobProgressOutOfRange); 
+                throw new BadRequestException(ServiceErrorMessages.JobProgressOutOfRange);
             }
         }
 
@@ -584,7 +549,7 @@ namespace SOUPICore.Services
         {
             using var _context = await _contextFactory.CreateDbContextAsync(ct);
 
-            if (parentJobId == null) return; 
+            if (parentJobId == null) return;
 
             var startJobId = childJobId;
             var targetJobId = parentJobId;
@@ -614,14 +579,113 @@ namespace SOUPICore.Services
                                                    .Select(j => j.Id)
                                                    .ToListAsync(ct);
 
-                    foreach (var nextId in nextJobIds) 
-                    { 
+                    foreach (var nextId in nextJobIds)
+                    {
                         if (!visited.Contains(nextId))
                         {
                             queue.Enqueue(nextId);
                         }
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Helper method to recursively eager-load the entire hierarchy of child jobs into the DbContext.
+        /// </summary>
+        private async Task LoadChildTreeAsync(SoupiDbContext context, Job job, CancellationToken ct)
+        {
+            // Ensure the ChildJobs collection is explicitly loaded into memory for tracking
+            if (!context.Entry(job).Collection(j => j.ChildJobs).IsLoaded)
+            {
+                await context.Entry(job).Collection(j => j.ChildJobs).LoadAsync(ct);
+            }
+
+            // Traverse down and load subsequent levels
+            if (job.ChildJobs != null)
+            {
+                foreach (var child in job.ChildJobs)
+                {
+                    await LoadChildTreeAsync(context, child, ct);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Helper method to recursively apply the calculated TimeSpan shift to all descendant child jobs.
+        /// </summary>
+        private void ShiftChildJobsRecursively(Job parentJob, int offset)
+        {
+            if (parentJob.ChildJobs == null) return;
+
+            foreach (var child in parentJob.ChildJobs)
+            {
+                // Shift the start date left/right
+                child.StartDateTime = child.StartDateTime.AddDays(offset);
+                child.EndDateTime = child.EndDateTime.AddDays(offset);
+
+                // Recurse deeper into the tree
+                ShiftChildJobsRecursively(child, offset);
+            }
+        }
+
+        /// <summary>
+        /// Helper method to recursively calculate the average progress and apply the calculated value to parent. 
+        /// </summary>
+        private async Task CalculateAverageProgress(SoupiDbContext context, Job childJob, CancellationToken ct)
+        {
+            if (childJob.ParentJobId == null) return;
+
+            var parentJob = await context.Jobs
+                                         .Include(j => j.ChildJobs)
+                                         .FirstOrDefaultAsync(j => j.Id == childJob.ParentJobId, ct);
+
+            if (parentJob == null)
+            {
+                throw new SoupiException(ServiceErrorMessages.JobNotFound);
+            }
+
+            var averageProgress = (int)parentJob.ChildJobs.Average(c => c.Progress);
+
+            if (averageProgress != parentJob.Progress)
+            {
+                parentJob.Progress = averageProgress;
+
+                AdjustProgress(parentJob);
+            }
+
+            if(parentJob.ParentJobId != null)
+            {
+                await CalculateAverageProgress(context, parentJob, ct);
+            }
+        }
+
+        public void AdjustProgress(Job job)
+        {
+            if (job.Progress == 0)
+            {
+                job.Status = JobStatus.New;
+                job.IsCompleted = false;
+                job.CompletedDateTime = null;
+            }
+            else if (job.Progress > 0 && job.Progress < 100)
+            {
+                job.Status = JobStatus.Working;
+                job.IsCompleted = false;
+                job.CompletedDateTime = null;
+            }
+            else if (job.Progress == 100)
+            {
+                job.Status = JobStatus.Completed;
+                job.IsCompleted = true;
+                job.CompletedDateTime = DateTime.Now;
+            }
+            else // fallback if the job.Progress somehow exceeds 0-100 range 
+            {
+                job.Progress = 0;
+                job.Status = JobStatus.New;
+                job.IsCompleted = false;
+                job.CompletedDateTime = null;
             }
         }
     }

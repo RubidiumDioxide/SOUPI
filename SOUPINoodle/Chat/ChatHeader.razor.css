@@ -1,0 +1,8 @@
+﻿.chat-header-container {
+    position: sticky;
+    background-color: var(--mud-palette-surface); 
+    top: 3.5rem;
+    z-index: 5;
+    width: 100%;
+    padding: 1.5rem;
+}

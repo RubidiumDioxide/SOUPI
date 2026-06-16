@@ -60,7 +60,7 @@ else
     {
         try
         {
-            if (Project.GithubRepository != null)
+            if (!string.IsNullOrEmpty(Project.GithubRepository))
             {
                 await gitHubRequestHandler.DeleteHook(Project);
             }

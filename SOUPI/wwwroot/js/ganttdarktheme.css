@@ -12,7 +12,6 @@
         --g-text-light: #ffffff;
         --g-bar-color: rgb(255, 167, 36); /* MudBlazor Primary */
         --g-progress-color: rgb(210, 120, 30); /* Darker Primary */
-        --g-bar-border: transparent;
         --g-handle-color: #9a91f0;
         --g-actions-background: #272737; /* Paper */
         --g-popup-actions: #323344;
@@ -108,3 +107,26 @@
 }
 
 
+#react-gantt-root.light-theme {
+    .gantt-container {
+        .gantt rect.bar {
+            stroke: var(--mud-palette-primary) !important;
+            stroke-width: 2px;
+        }
+
+        .gantt rect.bar-progress {
+            stroke: var(--mud-palette-primary) !important;
+            fill: var(--mud-palette-primary); 
+        }
+
+        .gantt .bar-label {
+            stroke: none !important;
+            fill: var(--mud-palette-text-primary);
+        }
+    }
+}
+
+.no-progress-drag .handle.progress {
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+}
